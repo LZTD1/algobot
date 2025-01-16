@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+	"tgbot/internal"
+	"tgbot/tests"
 	"time"
 
 	tele "gopkg.in/telebot.v4"
@@ -22,8 +24,13 @@ func main() {
 	}
 	defer b.Stop()
 
+	d := tests.NewMockStorage()
+	svc := tests.NewMockService(d)
+	msgHandler := internal.NewMessageHandler(svc)
+
 	b.Handle(tele.OnText, func(c tele.Context) error {
-		return c.Send("Hello!")
+		resp := msgHandler.Process(c)
+		return c.Send(resp.Message, resp.Keyboard)
 	})
 
 	b.Start()

@@ -1,20 +1,22 @@
 package tests
 
 import (
-	"errors"
 	"fmt"
 	"gopkg.in/telebot.v4"
 	"reflect"
+	"strings"
 	"testing"
-	"tgbot"
-	"tgbot/config"
-	"tgbot/handlers"
-	"tgbot/storage"
+	"tgbot/internal"
+	"tgbot/internal/config"
+	"tgbot/internal/contextHandlers"
+	"tgbot/internal/domain"
+	"time"
 )
 
 type MockContext struct {
 	userId      int64
 	userMessage string
+	unixTime    int64
 	telebot.Context
 }
 
@@ -23,7 +25,8 @@ func (m *MockContext) Message() *telebot.Message {
 		Sender: &telebot.User{
 			ID: m.userId,
 		},
-		Text: m.userMessage,
+		Text:     m.userMessage,
+		Unixtime: m.unixTime,
 	}
 }
 
@@ -32,82 +35,247 @@ func (m *MockContext) setUserMessage(uid int64, msg string) {
 	m.userMessage = msg
 }
 
+func (m *MockContext) setUserMessageWithTime(uid int64, msg string, unix int64) {
+	m.userId = uid
+	m.userMessage = msg
+	m.unixTime = unix
+}
+
 func TestDefaultHandler(t *testing.T) {
 	t.Run("If user is not register", func(t *testing.T) {
 		mockContext := MockContext{}
 		mockStorage := NewMockStorage()
-		messageHandler := tgbot.NewMessageHandler(mockStorage)
+		mockService := NewMockService(mockStorage)
+
+		messageHandler := internal.NewMessageHandler(mockService)
 
 		mockContext.setUserMessage(12, "hello world!")
 		mockStorage.setUserInfo(12, false)
 
 		got := messageHandler.Process(&mockContext)
-		want := handlers.Response{
-			Message: config.HelloWorld,
+		want := contextHandlers.Response{
+			Message:  config.HelloWorld,
+			Keyboard: config.StartKeyboard,
 		}
 
 		if len(mockStorage.userMap) != 1 {
 			t.Fatalf("want 1 register user, but got %d", len(mockStorage.userMap))
 		}
-		assertObjects(t, got, want)
-	})
-	t.Run("If user send any bullshit", func(t *testing.T) {
-		mockContext := MockContext{}
-		mockStorage := NewMockStorage()
-		messageHandler := tgbot.NewMessageHandler(mockStorage)
-
-		mockContext.setUserMessage(12, "aezakmi")
-		mockStorage.setUserInfo(12, true)
-
-		got := messageHandler.Process(&mockContext)
-		want := handlers.Response{
-			Message: config.Incorrect,
+		if len(got.Keyboard.ReplyKeyboard) != 2 {
+			t.Errorf("want 2 rows, but got %d", len(got.Keyboard.ReplyKeyboard))
 		}
+		assertObjects(t, got, want)
 
+		got = messageHandler.Process(&mockContext)
+		want = contextHandlers.Response{
+			Message:  config.Incorrect,
+			Keyboard: config.StartKeyboard,
+		}
+		if len(got.Keyboard.ReplyKeyboard) != 2 {
+			t.Errorf("want 2 rows, but got %d", len(got.Keyboard.ReplyKeyboard))
+		}
 		assertObjects(t, got, want)
 	})
-	t.Run("If user register, and send setting", func(t *testing.T) {
-		mockContext := MockContext{}
-		mockStorage := NewMockStorage()
-		messageHandler := tgbot.NewMessageHandler(mockStorage)
+	t.Run("If user register", func(t *testing.T) {
+		t.Run("Send any bullshit", func(t *testing.T) {
+			mockContext := MockContext{}
+			mockStorage := NewMockStorage()
+			mockService := NewMockService(mockStorage)
+			messageHandler := internal.NewMessageHandler(mockService)
 
-		t.Run("Cookie set, notif off", func(t *testing.T) {
-			want := handlers.Response{
-				Message: fmt.Sprintf(
-					"%s\n\n%s%s\n%s%s",
-					config.Settings,
-					config.Cookie,
-					config.SetParam,
-					config.ChatNotifications,
-					config.NotSetParam,
-				),
-			}
-
+			mockContext.setUserMessage(12, "aezakmi")
 			mockStorage.setUserInfo(12, true)
-			mockStorage.SetCookie(12, "cookie")
-
-			mockContext.setUserMessage(12, "Настройки")
 
 			got := messageHandler.Process(&mockContext)
+			want := contextHandlers.Response{
+				Message:  config.Incorrect,
+				Keyboard: config.StartKeyboard,
+			}
+			if len(got.Keyboard.ReplyKeyboard) != 2 {
+				t.Errorf("want 2 rows, but got %d", len(got.Keyboard.ReplyKeyboard))
+			}
 			assertObjects(t, got, want)
 		})
-		t.Run("Cookie unset, notif on", func(t *testing.T) {
-			want := handlers.Response{
-				Message: fmt.Sprintf(
-					"%s\n\n%s%s\n%s%s",
-					config.Settings,
-					config.Cookie,
-					config.NotSetParam,
-					config.ChatNotifications,
-					config.SetParam,
-				),
+		t.Run("Send settings", func(t *testing.T) {
+			mockContext := MockContext{}
+			mockStorage := NewMockStorage()
+			mockService := NewMockService(mockStorage)
+			messageHandler := internal.NewMessageHandler(mockService)
+
+			t.Run("Cookie set, notif off", func(t *testing.T) {
+				want := contextHandlers.Response{
+					Message: fmt.Sprintf(
+						"%s\n\n%s%s\n%s%s",
+						config.Settings,
+						config.Cookie,
+						config.SetParam,
+						config.ChatNotifications,
+						config.NotSetParam,
+					),
+				}
+
+				mockStorage.setUserInfo(12, true)
+				mockStorage.SetCookie(12, "cookie")
+
+				mockContext.setUserMessage(12, "Настройки")
+
+				got := messageHandler.Process(&mockContext)
+				assertObjects(t, got, want)
+			})
+			t.Run("Cookie unset, notif on", func(t *testing.T) {
+				want := contextHandlers.Response{
+					Message: fmt.Sprintf(
+						"%s\n\n%s%s\n%s%s",
+						config.Settings,
+						config.Cookie,
+						config.NotSetParam,
+						config.ChatNotifications,
+						config.SetParam,
+					),
+				}
+
+				mockStorage.setUserInfo(12, true)
+				mockStorage.SetNotification(12, true)
+
+				mockContext.setUserMessage(12, "Настройки")
+
+				got := messageHandler.Process(&mockContext)
+				assertObjects(t, got, want)
+			})
+		})
+		t.Run("Send get missing kids", func(t *testing.T) {
+			t.Run("Group exists", func(t *testing.T) {
+				g := []domain.Group{
+					{
+						Id:     1,
+						Name:   "Лекция 1",
+						Lesson: "Lession 1",
+						Time:   getDayByTime(28, 10, 0),
+					},
+					{
+						Id:     2,
+						Name:   "Лекция 2",
+						Lesson: "Lession 2",
+						Time:   getDayByTime(21, 12, 0),
+					},
+					{
+						Id:     3,
+						Name:   "Лекция 3",
+						Lesson: "Lession 3",
+						Time:   getDayByTime(27, 10, 0),
+					},
+				}
+
+				mockContext := MockContext{}
+				mockStorage := NewMockStorage()
+				mockService := NewMockService(mockStorage)
+				messageHandler := internal.NewMessageHandler(mockService)
+
+				mockStorage.setUserInfo(12, true)
+				mockStorage.SetGroups(12, g)
+				mockContext.setUserMessageWithTime(12, "Получить отсутсвующих", getUnixByDay(28, 9, 40))
+
+				got := messageHandler.Process(&mockContext)
+				want := contextHandlers.Response{
+					Message: fmt.Sprintf(
+						"%s%s\n%s%s\n%s%d\n%s%d\n%s",
+						config.GroupName,
+						g[0].Name,
+						config.Lection,
+						g[0].Lesson,
+						config.TotalKids,
+						g[0].AllKids,
+						config.MissingKids,
+						len(g[0].MissingKids),
+						strings.Join(g[0].MissingKids, "\n"),
+					),
+				}
+				assertObjects(t, got, want)
+			})
+			t.Run("Group Non exists", func(t *testing.T) {
+				g := []domain.Group{
+					{
+						Id:     1,
+						Name:   "Лекция 1",
+						Lesson: "Lession 1",
+						Time:   getDayByTime(28, 10, 0),
+					},
+					{
+						Id:     2,
+						Name:   "Лекция 2",
+						Lesson: "Lession 2",
+						Time:   getDayByTime(21, 12, 0),
+					},
+					{
+						Id:     3,
+						Name:   "Лекция 3",
+						Lesson: "Lession 3",
+						Time:   getDayByTime(27, 10, 0),
+					},
+				}
+
+				mockContext := MockContext{}
+				mockStorage := NewMockStorage()
+				mockService := NewMockService(mockStorage)
+				messageHandler := internal.NewMessageHandler(mockService)
+
+				mockStorage.setUserInfo(12, true)
+				mockStorage.SetGroups(12, g)
+				mockContext.setUserMessageWithTime(12, "Получить отсутсвующих", getUnixByDay(28, 22, 40))
+
+				got := messageHandler.Process(&mockContext)
+				want := contextHandlers.Response{
+					Message: "group not found",
+				}
+				assertObjects(t, got, want)
+			})
+		})
+		t.Run("Send my groups", func(t *testing.T) {
+			g := []domain.Group{
+				{
+					Id:     1,
+					Name:   "Гр 1",
+					Lesson: "Lession 1",
+					Time:   getDayByTime(28, 10, 0),
+				},
+				{
+					Id:     3,
+					Name:   "Гр 3",
+					Lesson: "Lession 4",
+					Time:   getDayByTime(27, 14, 0),
+				},
+				{
+					Id:     2,
+					Name:   "Гр 2",
+					Lesson: "Lession 2",
+					Time:   getDayByTime(21, 12, 0),
+				},
+
+				{
+					Id:     4,
+					Name:   "Гр 4",
+					Lesson: "Lession 3",
+					Time:   getDayByTime(27, 10, 0),
+				},
 			}
 
+			mockContext := MockContext{}
+			mockStorage := NewMockStorage()
+			mockService := NewMockService(mockStorage)
+			messageHandler := internal.NewMessageHandler(mockService)
+
 			mockStorage.setUserInfo(12, true)
-			mockStorage.SetNotification(12, true)
+			mockStorage.SetGroups(12, g)
+			mockContext.setUserMessage(12, "Мои группы")
 
-			mockContext.setUserMessage(12, "Настройки")
-
+			want := contextHandlers.Response{
+				Message: fmt.Sprintf(
+					"%s4\n\n%s\n\n%s",
+					config.MyGroups,
+					"1. Гр 4 🕐 сб 10:00\n2. Гр 3 🕐 сб 14:00",
+					"1. Гр 1 🕐 вс 10:00\n2. Гр 2 🕐 вс 12:00",
+				),
+			}
 			got := messageHandler.Process(&mockContext)
 			assertObjects(t, got, want)
 		})
@@ -115,86 +283,24 @@ func TestDefaultHandler(t *testing.T) {
 
 }
 
-func assertObjects(t *testing.T, got handlers.Response, want handlers.Response) {
+func assertObjects(t *testing.T, got contextHandlers.Response, want contextHandlers.Response) {
+	t.Helper()
 	if reflect.DeepEqual(got, want) != true {
-		t.Fatalf("Want %+v, got %v", want, got)
+		t.Errorf("Expected: [%s]\nActual: [%s]\n", got.Message, want.Message)
+		t.Errorf("Length Expected: %d, Length Actual: %d\n", len(got.Message), len(want.Message))
 	}
 }
 
-type UserInfo struct {
-	IsRegistered bool
-	Cookie       string
-	Notification bool
+// getDayByTime 28, 21 вск ||  27, 20 сб
+func getDayByTime(day, hour, min int) time.Time {
+	return time.Date(2025, 9, day, hour, min, 0, 0, time.UTC)
 }
 
-type MockStorage struct {
-	userMap map[int64]UserInfo
-}
+// getUnixByDay поскольку телеграм переводит из Unix время в мое время на операционной системе, нужно предварительно при переводе вычесть разницу времен что бы перевод был корректен
+func getUnixByDay(day, hour, min int) int64 {
+	utcTime := time.Date(2025, 9, day, hour, min, 0, 0, time.UTC)
+	_, offset := time.Now().Zone()
 
-func NewMockStorage() *MockStorage {
-	return &MockStorage{
-		userMap: make(map[int64]UserInfo),
-	}
-}
-
-func (s MockStorage) User(uid int64) (storage.User, error) {
-	val, ok := s.userMap[uid]
-	if ok {
-		if !val.IsRegistered {
-			return storage.User{}, errors.New("not found")
-		}
-		return storage.User{}, nil
-	}
-	return storage.User{}, errors.New("not found")
-}
-
-func (s MockStorage) Cookie(uid int64) (string, error) {
-	val, ok := s.userMap[uid]
-	if !ok || val.Cookie == "" {
-		return "", errors.New("not found")
-	}
-	return val.Cookie, nil
-}
-
-func (s MockStorage) SetCookie(uid int64, cookie string) {
-	val, ok := s.userMap[uid]
-	if ok {
-		val.Cookie = cookie
-		s.userMap[uid] = val
-	}
-}
-func (s MockStorage) RegisterUser(uid int64) {
-	s.userMap[uid] = UserInfo{
-		IsRegistered: true,
-		Cookie:       "",
-		Notification: false,
-	}
-}
-func (s MockStorage) SetUserAgent(uid int64, agent string) {
-	panic("implement me")
-}
-
-func (s MockStorage) Groups(uid int64) []string {
-	panic("implement me")
-}
-
-func (s MockStorage) SetGroups(uid int64, groups []string) {
-	panic("implement me")
-}
-func (s MockStorage) Notification(uid int64) bool {
-	return s.userMap[uid].Notification
-}
-func (s MockStorage) SetNotification(uid int64, state bool) {
-	val, ok := s.userMap[uid]
-	if ok {
-		val.Notification = state
-		s.userMap[uid] = val
-	}
-}
-func (s MockStorage) setUserInfo(uid int64, isRegister bool) {
-	s.userMap[uid] = UserInfo{
-		IsRegistered: isRegister,
-		Cookie:       "",
-		Notification: false,
-	}
+	unixTime := utcTime.Add(-time.Duration(offset) * time.Second).Unix()
+	return unixTime
 }

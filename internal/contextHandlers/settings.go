@@ -1,31 +1,31 @@
-package handlers
+package contextHandlers
 
 import (
 	"gopkg.in/telebot.v4"
 	"strings"
-	"tgbot/config"
-	"tgbot/storage"
+	"tgbot/internal/config"
+	"tgbot/internal/service"
 )
 
-type SettingsHandler struct {
-	storage storage.Storage
+type Settings struct {
+	svc service.Service
 }
 
-func NewSettingsHandler(storage storage.Storage) *SettingsHandler {
-	return &SettingsHandler{storage}
+func NewSettings(svc service.Service) *Settings {
+	return &Settings{svc: svc}
 }
 
-func (s *SettingsHandler) Message() string {
+func (s *Settings) Message() string {
 	return "Настройки"
 }
-func (s *SettingsHandler) Process(ctx telebot.Context) Response {
+func (s *Settings) Process(ctx telebot.Context) Response {
 	uid := ctx.Message().Sender.ID
 
-	c, err := s.storage.Cookie(uid)
+	c, err := s.svc.Cookie(uid)
 	if err != nil {
 		c = ""
 	}
-	n := s.storage.Notification(uid)
+	n := s.svc.Notification(uid)
 
 	return Response{
 		Message: getMessageSettings(c, n),
