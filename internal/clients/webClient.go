@@ -1,6 +1,7 @@
 package clients
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -9,6 +10,9 @@ type ClientError struct {
 	Message string
 }
 
+func (c ClientError) Error() string {
+	return fmt.Sprintf("%d: %s", c.Code, c.Message)
+}
 func GetError(code int, message string) *ClientError {
 	return &ClientError{code, message}
 }
@@ -17,15 +21,15 @@ type WebClient interface {
 	// GetKidsNamesByGroup получить всех детей в группе
 	GetKidsNamesByGroup(cookie, group string) (*GroupResponse, *ClientError)
 	// GetKidsStatsByGroup получить статистику посещения детей в группе
-	GetKidsStatsByGroup(cookie, group string)
+	GetKidsStatsByGroup(cookie, group string) (*KidsStats, *ClientError)
 	// OpenLession открыть лекцию с идентификатором {lession}
-	OpenLession(cookie, group, lession string)
+	OpenLession(cookie, group, lession string) *ClientError
 	// CloseLession закрыть лекцию с идентификатором {lession}
-	CloseLession(cookie, group, lession string)
+	CloseLession(cookie, group, lession string) *ClientError
 	// GetKidsMessages получить новые сообщения детей на платформе
-	GetKidsMessages(cookie string)
+	GetKidsMessages(cookie string) (*KidsMessages, *ClientError)
 	// GetAllGroupsByUser получить все группы
-	GetAllGroupsByUser(cookie string)
+	GetAllGroupsByUser(cookie string) ([]AllGroupsUser, *ClientError)
 }
 
 type GroupResponse struct {
@@ -69,4 +73,42 @@ type GroupResponse struct {
 			} `json:"_links"`
 		} `json:"items"`
 	} `json:"data"`
+}
+
+type KidsStats struct {
+	Status string `json:"status"`
+	Data   []struct {
+		StudentID  int `json:"student_id"`
+		Attendance []struct {
+			LessonID           int    `json:"lesson_id"`
+			LessonTitle        string `json:"lesson_title"`
+			StartTimeFormatted string `json:"start_time_formatted"`
+			Status             string `json:"status"`
+		} `json:"attendance"`
+	} `json:"data"`
+}
+
+type KidsMessages struct {
+	Status string `json:"status"`
+	Data   struct {
+		Projects []struct {
+			UID         string `json:"uid"`
+			New         bool   `json:"new"`
+			SenderID    int    `json:"senderId"`
+			SenderScope string `json:"senderScope"`
+			Type        string `json:"type"`
+			Content     string `json:"content"`
+			Name        string `json:"name"`
+			LastTime    string `json:"lastTime"`
+			Title       string `json:"title"`
+			Link        string `json:"link"`
+		} `json:"projects"`
+	} `json:"data"`
+}
+
+type AllGroupsUser struct {
+	Title       string
+	GroupId     string
+	TimeLesson  string
+	RegularTime string
 }
