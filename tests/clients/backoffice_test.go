@@ -2,6 +2,7 @@ package test
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -37,18 +38,17 @@ func TestBackoffice(t *testing.T) {
 	}
 
 	t.Run("GetKidsNamesByGroup", func(t *testing.T) {
-		t.Run("401 | Unauthorized", func(t *testing.T) {
+		t.Run("GENERAL | 401 | Unauthorized", func(t *testing.T) {
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusUnauthorized)
 				w.Write([]byte("[]"))
 			}))
-			defer ts.Close()
 
 			bo := clients.NewBackoffice(ts.URL, boSettings)
 			_, err := bo.GetKidsNamesByGroup("", "")
 			assertError(t, err, 401, "[]")
 		})
-		t.Run("500 | Servers returns error", func(t *testing.T) {
+		t.Run("GENERAL | 500 | Servers returns error", func(t *testing.T) {
 			var calls []string
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -64,7 +64,7 @@ func TestBackoffice(t *testing.T) {
 			}
 
 		})
-		t.Run("Timeout | Servers return timeout", func(t *testing.T) {
+		t.Run("GENERAL | Timeout | Servers return timeout", func(t *testing.T) {
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				time.Sleep(100 * time.Millisecond)
 				w.WriteHeader(http.StatusOK)
@@ -82,7 +82,7 @@ func TestBackoffice(t *testing.T) {
 			ts := getBOServer(t, map[string]string{
 				"groupId": groupId,
 				"expand":  "lastGroup",
-			}, "GET", cookie, GetKidsNamesByGroupResponse)
+			}, "GET", cookie, "", GetKidsNamesByGroupResponse)
 			defer ts.Close()
 
 			bo := clients.NewBackoffice(ts.URL, boSettings)
@@ -105,7 +105,7 @@ func TestBackoffice(t *testing.T) {
 
 			ts := getBOServer(t, map[string]string{
 				"group": groupId,
-			}, "GET", cookie, GetKidsStatsByGroupResponse)
+			}, "GET", cookie, "", GetKidsStatsByGroupResponse)
 			defer ts.Close()
 
 			bo := clients.NewBackoffice(ts.URL, boSettings)
@@ -127,7 +127,7 @@ func TestBackoffice(t *testing.T) {
 			ts := getBOServer(t, map[string]string{
 				"from":  "0",
 				"limit": "30",
-			}, "GET", cookie, KidsMessagesResponse)
+			}, "GET", cookie, "", KidsMessagesResponse)
 			defer ts.Close()
 
 			bo := clients.NewBackoffice(ts.URL, boSettings)
@@ -150,7 +150,7 @@ func TestBackoffice(t *testing.T) {
 				"GroupSearch[status][]": "active",
 				"presetType":            "all",
 				"_pjax":                 "#group-grid-pjax",
-			}, "GET", cookie, HtmlResponse)
+			}, "GET", cookie, "", HtmlResponse)
 			defer ts.Close()
 
 			bo := clients.NewBackoffice(ts.URL, boSettings)
@@ -168,7 +168,7 @@ func TestBackoffice(t *testing.T) {
 			cookie := "111"
 			group := "111"
 			lession := "222"
-			ts := getBOServer(t, map[string]string{}, "POST", cookie, "[]")
+			ts := getBOServer(t, map[string]string{}, "POST", cookie, "ajaxUrl=^%^2Fapi^%^2Fv2^%^2Fgroup^%^2Flesson^%^2Fstatus&btnClass=btn+btn-xs+btn-danger&status=0&lessonId=222&groupId=111", "[]")
 			defer ts.Close()
 
 			bo := clients.NewBackoffice(ts.URL, boSettings)
@@ -176,29 +176,45 @@ func TestBackoffice(t *testing.T) {
 			assertNoError(t, err)
 		})
 	})
+	t.Run("OpenLession", func(t *testing.T) {
+		t.Run("200 | Servers return OK", func(t *testing.T) {
+			cookie := "111"
+			group := "111"
+			lession := "222"
+			ts := getBOServer(t, map[string]string{}, "POST", cookie, "ajaxUrl=^%^2Fapi^%^2Fv2^%^2Fgroup^%^2Flesson^%^2Fstatus&btnClass=btn+btn-xs+btn-danger&status=10&lessonId=222&groupId=111", "[]")
+			defer ts.Close()
+
+			bo := clients.NewBackoffice(ts.URL, boSettings)
+			err := bo.OpenLession(cookie, group, lession)
+			assertNoError(t, err)
+		})
+	})
 }
 
-func getBOServer(t *testing.T, prm map[string]string, method string, cookie string, response string) *httptest.Server {
+func getBOServer(t *testing.T, wantedParams map[string]string, wantedMethod string, wantedCookie string, wantedBody string, serverResponse string) *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		uri, _ := url.Parse(r.RequestURI)
 		params := uri.Query()
 
-		for k, v := range prm {
+		for k, v := range wantedParams {
 			if params.Get(k) != v {
 				t.Fatalf("expected %s=%s, got %s", k, v, params.Get(k))
 			}
 		}
-		if r.Method != method {
+		if r.Method != wantedMethod {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		if r.Header.Get("Cookie") != cookie {
+		if r.Header.Get("Cookie") != wantedCookie {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		if r.Body
+		if getString(r.Body) != wantedBody {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(response))
+		w.Write([]byte(serverResponse))
 	}))
 	return ts
 }
@@ -218,11 +234,20 @@ func assertError(t *testing.T, err *clients.ClientError, i int, s string) {
 		t.Fatal("Expected error, got nil")
 	}
 	if err.Code != i {
+		t.Errorf("%+v\n", err)
 		t.Fatalf("Expected code %d, got %d", i, err.Code)
 	}
 	if s != "_" {
 		if err.Message != s {
+			t.Errorf("%+v\n", err)
 			t.Fatalf("Expected message %s, got %s", s, err.Message)
 		}
 	}
+}
+func getString(body io.Reader) string {
+	all, err := io.ReadAll(body)
+	if err != nil {
+		return ""
+	}
+	return string(all)
 }
