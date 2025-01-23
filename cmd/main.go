@@ -1,8 +1,10 @@
 package main
 
 import (
+	middleware2 "gopkg.in/telebot.v4/middleware"
 	"log"
 	"tgbot/internal/contextHandlers"
+	"tgbot/internal/middleware"
 	"tgbot/tests/mocks"
 	"time"
 
@@ -26,12 +28,12 @@ func main() {
 
 	svc := mocks.NewMockService(make(map[int64]bool))
 
+	regMid := middleware.NewRegister(svc)
 	// TODO | Попробовать передавать синглетоны, а не инстансы обьектов
-	// TODO | Add middleware to check user registration
-	// TODO | And logging every message
 
 	msgHandler := contextHandlers.NewOnText(svc)
 
+	b.Use(regMid.Middleware, middleware.MessageLogger, middleware2.AutoRespond())
 	b.Handle(tele.OnText, msgHandler.Handle)
 
 	b.Start()
