@@ -3,7 +3,7 @@ package contextHandlers
 import "gopkg.in/telebot.v4"
 
 type ContextHandler interface {
-	Message() string
+	CanHandle(ctx telebot.Context) bool
 	Process(ctx telebot.Context) Response
 }
 

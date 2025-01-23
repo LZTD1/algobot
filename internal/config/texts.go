@@ -18,3 +18,5 @@ const TotalKids = "Общее число детей: "
 const MissingKids = "Отсутсвуют: "
 
 const MyGroups = "Всего групп: "
+const UserDontHaveGroup = "У вас нету никаких групп!"
+const CurrentGroupDontFind = "В данный момент, никакой группы не найдено!\nПопробуйте обновить свои группы"

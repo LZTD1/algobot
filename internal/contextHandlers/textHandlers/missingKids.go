@@ -1,10 +1,11 @@
-package contextHandlers
+package textHandlers
 
 import (
 	"fmt"
 	"gopkg.in/telebot.v4"
 	"strings"
 	"tgbot/internal/config"
+	"tgbot/internal/contextHandlers"
 	"tgbot/internal/domain"
 	"tgbot/internal/service"
 )
@@ -17,17 +18,21 @@ func NewMissingKids(s service.Service) *MissingKids {
 	return &MissingKids{s}
 }
 
-func (m *MissingKids) Message() string {
-	return "Получить отсутсвующих"
+func (m *MissingKids) CanHandle(ctx telebot.Context) bool {
+	if ctx.Message().Text == "Получить отсутсвующих" {
+		return true
+	}
+	return false
 }
-func (m *MissingKids) Process(ctx telebot.Context) Response {
+
+func (m *MissingKids) Process(ctx telebot.Context) contextHandlers.Response {
 	g, e := m.s.CurrentGroup(ctx.Message().Sender.ID, ctx.Message().Time())
 	if e != nil {
-		return Response{
-			Message: e.Error(),
+		return contextHandlers.Response{
+			Message: config.CurrentGroupDontFind,
 		}
 	}
-	return Response{Message: message(g)}
+	return contextHandlers.Response{Message: message(g)}
 }
 
 func message(g domain.Group) string {

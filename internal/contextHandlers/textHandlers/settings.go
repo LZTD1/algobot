@@ -1,9 +1,10 @@
-package contextHandlers
+package textHandlers
 
 import (
 	"gopkg.in/telebot.v4"
 	"strings"
 	"tgbot/internal/config"
+	"tgbot/internal/contextHandlers"
 	"tgbot/internal/service"
 )
 
@@ -15,10 +16,13 @@ func NewSettings(svc service.Service) *Settings {
 	return &Settings{svc: svc}
 }
 
-func (s *Settings) Message() string {
-	return "Настройки"
+func (s *Settings) CanHandle(ctx telebot.Context) bool {
+	if ctx.Message().Text == "Настройки" {
+		return true
+	}
+	return false
 }
-func (s *Settings) Process(ctx telebot.Context) Response {
+func (s *Settings) Process(ctx telebot.Context) contextHandlers.Response {
 	uid := ctx.Message().Sender.ID
 
 	c, err := s.svc.Cookie(uid)
@@ -27,8 +31,9 @@ func (s *Settings) Process(ctx telebot.Context) Response {
 	}
 	n := s.svc.Notification(uid)
 
-	return Response{
-		Message: getMessageSettings(c, n),
+	return contextHandlers.Response{
+		Message:  getMessageSettings(c, n),
+		Keyboard: config.SettingsKeyboard,
 	}
 }
 

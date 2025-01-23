@@ -1,10 +1,11 @@
-package contextHandlers
+package textHandlers
 
 import (
 	"fmt"
 	"gopkg.in/telebot.v4"
 	"strings"
 	"tgbot/internal/config"
+	"tgbot/internal/contextHandlers"
 	"tgbot/internal/domain"
 	"tgbot/internal/helpers"
 	"tgbot/internal/service"
@@ -29,17 +30,19 @@ func NewMyGroups(s service.Service) *MyGroups {
 	return &MyGroups{s}
 }
 
-func (m MyGroups) Message() string {
-	return "Мои группы"
+func (m MyGroups) CanHandle(ctx telebot.Context) bool {
+	if ctx.Message().Text == "Мои группы" {
+		return true
+	}
+	return false
 }
-
-func (m MyGroups) Process(ctx telebot.Context) Response {
+func (m MyGroups) Process(ctx telebot.Context) contextHandlers.Response {
 	g, e := m.s.Groups(ctx.Message().Sender.ID)
 	if e != nil {
-		return Response{Message: "У вас нету никаких групп!"}
+		return contextHandlers.Response{Message: config.UserDontHaveGroup, Keyboard: config.MyGroupsKeyboard}
 	}
 	sorted := helpers.GetSortedGroups(g)
-	return Response{Message: toMsg(sorted)}
+	return contextHandlers.Response{Message: toMsg(sorted), Keyboard: config.MyGroupsKeyboard}
 }
 
 func toMsg(g []domain.Group) string {
