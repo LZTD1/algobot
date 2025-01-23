@@ -3,7 +3,6 @@ package callbackHandlers
 import (
 	"gopkg.in/telebot.v4"
 	"tgbot/internal/config"
-	"tgbot/internal/contextHandlers/defaultHandler"
 	"tgbot/internal/service"
 	"tgbot/internal/stateMachine"
 )
@@ -25,10 +24,8 @@ func (s *SetCookie) CanHandle(ctx telebot.Context) bool {
 	return false
 }
 
-func (s *SetCookie) Process(ctx telebot.Context) defaultHandler.Response {
+func (s *SetCookie) Process(ctx telebot.Context) error {
 	s.state.SetStatement(ctx.Callback().Sender.ID, stateMachine.SendingCookie)
-	return defaultHandler.Response{
-		Message:  config.SendingCookie,
-		Keyboard: config.RejectKeyboard,
-	}
+
+	return ctx.Send(config.SendingCookie, config.RejectKeyboard)
 }

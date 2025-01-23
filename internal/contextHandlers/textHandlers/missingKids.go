@@ -5,7 +5,6 @@ import (
 	"gopkg.in/telebot.v4"
 	"strings"
 	"tgbot/internal/config"
-	"tgbot/internal/contextHandlers/defaultHandler"
 	"tgbot/internal/domain"
 	"tgbot/internal/service"
 )
@@ -25,14 +24,12 @@ func (m *MissingKids) CanHandle(ctx telebot.Context) bool {
 	return false
 }
 
-func (m *MissingKids) Process(ctx telebot.Context) defaultHandler.Response {
+func (m *MissingKids) Process(ctx telebot.Context) error {
 	g, e := m.s.CurrentGroup(ctx.Message().Sender.ID, ctx.Message().Time())
 	if e != nil {
-		return defaultHandler.Response{
-			Message: config.CurrentGroupDontFind,
-		}
+		return ctx.Send(config.CurrentGroupDontFind)
 	}
-	return defaultHandler.Response{Message: message(g)}
+	return ctx.Send(message(g))
 }
 
 func message(g domain.Group) string {

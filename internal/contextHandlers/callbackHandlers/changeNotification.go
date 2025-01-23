@@ -23,15 +23,10 @@ func (c ChangeNotification) CanHandle(ctx telebot.Context) bool {
 	return false
 }
 
-func (c ChangeNotification) Process(ctx telebot.Context) defaultHandler.Response {
+func (c ChangeNotification) Process(ctx telebot.Context) error {
 	uid := ctx.Callback().Sender.ID
 	notify := c.svc.Notification(uid)
 	c.svc.SetNotification(uid, !notify)
 
-	settings := c.settings.Process(ctx)
-	return defaultHandler.Response{
-		Action:   defaultHandler.EditMessage,
-		Message:  settings.Message,
-		Keyboard: settings.Keyboard,
-	}
+	return c.settings.Process(ctx)
 }

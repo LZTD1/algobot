@@ -5,7 +5,6 @@ import (
 	"testing"
 	"tgbot/internal/config"
 	"tgbot/internal/contextHandlers"
-	"tgbot/internal/contextHandlers/defaultHandler"
 	"tgbot/internal/stateMachine"
 	"tgbot/tests/mocks"
 )
@@ -22,15 +21,12 @@ func TestCallback(t *testing.T) {
 
 		queryHandler := contextHandlers.NewOnCallback(ms, &mockState)
 
-		wanted := defaultHandler.Response{
-			Message:  config.SendingCookie,
-			Keyboard: config.RejectKeyboard,
-		}
+		queryHandler.Process(&mockContext)
 
-		got := queryHandler.Process(&mockContext)
+		assertContextOptsLen(t, mockContext.SentMessages[0], 1)
+		assertMessages(t, mockContext.SentMessages[0], config.SendingCookie)
+		assertKeyboards(t, mockContext.SentMessages[0], config.RejectKeyboard)
 
-		assertMessages(t, got, wanted)
-		assertKeyboards(t, got, wanted)
 		assertMockStatement(t, mockState, stateMachine.SendingCookie, 3)
 	})
 	t.Run("Change notification", func(t *testing.T) {
@@ -44,28 +40,25 @@ func TestCallback(t *testing.T) {
 
 		queryHandler := contextHandlers.NewOnCallback(ms, &mockState)
 
-		wanted := defaultHandler.Response{
-			Message: fmt.Sprintf(
-				"%s\n\n%s%s\n%s%s",
-				config.Settings,
-				config.Cookie,
-				config.NotSetParam,
-				config.ChatNotifications,
-				config.SetParam,
-			),
-			Keyboard: config.SettingsKeyboard,
-		}
-
 		if ms.StubNotification != false {
 			t.Fatalf("Wanted notif false, got true")
 		}
-		got := queryHandler.Process(&mockContext)
+		queryHandler.Process(&mockContext)
 		if ms.StubNotification != true {
 			t.Fatalf("Wanted notif true, got false")
 		}
 
-		assertMessages(t, got, wanted)
-		assertKeyboards(t, got, wanted)
+		assertContextOptsLen(t, mockContext.SentMessages[0], 1)
+		assertMessages(t, mockContext.SentMessages[0], fmt.Sprintf(
+			"%s\n\n%s%s\n%s%s",
+			config.Settings,
+			config.Cookie,
+			config.NotSetParam,
+			config.ChatNotifications,
+			config.SetParam,
+		))
+		assertKeyboards(t, mockContext.SentMessages[0], config.SettingsKeyboard)
+
 	})
 	t.Run("Refresh groups", func(t *testing.T) {
 		ms := mocks.NewMockService(map[int64]bool{

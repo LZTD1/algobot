@@ -4,7 +4,6 @@ import (
 	"gopkg.in/telebot.v4"
 	"strings"
 	"tgbot/internal/config"
-	"tgbot/internal/contextHandlers/defaultHandler"
 	"tgbot/internal/service"
 )
 
@@ -22,7 +21,7 @@ func (s *Settings) CanHandle(ctx telebot.Context) bool {
 	}
 	return false
 }
-func (s *Settings) Process(ctx telebot.Context) defaultHandler.Response {
+func (s *Settings) Process(ctx telebot.Context) error {
 	uid := ctx.Message().Sender.ID
 
 	c, err := s.svc.Cookie(uid)
@@ -31,10 +30,7 @@ func (s *Settings) Process(ctx telebot.Context) defaultHandler.Response {
 	}
 	n := s.svc.Notification(uid)
 
-	return defaultHandler.Response{
-		Message:  getMessageSettings(c, n),
-		Keyboard: config.SettingsKeyboard,
-	}
+	return ctx.Send(getMessageSettings(c, n), config.SettingsKeyboard)
 }
 
 func getMessageSettings(c string, n bool) string {

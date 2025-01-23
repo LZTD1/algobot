@@ -2,11 +2,26 @@ package mocks
 
 import "gopkg.in/telebot.v4"
 
+type SentMessage struct {
+	What interface{}
+	Opts []interface{}
+}
+
 type MockContext struct {
 	userId      int64
 	userMessage string
 	unixTime    int64
 	telebot.Context
+
+	SentMessages []SentMessage
+}
+
+func (m *MockContext) Send(what interface{}, opts ...interface{}) error {
+	m.SentMessages = append(m.SentMessages, SentMessage{
+		What: what,
+		Opts: opts,
+	})
+	return nil
 }
 
 func (m *MockContext) Message() *telebot.Message {

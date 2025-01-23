@@ -2,7 +2,6 @@ package callbackHandlers
 
 import (
 	"gopkg.in/telebot.v4"
-	"tgbot/internal/contextHandlers/defaultHandler"
 	"tgbot/internal/service"
 )
 
@@ -21,8 +20,6 @@ func (r RefreshGroups) CanHandle(ctx telebot.Context) bool {
 	return false
 }
 
-func (r RefreshGroups) Process(ctx telebot.Context) defaultHandler.Response {
-	return defaultHandler.Response{
-		Message: "",
-	}
+func (r RefreshGroups) Process(ctx telebot.Context) error {
+	return ctx.Send("")
 }

@@ -4,15 +4,10 @@ import "gopkg.in/telebot.v4"
 
 type ContextHandler interface {
 	CanHandle(ctx telebot.Context) bool
-	Process(ctx telebot.Context) Response
+	Process(ctx telebot.Context) error
 }
 
 type ActionType string
-
-var (
-	SendMessage ActionType = "sendMessage"
-	EditMessage ActionType = "editMessage"
-)
 
 type Response struct {
 	Action   ActionType

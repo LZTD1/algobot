@@ -5,7 +5,6 @@ import (
 	"gopkg.in/telebot.v4"
 	"strings"
 	"tgbot/internal/config"
-	"tgbot/internal/contextHandlers/defaultHandler"
 	"tgbot/internal/domain"
 	"tgbot/internal/helpers"
 	"tgbot/internal/service"
@@ -36,14 +35,15 @@ func (m MyGroups) CanHandle(ctx telebot.Context) bool {
 	}
 	return false
 }
-func (m MyGroups) Process(ctx telebot.Context) defaultHandler.Response {
+func (m MyGroups) Process(ctx telebot.Context) error {
 	g, e := m.s.Groups(ctx.Message().Sender.ID)
-	time.Sleep(10 * time.Second)
+
 	if e != nil {
-		return defaultHandler.Response{Message: config.UserDontHaveGroup, Keyboard: config.MyGroupsKeyboard}
+		return ctx.Send(config.UserDontHaveGroup, config.MyGroupsKeyboard)
 	}
 	sorted := helpers.GetSortedGroups(g)
-	return defaultHandler.Response{Message: toMsg(sorted), Keyboard: config.MyGroupsKeyboard}
+
+	return ctx.Send(toMsg(sorted), config.MyGroupsKeyboard)
 }
 
 func toMsg(g []domain.Group) string {

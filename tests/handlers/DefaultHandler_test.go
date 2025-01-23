@@ -2,12 +2,12 @@ package test
 
 import (
 	"fmt"
+	"gopkg.in/telebot.v4"
 	"reflect"
 	"strings"
 	"testing"
 	"tgbot/internal/config"
 	"tgbot/internal/contextHandlers"
-	"tgbot/internal/contextHandlers/defaultHandler"
 	"tgbot/internal/domain"
 	"tgbot/tests/mocks"
 	"time"
@@ -23,22 +23,17 @@ func TestDefaultHandler(t *testing.T) {
 
 		mockContext.SetUserMessage(12, "hello world!")
 
-		got := messageHandler.Process(&mockContext)
-		want := defaultHandler.Response{
-			Message:  config.HelloWorld,
-			Keyboard: config.StartKeyboard,
-		}
+		messageHandler.Handle(&mockContext)
 
-		assertMessages(t, got, want)
-		assertKeyboards(t, got, want)
+		assertContextOptsLen(t, mockContext.SentMessages[0], 1)
+		assertMessages(t, mockContext.SentMessages[0], config.HelloWorld)
+		assertKeyboards(t, mockContext.SentMessages[0], config.StartKeyboard)
 
-		got = messageHandler.Process(&mockContext)
-		want = defaultHandler.Response{
-			Message:  config.Incorrect,
-			Keyboard: config.StartKeyboard,
-		}
-		assertMessages(t, got, want)
-		assertKeyboards(t, got, want)
+		messageHandler.Handle(&mockContext)
+		assertContextOptsLen(t, mockContext.SentMessages[1], 1)
+		assertMessages(t, mockContext.SentMessages[1], config.Incorrect)
+		assertKeyboards(t, mockContext.SentMessages[1], config.StartKeyboard)
+
 	})
 	t.Run("If user register", func(t *testing.T) {
 		t.Run("Send any bullshit", func(t *testing.T) {
@@ -52,63 +47,61 @@ func TestDefaultHandler(t *testing.T) {
 
 			mockContext.SetUserMessage(12, "aezakmi")
 
-			got := messageHandler.Process(&mockContext)
-			want := defaultHandler.Response{
-				Message:  config.Incorrect,
-				Keyboard: config.StartKeyboard,
-			}
+			messageHandler.Handle(&mockContext)
 
-			assertMessages(t, got, want)
-			assertKeyboards(t, got, want)
+			assertContextOptsLen(t, mockContext.SentMessages[0], 1)
+			assertMessages(t, mockContext.SentMessages[0], config.Incorrect)
+			assertKeyboards(t, mockContext.SentMessages[0], config.StartKeyboard)
 		})
 		t.Run("Send settings", func(t *testing.T) {
-			mockContext := mocks.MockContext{}
-
-			ms := mocks.NewMockService(map[int64]bool{
-				12: true,
-			})
-
-			messageHandler := contextHandlers.NewOnText(ms)
 
 			t.Run("Cookie set, notif off", func(t *testing.T) {
-				want := defaultHandler.Response{
-					Message: fmt.Sprintf(
-						"%s\n\n%s%s\n%s%s",
-						config.Settings,
-						config.Cookie,
-						config.SetParam,
-						config.ChatNotifications,
-						config.NotSetParam,
-					),
-					Keyboard: config.SettingsKeyboard,
-				}
+				mockContext := mocks.MockContext{}
+
+				ms := mocks.NewMockService(map[int64]bool{
+					12: true,
+				})
+
+				messageHandler := contextHandlers.NewOnText(ms)
 
 				ms.SetMockCookie("Cookie")
 				mockContext.SetUserMessage(12, "Настройки")
 
-				got := messageHandler.Process(&mockContext)
-				assertMessages(t, got, want)
-				assertKeyboards(t, got, want)
+				messageHandler.Handle(&mockContext)
+				assertContextOptsLen(t, mockContext.SentMessages[0], 1)
+				assertMessages(t, mockContext.SentMessages[0], fmt.Sprintf(
+					"%s\n\n%s%s\n%s%s",
+					config.Settings,
+					config.Cookie,
+					config.SetParam,
+					config.ChatNotifications,
+					config.NotSetParam,
+				))
+				assertKeyboards(t, mockContext.SentMessages[0], config.SettingsKeyboard)
 			})
 			t.Run("Cookie unset, notif off", func(t *testing.T) {
-				want := defaultHandler.Response{
-					Message: fmt.Sprintf(
-						"%s\n\n%s%s\n%s%s",
-						config.Settings,
-						config.Cookie,
-						config.NotSetParam,
-						config.ChatNotifications,
-						config.NotSetParam,
-					),
-					Keyboard: config.SettingsKeyboard,
-				}
+				mockContext := mocks.MockContext{}
+
+				ms := mocks.NewMockService(map[int64]bool{
+					12: true,
+				})
+
+				messageHandler := contextHandlers.NewOnText(ms)
 
 				ms.SetMockCookie("")
 				mockContext.SetUserMessage(12, "Настройки")
 
-				got := messageHandler.Process(&mockContext)
-				assertMessages(t, got, want)
-				assertKeyboards(t, got, want)
+				messageHandler.Handle(&mockContext)
+				assertContextOptsLen(t, mockContext.SentMessages[0], 1)
+				assertMessages(t, mockContext.SentMessages[0], fmt.Sprintf(
+					"%s\n\n%s%s\n%s%s",
+					config.Settings,
+					config.Cookie,
+					config.NotSetParam,
+					config.ChatNotifications,
+					config.NotSetParam,
+				))
+				assertKeyboards(t, mockContext.SentMessages[0], config.SettingsKeyboard)
 			})
 		})
 		t.Run("Send get missing kids", func(t *testing.T) {
@@ -132,22 +125,21 @@ func TestDefaultHandler(t *testing.T) {
 
 				mockContext.SetUserMessageWithTime(12, "Получить отсутсвующих", getUnixByDay(28, 9, 40))
 
-				got := messageHandler.Process(&mockContext)
-				want := defaultHandler.Response{
-					Message: fmt.Sprintf(
-						"%s%s\n%s%s\n%s%d\n%s%d\n%s",
-						config.GroupName,
-						gr.Name,
-						config.Lection,
-						gr.Lesson,
-						config.TotalKids,
-						gr.AllKids,
-						config.MissingKids,
-						len(gr.MissingKids),
-						strings.Join(gr.MissingKids, "\n"),
-					),
-				}
-				assertMessages(t, got, want)
+				messageHandler.Handle(&mockContext)
+				assertContextOptsLen(t, mockContext.SentMessages[0], 0)
+				assertMessages(t, mockContext.SentMessages[0], fmt.Sprintf(
+					"%s%s\n%s%s\n%s%d\n%s%d\n%s",
+					config.GroupName,
+					gr.Name,
+					config.Lection,
+					gr.Lesson,
+					config.TotalKids,
+					gr.AllKids,
+					config.MissingKids,
+					len(gr.MissingKids),
+					strings.Join(gr.MissingKids, "\n"),
+				))
+				// TODO assertKeyboards(t, mockContext.SentMessages[0], config.StartKeyboard)
 			})
 			t.Run("Group Non exists", func(t *testing.T) {
 				ms := mocks.NewMockService(map[int64]bool{
@@ -159,11 +151,9 @@ func TestDefaultHandler(t *testing.T) {
 				messageHandler := contextHandlers.NewOnText(ms)
 				mockContext.SetUserMessageWithTime(12, "Получить отсутсвующих", getUnixByDay(28, 22, 40))
 
-				got := messageHandler.Process(&mockContext)
-				want := defaultHandler.Response{
-					Message: config.CurrentGroupDontFind,
-				}
-				assertMessages(t, got, want)
+				messageHandler.Handle(&mockContext)
+				assertContextOptsLen(t, mockContext.SentMessages[0], 0)
+				assertMessages(t, mockContext.SentMessages[0], config.CurrentGroupDontFind)
 			})
 		})
 		t.Run("Send my groups", func(t *testing.T) {
@@ -204,18 +194,16 @@ func TestDefaultHandler(t *testing.T) {
 
 				mockContext.SetUserMessage(12, "Мои группы")
 
-				want := defaultHandler.Response{
-					Message: fmt.Sprintf(
-						"%s4\n\n%s\n\n%s",
-						config.MyGroups,
-						"1. Гр 4 🕐 сб 10:00\n2. Гр 3 🕐 сб 14:00",
-						"1. Гр 1 🕐 вс 10:00\n2. Гр 2 🕐 вс 12:00",
-					),
-					Keyboard: config.MyGroupsKeyboard,
-				}
-				got := messageHandler.Process(&mockContext)
-				assertMessages(t, got, want)
-				assertKeyboards(t, got, want)
+				messageHandler.Handle(&mockContext)
+
+				assertContextOptsLen(t, mockContext.SentMessages[0], 1)
+				assertMessages(t, mockContext.SentMessages[0], fmt.Sprintf(
+					"%s4\n\n%s\n\n%s",
+					config.MyGroups,
+					"1. Гр 4 🕐 сб 10:00\n2. Гр 3 🕐 сб 14:00",
+					"1. Гр 1 🕐 вс 10:00\n2. Гр 2 🕐 вс 12:00",
+				))
+				assertKeyboards(t, mockContext.SentMessages[0], config.MyGroupsKeyboard)
 			})
 			t.Run("If user dont have groups", func(t *testing.T) {
 				ms := mocks.NewMockService(map[int64]bool{
@@ -228,32 +216,45 @@ func TestDefaultHandler(t *testing.T) {
 				messageHandler := contextHandlers.NewOnText(ms)
 				mockContext.SetUserMessage(12, "Мои группы")
 
-				want := defaultHandler.Response{
-					Message:  config.UserDontHaveGroup,
-					Keyboard: config.MyGroupsKeyboard,
-				}
-				got := messageHandler.Process(&mockContext)
-				assertMessages(t, got, want)
-				assertKeyboards(t, got, want)
+				messageHandler.Handle(&mockContext)
+				assertContextOptsLen(t, mockContext.SentMessages[0], 1)
+				assertMessages(t, mockContext.SentMessages[0], config.UserDontHaveGroup)
+				assertKeyboards(t, mockContext.SentMessages[0], config.MyGroupsKeyboard)
 			})
 		})
 	})
 
 }
 
-func assertKeyboards(t *testing.T, got defaultHandler.Response, want defaultHandler.Response) {
+func assertMessages(t *testing.T, got mocks.SentMessage, wantedText string) {
 	t.Helper()
 
-	if reflect.DeepEqual(got.Keyboard, want.Keyboard) != true {
-		t.Errorf("Wanted: [%v]\nGot: [%v]\n", want.Keyboard, got.Keyboard)
+	if got.What.(string) != wantedText {
+		t.Errorf("Wanted [%s], but got [%s]", wantedText, got.What.(string))
+	}
+}
+func assertKeyboards(t *testing.T, got mocks.SentMessage, wantedMarkup *telebot.ReplyMarkup) {
+	t.Helper()
+
+	var gotMarkup *telebot.ReplyMarkup
+	for _, opt := range got.Opts {
+		if markup, ok := opt.(*telebot.ReplyMarkup); ok {
+			gotMarkup = markup
+			break
+		}
+	}
+
+	if !reflect.DeepEqual(gotMarkup, wantedMarkup) {
+		t.Errorf("Wanted keyboard [%+v],\n but got [%+v]", wantedMarkup, gotMarkup)
 	}
 }
 
-func assertMessages(t *testing.T, got defaultHandler.Response, want defaultHandler.Response) {
+func assertContextOptsLen(t *testing.T, sent mocks.SentMessage, i int) {
 	t.Helper()
-	if reflect.DeepEqual(got.Message, want.Message) != true {
-		t.Errorf("Wanted: [%s]\nGot: [%s]\n", want.Message, got.Message)
-		t.Errorf("Length Wanted: %d, Length Got: %d\n", len(want.Message), len(got.Message))
+
+	if len(sent.Opts) != i {
+		t.Errorf("%+v\n", sent)
+		t.Errorf("Wanted context len = %d, got, %d", i, len(sent.Opts))
 	}
 }
 

@@ -25,20 +25,19 @@ func NewOnCallback(s service.Service, machine stateMachine.StateMachine) *OnCall
 	return &OnCallback{h: h, s: s}
 }
 
-func (h *OnCallback) Process(ctx telebot.Context) defaultHandler.Response {
+func (h *OnCallback) Process(ctx telebot.Context) error {
 	uid := ctx.Callback().Sender.ID
 
 	if response := h.handleUserRegistration(uid); response != nil {
-		return *response
+		return ctx.Send(response.Message, response.Keyboard)
 	}
 
-	for _, handler := range h.h {
-		if handler.CanHandle(ctx) {
-			return handler.Process(ctx)
+	for _, handlers := range h.h {
+		if handlers.CanHandle(ctx) {
+			return handlers.Process(ctx)
 		}
 	}
-
-	return defaultHandler.Response{Message: config.Incorrect, Keyboard: config.StartKeyboard}
+	return ctx.Send(config.Incorrect, config.StartKeyboard)
 }
 
 func (h *OnCallback) handleUserRegistration(uid int64) *defaultHandler.Response {

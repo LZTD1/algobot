@@ -24,11 +24,11 @@ func NewOnText(s service.Service) *OnText {
 	return &OnText{h: h, s: s}
 }
 
-func (m *OnText) Process(ctx telebot.Context) defaultHandler.Response {
+func (m *OnText) Handle(ctx telebot.Context) error {
 	uid := ctx.Message().Sender.ID
 
 	if response := m.handleUserRegistration(uid); response != nil {
-		return *response
+		return ctx.Send(response.Message, response.Keyboard)
 	}
 
 	for _, h := range m.h {
@@ -36,7 +36,7 @@ func (m *OnText) Process(ctx telebot.Context) defaultHandler.Response {
 			return h.Process(ctx)
 		}
 	}
-	return defaultHandler.Response{Message: config.Incorrect, Keyboard: config.StartKeyboard}
+	return ctx.Send(config.Incorrect, config.StartKeyboard)
 }
 
 func (m *OnText) handleUserRegistration(uid int64) *defaultHandler.Response {

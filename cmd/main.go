@@ -31,10 +31,8 @@ func main() {
 	// TODO | And logging every message
 
 	msgHandler := contextHandlers.NewOnText(svc)
-	b.Handle(tele.OnText, func(c tele.Context) error {
-		resp := msgHandler.Process(c)
-		return c.Send(resp.Message, resp.Keyboard)
-	})
+
+	b.Handle(tele.OnText, msgHandler.Handle)
 
 	b.Start()
 }
