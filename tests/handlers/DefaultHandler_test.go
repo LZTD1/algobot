@@ -1,59 +1,30 @@
-package handlers
+package test
 
 import (
 	"fmt"
-	"gopkg.in/telebot.v4"
 	"reflect"
 	"strings"
 	"testing"
-	"tgbot/internal"
 	"tgbot/internal/config"
 	"tgbot/internal/contextHandlers"
+	"tgbot/internal/contextHandlers/defaultHandler"
 	"tgbot/internal/domain"
 	"tgbot/tests/mocks"
 	"time"
 )
 
-type MockContext struct {
-	userId      int64
-	userMessage string
-	unixTime    int64
-	telebot.Context
-}
-
-func (m *MockContext) Message() *telebot.Message {
-	return &telebot.Message{
-		Sender: &telebot.User{
-			ID: m.userId,
-		},
-		Text:     m.userMessage,
-		Unixtime: m.unixTime,
-	}
-}
-
-func (m *MockContext) setUserMessage(uid int64, msg string) {
-	m.userId = uid
-	m.userMessage = msg
-}
-
-func (m *MockContext) setUserMessageWithTime(uid int64, msg string, unix int64) {
-	m.userId = uid
-	m.userMessage = msg
-	m.unixTime = unix
-}
-
 func TestDefaultHandler(t *testing.T) {
 	t.Run("If user is not register", func(t *testing.T) {
 		ms := mocks.NewMockService(make(map[int64]bool))
 
-		mockContext := MockContext{}
+		mockContext := mocks.MockContext{}
 
-		messageHandler := internal.NewMessageHandler(ms)
+		messageHandler := contextHandlers.NewOnText(ms)
 
-		mockContext.setUserMessage(12, "hello world!")
+		mockContext.SetUserMessage(12, "hello world!")
 
 		got := messageHandler.Process(&mockContext)
-		want := contextHandlers.Response{
+		want := defaultHandler.Response{
 			Message:  config.HelloWorld,
 			Keyboard: config.StartKeyboard,
 		}
@@ -62,7 +33,7 @@ func TestDefaultHandler(t *testing.T) {
 		assertKeyboards(t, got, want)
 
 		got = messageHandler.Process(&mockContext)
-		want = contextHandlers.Response{
+		want = defaultHandler.Response{
 			Message:  config.Incorrect,
 			Keyboard: config.StartKeyboard,
 		}
@@ -71,18 +42,18 @@ func TestDefaultHandler(t *testing.T) {
 	})
 	t.Run("If user register", func(t *testing.T) {
 		t.Run("Send any bullshit", func(t *testing.T) {
-			mockContext := MockContext{}
+			mockContext := mocks.MockContext{}
 
 			ms := mocks.NewMockService(map[int64]bool{
 				12: true,
 			})
 
-			messageHandler := internal.NewMessageHandler(ms)
+			messageHandler := contextHandlers.NewOnText(ms)
 
-			mockContext.setUserMessage(12, "aezakmi")
+			mockContext.SetUserMessage(12, "aezakmi")
 
 			got := messageHandler.Process(&mockContext)
-			want := contextHandlers.Response{
+			want := defaultHandler.Response{
 				Message:  config.Incorrect,
 				Keyboard: config.StartKeyboard,
 			}
@@ -91,16 +62,16 @@ func TestDefaultHandler(t *testing.T) {
 			assertKeyboards(t, got, want)
 		})
 		t.Run("Send settings", func(t *testing.T) {
-			mockContext := MockContext{}
+			mockContext := mocks.MockContext{}
 
 			ms := mocks.NewMockService(map[int64]bool{
 				12: true,
 			})
 
-			messageHandler := internal.NewMessageHandler(ms)
+			messageHandler := contextHandlers.NewOnText(ms)
 
 			t.Run("Cookie set, notif off", func(t *testing.T) {
-				want := contextHandlers.Response{
+				want := defaultHandler.Response{
 					Message: fmt.Sprintf(
 						"%s\n\n%s%s\n%s%s",
 						config.Settings,
@@ -112,15 +83,15 @@ func TestDefaultHandler(t *testing.T) {
 					Keyboard: config.SettingsKeyboard,
 				}
 
-				ms.SetCookie("Cookie")
-				mockContext.setUserMessage(12, "Настройки")
+				ms.SetMockCookie("Cookie")
+				mockContext.SetUserMessage(12, "Настройки")
 
 				got := messageHandler.Process(&mockContext)
 				assertMessages(t, got, want)
 				assertKeyboards(t, got, want)
 			})
 			t.Run("Cookie unset, notif off", func(t *testing.T) {
-				want := contextHandlers.Response{
+				want := defaultHandler.Response{
 					Message: fmt.Sprintf(
 						"%s\n\n%s%s\n%s%s",
 						config.Settings,
@@ -132,8 +103,8 @@ func TestDefaultHandler(t *testing.T) {
 					Keyboard: config.SettingsKeyboard,
 				}
 
-				ms.SetCookie("")
-				mockContext.setUserMessage(12, "Настройки")
+				ms.SetMockCookie("")
+				mockContext.SetUserMessage(12, "Настройки")
 
 				got := messageHandler.Process(&mockContext)
 				assertMessages(t, got, want)
@@ -155,14 +126,14 @@ func TestDefaultHandler(t *testing.T) {
 				})
 				ms.SetCurrentGroup(&gr)
 
-				mockContext := MockContext{}
+				mockContext := mocks.MockContext{}
 
-				messageHandler := internal.NewMessageHandler(ms)
+				messageHandler := contextHandlers.NewOnText(ms)
 
-				mockContext.setUserMessageWithTime(12, "Получить отсутсвующих", getUnixByDay(28, 9, 40))
+				mockContext.SetUserMessageWithTime(12, "Получить отсутсвующих", getUnixByDay(28, 9, 40))
 
 				got := messageHandler.Process(&mockContext)
-				want := contextHandlers.Response{
+				want := defaultHandler.Response{
 					Message: fmt.Sprintf(
 						"%s%s\n%s%s\n%s%d\n%s%d\n%s",
 						config.GroupName,
@@ -184,12 +155,12 @@ func TestDefaultHandler(t *testing.T) {
 				})
 				ms.SetCurrentGroup(nil)
 
-				mockContext := MockContext{}
-				messageHandler := internal.NewMessageHandler(ms)
-				mockContext.setUserMessageWithTime(12, "Получить отсутсвующих", getUnixByDay(28, 22, 40))
+				mockContext := mocks.MockContext{}
+				messageHandler := contextHandlers.NewOnText(ms)
+				mockContext.SetUserMessageWithTime(12, "Получить отсутсвующих", getUnixByDay(28, 22, 40))
 
 				got := messageHandler.Process(&mockContext)
-				want := contextHandlers.Response{
+				want := defaultHandler.Response{
 					Message: config.CurrentGroupDontFind,
 				}
 				assertMessages(t, got, want)
@@ -228,12 +199,12 @@ func TestDefaultHandler(t *testing.T) {
 				})
 				ms.SetGroups(g)
 
-				mockContext := MockContext{}
-				messageHandler := internal.NewMessageHandler(ms)
+				mockContext := mocks.MockContext{}
+				messageHandler := contextHandlers.NewOnText(ms)
 
-				mockContext.setUserMessage(12, "Мои группы")
+				mockContext.SetUserMessage(12, "Мои группы")
 
-				want := contextHandlers.Response{
+				want := defaultHandler.Response{
 					Message: fmt.Sprintf(
 						"%s4\n\n%s\n\n%s",
 						config.MyGroups,
@@ -252,12 +223,12 @@ func TestDefaultHandler(t *testing.T) {
 				})
 				ms.SetGroups(nil)
 
-				mockContext := MockContext{}
+				mockContext := mocks.MockContext{}
 
-				messageHandler := internal.NewMessageHandler(ms)
-				mockContext.setUserMessage(12, "Мои группы")
+				messageHandler := contextHandlers.NewOnText(ms)
+				mockContext.SetUserMessage(12, "Мои группы")
 
-				want := contextHandlers.Response{
+				want := defaultHandler.Response{
 					Message:  config.UserDontHaveGroup,
 					Keyboard: config.MyGroupsKeyboard,
 				}
@@ -270,7 +241,7 @@ func TestDefaultHandler(t *testing.T) {
 
 }
 
-func assertKeyboards(t *testing.T, got contextHandlers.Response, want contextHandlers.Response) {
+func assertKeyboards(t *testing.T, got defaultHandler.Response, want defaultHandler.Response) {
 	t.Helper()
 
 	if reflect.DeepEqual(got.Keyboard, want.Keyboard) != true {
@@ -278,7 +249,7 @@ func assertKeyboards(t *testing.T, got contextHandlers.Response, want contextHan
 	}
 }
 
-func assertMessages(t *testing.T, got contextHandlers.Response, want contextHandlers.Response) {
+func assertMessages(t *testing.T, got defaultHandler.Response, want defaultHandler.Response) {
 	t.Helper()
 	if reflect.DeepEqual(got.Message, want.Message) != true {
 		t.Errorf("Wanted: [%s]\nGot: [%s]\n", want.Message, got.Message)

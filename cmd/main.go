@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	"tgbot/internal"
+	"tgbot/internal/contextHandlers"
 	"tgbot/tests/mocks"
 	"time"
 
@@ -24,9 +24,13 @@ func main() {
 	}
 	defer b.Stop()
 
-	svc := mocks.NewMockService(nil)
-	msgHandler := internal.NewMessageHandler(svc)
+	svc := mocks.NewMockService(make(map[int64]bool))
 
+	// TODO | Попробовать передавать синглетоны, а не инстансы обьектов
+	// TODO | Add middleware to check user registration
+	// TODO | And logging every message
+
+	msgHandler := contextHandlers.NewOnText(svc)
 	b.Handle(tele.OnText, func(c tele.Context) error {
 		resp := msgHandler.Process(c)
 		return c.Send(resp.Message, resp.Keyboard)

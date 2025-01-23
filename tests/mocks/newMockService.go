@@ -7,17 +7,18 @@ import (
 )
 
 type MockService struct {
-	m      map[int64]bool
-	cookie string
-	gr     *domain.Group
-	grs    []domain.Group
+	m                map[int64]bool
+	cookie           string
+	StubNotification bool
+	gr               *domain.Group
+	grs              []domain.Group
 }
 
 func NewMockService(m map[int64]bool) *MockService {
 	return &MockService{m: m}
 }
 
-func (n *MockService) SetCookie(s string) {
+func (n *MockService) SetMockCookie(s string) {
 	n.cookie = s
 }
 func (n *MockService) SetCurrentGroup(group *domain.Group) {
@@ -50,8 +51,16 @@ func (n *MockService) Cookie(uid int64) (string, error) {
 	return n.cookie, nil
 }
 
+func (n *MockService) SetCookie(uid int64, cookie string) {
+	//TODO implement me
+	panic("implement me")
+}
+func (n *MockService) SetNotification(uid int64, notification bool) {
+	n.StubNotification = notification
+}
+
 func (n *MockService) Notification(uid int64) bool {
-	return false
+	return n.StubNotification
 }
 
 func (n *MockService) IsUserRegistered(uid int64) bool {

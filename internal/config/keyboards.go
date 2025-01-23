@@ -14,6 +14,9 @@ var (
 	SettingsKeyboard   = &tele.ReplyMarkup{ResizeKeyboard: true}
 	setCookie          = SettingsKeyboard.Data("Установить Cookie", "set_cookie")
 	changeNotification = SettingsKeyboard.Data("Переключить уведомления", "change_notification")
+
+	RejectKeyboard = &tele.ReplyMarkup{ResizeKeyboard: true}
+	rejectAction   = RejectKeyboard.Text("Отменить действие")
 )
 
 func init() {
@@ -29,5 +32,9 @@ func init() {
 	SettingsKeyboard.Inline(
 		SettingsKeyboard.Row(setCookie),
 		SettingsKeyboard.Row(changeNotification),
+	)
+
+	RejectKeyboard.Reply(
+		RejectKeyboard.Row(rejectAction),
 	)
 }
