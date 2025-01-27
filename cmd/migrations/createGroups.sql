@@ -6,5 +6,5 @@ CREATE TABLE groups
     title            TEXT    NOT NULL,
     string_next_time TEXT    NOT NULL,
     time_lesson      TEXT    NOT NULL,
-    FOREIGN KEY (owner_id) REFERENCES users (id)
+    FOREIGN KEY (owner_id) REFERENCES users (uid)
 );

@@ -23,6 +23,8 @@ func TestDomain(t *testing.T) {
 
 	t.Run("Test User method", func(t *testing.T) {
 		t.Run("When user is not created", func(t *testing.T) {
+			truncateBase(base)
+
 			user, err := sqlite3.User(1)
 			if err == nil {
 				fmt.Printf("%#v\n", user)
@@ -30,12 +32,11 @@ func TestDomain(t *testing.T) {
 			}
 		})
 		t.Run("When user is created", func(t *testing.T) {
-			exec, _ := base.Exec("INSERT INTO users (uid, user_agent, cookie, notification) VALUES(2, 'agent', 'cookie', 0);")
-			inseredId, _ := exec.LastInsertId()
-			_, err := base.Exec("INSERT INTO groups (group_id, owner_id, title, string_next_time, time_lesson) VALUES(0, ?, 'title', 'string_next_time', '01.02.2025 16:00');", inseredId)
-			if err != nil {
-				fmt.Printf("%#v\n", err)
-			}
+			truncateBase(base)
+
+			base.Exec("INSERT INTO users (uid, user_agent, cookie, notification) VALUES(2, 'agent', 'cookie', 0);")
+			base.Exec("INSERT INTO groups (group_id, owner_id, title, string_next_time, time_lesson) VALUES(0, ?, 'title', 'string_next_time', '01.02.2025 16:00');", 2)
+
 			user, err := sqlite3.User(2)
 			if err != nil {
 				fmt.Printf("%s\n", err)
@@ -59,6 +60,7 @@ func TestDomain(t *testing.T) {
 	})
 	t.Run("Test cookie method", func(t *testing.T) {
 		t.Run("Cookie not exists", func(t *testing.T) {
+			truncateBase(base)
 			base.Exec("INSERT INTO users (uid, user_agent, cookie, notification) VALUES(3, 'agent', NULL, 0);")
 			_, err := sqlite3.Cookie(3)
 			if err == nil {
@@ -66,6 +68,7 @@ func TestDomain(t *testing.T) {
 			}
 		})
 		t.Run("Cookie exists", func(t *testing.T) {
+			truncateBase(base)
 			base.Exec("INSERT INTO users (uid, user_agent, cookie, notification) VALUES(4, 'agent', 'cookie', 0);")
 			cookie, err := sqlite3.Cookie(4)
 			if err != nil {
@@ -78,6 +81,7 @@ func TestDomain(t *testing.T) {
 		})
 	})
 	t.Run("Test set cookie method", func(t *testing.T) {
+		truncateBase(base)
 		base.Exec("INSERT INTO users (uid, user_agent, cookie, notification) VALUES(5, 'agent', 'a', 0);")
 		sqlite3.SetCookie(5, "cookie")
 		cookie, _ := sqlite3.Cookie(5)
@@ -87,6 +91,7 @@ func TestDomain(t *testing.T) {
 		}
 	})
 	t.Run("Test set userAgent", func(t *testing.T) {
+		truncateBase(base)
 		base.Exec("INSERT INTO users (uid, user_agent, cookie, notification) VALUES(6, 'a', 'a', 0);")
 		sqlite3.SetUserAgent(6, "agent")
 
@@ -99,6 +104,61 @@ func TestDomain(t *testing.T) {
 			t.Errorf("Expected userAgent to be 'agent', got %s", userAgent)
 		}
 	})
+	t.Run("Test Groups", func(t *testing.T) {
+		t.Run("Get groups", func(t *testing.T) {
+			truncateBase(base)
+			base.Exec("INSERT INTO users (uid, user_agent, cookie, notification) VALUES(7, 'agent', 'cookie', 0);")
+			base.Exec("INSERT INTO groups (group_id, owner_id, title, string_next_time, time_lesson) VALUES(0, ?, 'title', 'string_next_time', '01.02.2025 16:00');", 7)
+
+			groups, err := sqlite3.Groups(7)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assertGroups(
+				t,
+				groups,
+				[]domain.Group{
+					{
+						Id:     0,
+						Name:   "title",
+						Lesson: "",
+						Time:   time.Date(2025, 2, 1, 16, 0, 0, 0, time.UTC),
+					},
+				},
+			)
+		})
+		t.Run("Set groups", func(t *testing.T) {
+			truncateBase(base)
+			wanted := []domain.Group{
+				{
+					Id:     0,
+					Name:   "title",
+					Lesson: "",
+					Time:   time.Date(2025, 2, 1, 16, 0, 0, 0, time.UTC),
+				},
+			}
+
+			base.Exec("INSERT INTO users (uid, user_agent, cookie, notification) VALUES(8, 'agent', 'cookie', 0);")
+			sqlite3.SetGroups(8, wanted)
+
+			groups, err := sqlite3.Groups(8)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assertGroups(
+				t,
+				wanted,
+				groups,
+			)
+		})
+	})
+}
+
+func truncateBase(base *sql.DB) {
+	base.Exec("DELETE FROM users;")
+	base.Exec("DELETE FROM groups;")
 }
 
 func assertGroups(t *testing.T, groups []domain.Group, groups2 []domain.Group) {

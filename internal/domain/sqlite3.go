@@ -3,8 +3,10 @@ package domain
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"io/fs"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -17,7 +19,7 @@ func NewSqlite3(db *sql.DB) *Sqlite3 {
 }
 
 func (s Sqlite3) User(uid int64) (User, error) {
-	sqlQuery := `SELECT u.id, u.cookie, u.user_agent, u.notification FROM users u WHERE u.uid = ?`
+	sqlQuery := `SELECT u.uid, u.cookie, u.user_agent, u.notification FROM users u WHERE u.uid = ?`
 	row := s.db.QueryRow(sqlQuery, uid)
 	if row.Err() != nil {
 		log.Printf("Ошибка при выполнении запроса, %s, со значением %v", sqlQuery, uid)
@@ -84,13 +86,59 @@ func (s Sqlite3) SetUserAgent(uid int64, agent string) {
 }
 
 func (s Sqlite3) Groups(uid int64) ([]Group, error) {
-	//TODO implement me
-	panic("implement me")
+	sqlQuery := `SELECT g.group_id, g.title, g.time_lesson 
+		FROM groups g 
+		WHERE g.owner_id = ?;`
+
+	rows, err := s.db.Query(sqlQuery, uid)
+	if err != nil {
+		log.Printf("Ошибка при выполнении запроса, %s, со значением %v", sqlQuery, uid)
+		return nil, err
+	}
+
+	groups := make([]Group, 0)
+	for rows.Next() {
+		var groupId sql.NullInt64
+		var title sql.NullString
+		var timeGroup sql.NullString
+
+		rows.Scan(&groupId, &title, &timeGroup)
+
+		parsedTime, err := time.Parse("02.01.2006 15:04", timeGroup.String)
+		if err != nil {
+			log.Printf("Ошибка при парсинге даты %v - %v", timeGroup.String, err)
+			return nil, fmt.Errorf("Ошибка при парсинге даты %v - %v", timeGroup.String, err)
+		}
+
+		groups = append(groups, Group{
+			Id:   int(groupId.Int64),
+			Name: title.String,
+			Time: parsedTime,
+		})
+	}
+
+	if len(groups) == 0 {
+		return nil, errors.New("у пользователя нету групп")
+	}
+	return groups, nil
 }
 
 func (s Sqlite3) SetGroups(uid int64, groups []Group) {
-	//TODO implement me
-	panic("implement me")
+	sqlQuery := strings.Builder{}
+	sqlQuery.WriteString("INSERT INTO groups (group_id, owner_id, title, string_next_time, time_lesson) VALUES ")
+
+	var preparedString []string
+	for _, g := range groups {
+		preparedString = append(preparedString, fmt.Sprintf("(%d, %d, '%s', '%s', '%s')", g.Id, uid, g.Name, "-", g.Time.Format("02.01.2006 15:04")))
+	}
+
+	sqlQuery.WriteString(strings.Join(preparedString, ","))
+	sqlQuery.WriteString(";")
+
+	_, err := s.db.Exec(sqlQuery.String())
+	if err != nil {
+		log.Printf("Ошибка при заполнении групп %v", err)
+	}
 }
 
 func (s Sqlite3) Notification(uid int64) bool {
