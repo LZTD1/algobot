@@ -3,7 +3,7 @@ package callbackHandlers
 import (
 	"gopkg.in/telebot.v4"
 	"tgbot/internal/contextHandlers/defaultHandler"
-	"tgbot/internal/contextHandlers/textHandlers"
+	"tgbot/internal/contextHandlers/textHandlers/defaultState"
 	"tgbot/internal/service"
 )
 
@@ -13,7 +13,7 @@ type ChangeNotification struct {
 }
 
 func NewChangeNotification(svc service.Service) *ChangeNotification {
-	return &ChangeNotification{svc: svc, settings: textHandlers.NewSettings(svc)}
+	return &ChangeNotification{svc: svc, settings: defaultState.NewSettings(svc)}
 }
 
 func (c ChangeNotification) CanHandle(ctx telebot.Context) bool {

@@ -1,6 +1,9 @@
 package stateMachine
 
+import "sync"
+
 type Memory struct {
+	mu         sync.Mutex
 	statements map[int64]Statement
 }
 
@@ -10,9 +13,15 @@ func NewMemory() *Memory {
 	}
 }
 func (m *Memory) SetStatement(uid int64, statement Statement) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	m.statements[uid] = statement
 }
 func (m *Memory) GetStatement(uid int64) Statement {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	v, ok := m.statements[uid]
 	if ok {
 		return v

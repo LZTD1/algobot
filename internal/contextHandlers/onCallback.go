@@ -1,49 +1,55 @@
 package contextHandlers
 
 import (
+	"fmt"
 	"gopkg.in/telebot.v4"
+	"strings"
 	"tgbot/internal/config"
-	"tgbot/internal/contextHandlers/callbackHandlers"
-	"tgbot/internal/contextHandlers/defaultHandler"
+	"tgbot/internal/contextHandlers/handlersHolders"
 	"tgbot/internal/service"
 	"tgbot/internal/stateMachine"
 )
 
 type OnCallback struct {
-	h     []defaultHandler.ContextHandler
-	s     service.Service
-	state stateMachine.StateMachine
+	holders []handlersHolders.HandlersHolder
+	state   stateMachine.StateMachine
 }
 
-func NewOnCallback(s service.Service, machine stateMachine.StateMachine) *OnCallback {
-	h := []defaultHandler.ContextHandler{
-		callbackHandlers.NewSetCookie(s, machine),
-		callbackHandlers.NewChangeNotification(s),
-		callbackHandlers.NewRefreshGroups(s),
+func NewOnCallback(service service.Service, state stateMachine.StateMachine) *OnCallback {
+	h := []handlersHolders.HandlersHolder{
+		handlersHolders.NewDefaultCBHolder(service, state),
 	}
 
-	return &OnCallback{h: h, s: s}
+	return &OnCallback{holders: h, state: state}
 }
 
-func (h *OnCallback) Process(ctx telebot.Context) error {
-	uid := ctx.Callback().Sender.ID
+func (h *OnCallback) Handle(ctx telebot.Context) error {
+	st := h.state.GetStatement(ctx.Sender().ID)
+	holder := h.getHolder(st)
 
-	if response := h.handleUserRegistration(uid); response != nil {
-		return ctx.Send(response.Message, response.Keyboard)
-	}
+	if holder != nil {
 
-	for _, handlers := range h.h {
-		if handlers.CanHandle(ctx) {
-			return handlers.Process(ctx)
+		if strings.HasPrefix(ctx.Callback().Data, "\f") {
+			ctx.Callback().Data = strings.TrimPrefix(ctx.Callback().Data, "\f")
 		}
+
+		for _, hand := range holder.GetHandlers() {
+			if hand.CanHandle(ctx) {
+				return hand.Process(ctx)
+			}
+		}
+		h.state.SetStatement(ctx.Sender().ID, stateMachine.Default)
+		return ctx.Send(config.Incorrect, config.StartKeyboard)
 	}
-	return ctx.Send(config.Incorrect, config.StartKeyboard)
+
+	return fmt.Errorf("не найден холдер для данного state")
 }
 
-func (h *OnCallback) handleUserRegistration(uid int64) *defaultHandler.Response {
-	if h.s.IsUserRegistered(uid) == false {
-		h.s.RegisterUser(uid)
-		return &defaultHandler.Response{Message: config.HelloWorld, Keyboard: config.StartKeyboard}
+func (h *OnCallback) getHolder(st stateMachine.Statement) handlersHolders.HandlersHolder {
+	for _, holder := range h.holders {
+		if holder.HolderType() == st {
+			return holder
+		}
 	}
 	return nil
 }

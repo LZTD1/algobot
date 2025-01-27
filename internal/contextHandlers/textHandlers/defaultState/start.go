@@ -1,4 +1,4 @@
-package textHandlers
+package defaultState
 
 import (
 	"gopkg.in/telebot.v4"

@@ -9,6 +9,7 @@ import (
 	"tgbot/internal/config"
 	"tgbot/internal/contextHandlers"
 	"tgbot/internal/domain"
+	"tgbot/internal/stateMachine"
 	"tgbot/tests/mocks"
 	"time"
 )
@@ -19,20 +20,17 @@ func TestDefaultHandler(t *testing.T) {
 
 		mockContext := mocks.MockContext{}
 
-		messageHandler := contextHandlers.NewOnText(ms)
+		mockState := mocks.MockStateMachine{}
+		mockState.SetStatement(12, stateMachine.Default)
+
+		messageHandler := contextHandlers.NewOnText(ms, &mockState)
 
 		mockContext.SetUserMessage(12, "hello world!")
 
 		messageHandler.Handle(&mockContext)
-
 		assertContextOptsLen(t, mockContext.SentMessages[0], 1)
-		assertMessages(t, mockContext.SentMessages[0], config.HelloWorld)
+		assertMessages(t, mockContext.SentMessages[0], config.Incorrect)
 		assertKeyboards(t, mockContext.SentMessages[0], config.StartKeyboard)
-
-		messageHandler.Handle(&mockContext)
-		assertContextOptsLen(t, mockContext.SentMessages[1], 1)
-		assertMessages(t, mockContext.SentMessages[1], config.Incorrect)
-		assertKeyboards(t, mockContext.SentMessages[1], config.StartKeyboard)
 
 	})
 	t.Run("If user register", func(t *testing.T) {
@@ -43,7 +41,9 @@ func TestDefaultHandler(t *testing.T) {
 				12: true,
 			})
 
-			messageHandler := contextHandlers.NewOnText(ms)
+			mockState := mocks.MockStateMachine{}
+			mockState.SetStatement(12, stateMachine.Default)
+			messageHandler := contextHandlers.NewOnText(ms, &mockState)
 
 			mockContext.SetUserMessage(12, "aezakmi")
 
@@ -62,7 +62,9 @@ func TestDefaultHandler(t *testing.T) {
 					12: true,
 				})
 
-				messageHandler := contextHandlers.NewOnText(ms)
+				mockState := mocks.MockStateMachine{}
+				mockState.SetStatement(12, stateMachine.Default)
+				messageHandler := contextHandlers.NewOnText(ms, &mockState)
 
 				ms.SetMockCookie("Cookie")
 				mockContext.SetUserMessage(12, "Настройки")
@@ -86,7 +88,9 @@ func TestDefaultHandler(t *testing.T) {
 					12: true,
 				})
 
-				messageHandler := contextHandlers.NewOnText(ms)
+				mockState := mocks.MockStateMachine{}
+				mockState.SetStatement(12, stateMachine.Default)
+				messageHandler := contextHandlers.NewOnText(ms, &mockState)
 
 				ms.SetMockCookie("")
 				mockContext.SetUserMessage(12, "Настройки")
@@ -121,7 +125,9 @@ func TestDefaultHandler(t *testing.T) {
 
 				mockContext := mocks.MockContext{}
 
-				messageHandler := contextHandlers.NewOnText(ms)
+				mockState := mocks.MockStateMachine{}
+				mockState.SetStatement(12, stateMachine.Default)
+				messageHandler := contextHandlers.NewOnText(ms, &mockState)
 
 				mockContext.SetUserMessageWithTime(12, "Получить отсутсвующих", getUnixByDay(28, 9, 40))
 
@@ -148,7 +154,9 @@ func TestDefaultHandler(t *testing.T) {
 				ms.SetCurrentGroup(nil)
 
 				mockContext := mocks.MockContext{}
-				messageHandler := contextHandlers.NewOnText(ms)
+				mockState := mocks.MockStateMachine{}
+				mockState.SetStatement(12, stateMachine.Default)
+				messageHandler := contextHandlers.NewOnText(ms, &mockState)
 				mockContext.SetUserMessageWithTime(12, "Получить отсутсвующих", getUnixByDay(28, 22, 40))
 
 				messageHandler.Handle(&mockContext)
@@ -190,7 +198,9 @@ func TestDefaultHandler(t *testing.T) {
 				ms.SetGroups(g)
 
 				mockContext := mocks.MockContext{}
-				messageHandler := contextHandlers.NewOnText(ms)
+				mockState := mocks.MockStateMachine{}
+				mockState.SetStatement(12, stateMachine.Default)
+				messageHandler := contextHandlers.NewOnText(ms, &mockState)
 
 				mockContext.SetUserMessage(12, "Мои группы")
 
@@ -213,7 +223,9 @@ func TestDefaultHandler(t *testing.T) {
 
 				mockContext := mocks.MockContext{}
 
-				messageHandler := contextHandlers.NewOnText(ms)
+				mockState := mocks.MockStateMachine{}
+				mockState.SetStatement(12, stateMachine.Default)
+				messageHandler := contextHandlers.NewOnText(ms, &mockState)
 				mockContext.SetUserMessage(12, "Мои группы")
 
 				messageHandler.Handle(&mockContext)

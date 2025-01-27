@@ -12,9 +12,26 @@ type Group struct {
 }
 
 type User struct {
-	cookie    string
-	userAgent string
-	groups    []Group
+	cookie        string
+	userAgent     string
+	notifications bool
+	groups        []Group
+}
+
+func (u User) Cookie() string {
+	return u.cookie
+}
+
+func (u User) UserAgent() string {
+	return u.userAgent
+}
+
+func (u User) Notifications() bool {
+	return u.notifications
+}
+
+func (u User) Groups() []Group {
+	return u.groups
 }
 
 type Domain interface {

@@ -16,7 +16,20 @@ type MockContext struct {
 	SentMessages []SentMessage
 }
 
+func (m *MockContext) Sender() *telebot.User {
+	return &telebot.User{
+		ID: m.userId,
+	}
+}
+
 func (m *MockContext) Send(what interface{}, opts ...interface{}) error {
+	m.SentMessages = append(m.SentMessages, SentMessage{
+		What: what,
+		Opts: opts,
+	})
+	return nil
+}
+func (m *MockContext) Edit(what interface{}, opts ...interface{}) error {
 	m.SentMessages = append(m.SentMessages, SentMessage{
 		What: what,
 		Opts: opts,

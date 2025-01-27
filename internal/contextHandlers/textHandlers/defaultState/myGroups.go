@@ -1,4 +1,4 @@
-package textHandlers
+package defaultState
 
 import (
 	"fmt"
@@ -43,10 +43,10 @@ func (m MyGroups) Process(ctx telebot.Context) error {
 	}
 	sorted := helpers.GetSortedGroups(g)
 
-	return ctx.Send(toMsg(sorted), config.MyGroupsKeyboard)
+	return ctx.Send(GetMyGroupsMessage(sorted), config.MyGroupsKeyboard)
 }
 
-func toMsg(g []domain.Group) string {
+func GetMyGroupsMessage(g []domain.Group) string {
 	s := strings.Builder{}
 	s.WriteString(fmt.Sprintf("%s%d\n", config.MyGroups, len(g)))
 	before := g[0].Time.Weekday()

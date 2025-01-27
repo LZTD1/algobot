@@ -15,19 +15,20 @@ func TestCallback(t *testing.T) {
 			12: true,
 		})
 		mockState := mocks.MockStateMachine{}
+		mockState.SetStatement(12, stateMachine.Default)
 
 		mockContext := mocks.MockContext{}
 		mockContext.SetUserMessage(12, "set_cookie")
 
 		queryHandler := contextHandlers.NewOnCallback(ms, &mockState)
 
-		queryHandler.Process(&mockContext)
+		queryHandler.Handle(&mockContext)
 
 		assertContextOptsLen(t, mockContext.SentMessages[0], 1)
 		assertMessages(t, mockContext.SentMessages[0], config.SendingCookie)
 		assertKeyboards(t, mockContext.SentMessages[0], config.RejectKeyboard)
 
-		assertMockStatement(t, mockState, stateMachine.SendingCookie, 3)
+		assertMockStatement(t, mockState, stateMachine.SendingCookie, 8)
 	})
 	t.Run("Change notification", func(t *testing.T) {
 		ms := mocks.NewMockService(map[int64]bool{
@@ -35,6 +36,7 @@ func TestCallback(t *testing.T) {
 		})
 
 		mockState := mocks.MockStateMachine{}
+		mockState.SetStatement(12, stateMachine.Default)
 		mockContext := mocks.MockContext{}
 		mockContext.SetUserMessage(12, "change_notification")
 
@@ -43,7 +45,7 @@ func TestCallback(t *testing.T) {
 		if ms.StubNotification != false {
 			t.Fatalf("Wanted notif false, got true")
 		}
-		queryHandler.Process(&mockContext)
+		queryHandler.Handle(&mockContext)
 		if ms.StubNotification != true {
 			t.Fatalf("Wanted notif true, got false")
 		}
@@ -60,18 +62,24 @@ func TestCallback(t *testing.T) {
 		assertKeyboards(t, mockContext.SentMessages[0], config.SettingsKeyboard)
 
 	})
-	t.Run("Refresh groups", func(t *testing.T) {
+	t.Run("Refresh groups without error", func(t *testing.T) {
 		ms := mocks.NewMockService(map[int64]bool{
 			12: true,
 		})
 
 		mockState := mocks.MockStateMachine{}
+		mockState.SetStatement(12, stateMachine.Default)
 		mockContext := mocks.MockContext{}
 		mockContext.SetUserMessage(12, "refresh_groups")
 
 		queryHandler := contextHandlers.NewOnCallback(ms, &mockState)
-		got := queryHandler.Process(&mockContext)
-		fmt.Println(got)
+		queryHandler.Handle(&mockContext)
+
+		if len(mockContext.SentMessages) != 2 {
+			t.Fatalf("Wanted 2, got %d", len(mockContext.SentMessages))
+		}
+		assertMessages(t, mockContext.SentMessages[0], config.UpdateStarted)
+		assertMessages(t, mockContext.SentMessages[1], config.UpdateEnd)
 	})
 }
 

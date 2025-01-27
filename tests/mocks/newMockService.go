@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"errors"
+	"strconv"
 	"tgbot/internal/domain"
 	"time"
 )
@@ -12,6 +13,7 @@ type MockService struct {
 	StubNotification bool
 	gr               *domain.Group
 	grs              []domain.Group
+	SettedCookie     []string
 }
 
 func NewMockService(m map[int64]bool) *MockService {
@@ -20,6 +22,9 @@ func NewMockService(m map[int64]bool) *MockService {
 
 func (n *MockService) SetMockCookie(s string) {
 	n.cookie = s
+}
+func (n *MockService) RefreshGroups(uid int64) error {
+	return nil
 }
 func (n *MockService) SetCurrentGroup(group *domain.Group) {
 	n.gr = group
@@ -52,8 +57,7 @@ func (n *MockService) Cookie(uid int64) (string, error) {
 }
 
 func (n *MockService) SetCookie(uid int64, cookie string) {
-	//TODO implement me
-	panic("implement me")
+	n.SettedCookie = []string{strconv.FormatInt(uid, 10), cookie}
 }
 func (n *MockService) SetNotification(uid int64, notification bool) {
 	n.StubNotification = notification

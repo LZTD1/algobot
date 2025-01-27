@@ -22,3 +22,7 @@ const UserDontHaveGroup = "У вас нету никаких групп!"
 const CurrentGroupDontFind = "В данный момент, никакой группы не найдено!\nПопробуйте обновить свои группы"
 
 const SendingCookie = "Отправьте мне свои cookie"
+const CookieSet = "Куки успешно установлены"
+
+const UpdateStarted = "Происходит процесс обновления ..."
+const UpdateEnd = "Успешно обновлено!"

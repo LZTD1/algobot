@@ -15,4 +15,5 @@ type Service interface {
 	SetNotification(uid int64, notification bool)
 	IsUserRegistered(uid int64) bool
 	RegisterUser(uid int64)
+	RefreshGroups(uid int64) error
 }

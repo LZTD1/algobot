@@ -1,4 +1,4 @@
-package textHandlers
+package defaultState
 
 import (
 	"gopkg.in/telebot.v4"
@@ -30,10 +30,10 @@ func (s *Settings) Process(ctx telebot.Context) error {
 	}
 	n := s.svc.Notification(uid)
 
-	return ctx.Send(getMessageSettings(c, n), config.SettingsKeyboard)
+	return ctx.Send(GetMessageSettings(c, n), config.SettingsKeyboard)
 }
 
-func getMessageSettings(c string, n bool) string {
+func GetMessageSettings(c string, n bool) string {
 	msg := strings.Builder{}
 	msg.WriteString(config.Settings)
 	msg.WriteString("\n\n")
