@@ -76,8 +76,11 @@ func (s Sqlite3) SetCookie(uid int64, cookie string) {
 }
 
 func (s Sqlite3) SetUserAgent(uid int64, agent string) {
-	//TODO implement me
-	panic("implement me")
+	_, err := s.db.Exec("UPDATE users SET user_agent=? WHERE uid= ?;", agent, uid)
+	if err != nil {
+		log.Printf("Ошибка при обновлении useragent [%v, %v] - %v", agent, uid, err)
+		return
+	}
 }
 
 func (s Sqlite3) Groups(uid int64) ([]Group, error) {

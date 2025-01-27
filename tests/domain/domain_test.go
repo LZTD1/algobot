@@ -86,6 +86,19 @@ func TestDomain(t *testing.T) {
 			t.Errorf("Expected cookie to be 'cookie', got %s", cookie)
 		}
 	})
+	t.Run("Test set userAgent", func(t *testing.T) {
+		base.Exec("INSERT INTO users (uid, user_agent, cookie, notification) VALUES(6, 'a', 'a', 0);")
+		sqlite3.SetUserAgent(6, "agent")
+
+		row := base.QueryRow("SELECT u.user_agent FROM users u WHERE u.uid = ?", 6)
+
+		var userAgent string
+		row.Scan(&userAgent)
+
+		if userAgent != "agent" {
+			t.Errorf("Expected userAgent to be 'agent', got %s", userAgent)
+		}
+	})
 }
 
 func assertGroups(t *testing.T, groups []domain.Group, groups2 []domain.Group) {
