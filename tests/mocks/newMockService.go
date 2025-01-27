@@ -47,7 +47,7 @@ func (n *MockService) Groups(uid int64) ([]domain.Group, error) {
 	return n.grs, nil
 }
 
-func (n *MockService) MissingKids(t time.Time, g int) ([]string, error) {
+func (n *MockService) MissingKids(uid int64, t time.Time, g int) ([]string, error) {
 	//TODO implement me
 	panic("implement me")
 }
