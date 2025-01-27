@@ -154,6 +154,35 @@ func TestDomain(t *testing.T) {
 			)
 		})
 	})
+	t.Run("Test notification method", func(t *testing.T) {
+		t.Run("notification not exists", func(t *testing.T) {
+			truncateBase(base)
+			base.Exec("INSERT INTO users (uid, user_agent, cookie, notification) VALUES(3, 'agent', NULL, NULL);")
+			notif := sqlite3.Notification(3)
+			if notif != false {
+				t.Fatalf("Expected notification to be false, got true")
+			}
+		})
+		t.Run("notification exists", func(t *testing.T) {
+			truncateBase(base)
+			base.Exec("INSERT INTO users (uid, user_agent, cookie, notification) VALUES(4, 'agent', 'cookie', 1);")
+			notif := sqlite3.Notification(4)
+			if notif != true {
+				t.Fatalf("Expected notification to be true, got false")
+			}
+		})
+	})
+	t.Run("Register user ", func(t *testing.T) {
+		truncateBase(base)
+
+		sqlite3.RegisterUser(1)
+
+		var exists bool
+		base.QueryRow("SELECT EXISTS (SELECT 1 FROM users where uid = ?)", 1).Scan(&exists)
+		if exists == false {
+			t.Fatalf("User does not exist")
+		}
+	})
 }
 
 func truncateBase(base *sql.DB) {

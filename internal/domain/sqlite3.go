@@ -142,13 +142,30 @@ func (s Sqlite3) SetGroups(uid int64, groups []Group) {
 }
 
 func (s Sqlite3) Notification(uid int64) bool {
-	//TODO implement me
-	panic("implement me")
+	sqlQuery := `SELECT u.notification FROM users u WHERE u.uid = ?`
+	row := s.db.QueryRow(sqlQuery, uid)
+
+	if row.Err() != nil {
+		return false
+	}
+
+	var notif sql.NullBool
+
+	row.Scan(&notif)
+
+	if !notif.Valid {
+		return false
+	}
+
+	return notif.Bool
 }
 
 func (s Sqlite3) RegisterUser(uid int64) {
-	//TODO implement me
-	panic("implement me")
+	_, err := s.db.Exec("INSERT INTO users (uid, user_agent, cookie, notification) VALUES(?, NULL, NULL, 0);", uid)
+	if err != nil {
+		log.Fatalf("Ошибка при создании юзера, %v", err)
+		return
+	}
 }
 
 func (s Sqlite3) Migrate(eFs fs.FS, dir string) {
