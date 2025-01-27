@@ -57,6 +57,35 @@ func TestDomain(t *testing.T) {
 			)
 		})
 	})
+	t.Run("Test cookie method", func(t *testing.T) {
+		t.Run("Cookie not exists", func(t *testing.T) {
+			base.Exec("INSERT INTO users (uid, user_agent, cookie, notification) VALUES(3, 'agent', NULL, 0);")
+			_, err := sqlite3.Cookie(3)
+			if err == nil {
+				t.Fatalf("Expected error, got nil")
+			}
+		})
+		t.Run("Cookie exists", func(t *testing.T) {
+			base.Exec("INSERT INTO users (uid, user_agent, cookie, notification) VALUES(4, 'agent', 'cookie', 0);")
+			cookie, err := sqlite3.Cookie(4)
+			if err != nil {
+				t.Error(err)
+				t.Fatalf("Expected cookie, got error")
+			}
+			if cookie != "cookie" {
+				t.Errorf("Expected cookie to be 'cookie', got %s", cookie)
+			}
+		})
+	})
+	t.Run("Test set cookie method", func(t *testing.T) {
+		base.Exec("INSERT INTO users (uid, user_agent, cookie, notification) VALUES(5, 'agent', 'a', 0);")
+		sqlite3.SetCookie(5, "cookie")
+		cookie, _ := sqlite3.Cookie(5)
+
+		if cookie != "cookie" {
+			t.Errorf("Expected cookie to be 'cookie', got %s", cookie)
+		}
+	})
 }
 
 func assertGroups(t *testing.T, groups []domain.Group, groups2 []domain.Group) {

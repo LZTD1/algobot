@@ -50,13 +50,29 @@ func (s Sqlite3) User(uid int64) (User, error) {
 }
 
 func (s Sqlite3) Cookie(uid int64) (string, error) {
-	//TODO implement me
-	panic("implement me")
+	sqlQuery := `SELECT u.cookie FROM users u WHERE u.uid = ?`
+	row := s.db.QueryRow(sqlQuery, uid)
+
+	if row.Err() != nil {
+		return "", row.Err()
+	}
+
+	var cookie sql.NullString
+
+	row.Scan(&cookie)
+
+	if !cookie.Valid {
+		return "", errors.New("cookie не установлены")
+	}
+	return cookie.String, nil
 }
 
 func (s Sqlite3) SetCookie(uid int64, cookie string) {
-	//TODO implement me
-	panic("implement me")
+	_, err := s.db.Exec("UPDATE users SET cookie=? WHERE uid= ?;", cookie, uid)
+	if err != nil {
+		log.Printf("Ошибка при обновлении cookie [%v, %v] - %v", cookie, uid, err)
+		return
+	}
 }
 
 func (s Sqlite3) SetUserAgent(uid int64, agent string) {
