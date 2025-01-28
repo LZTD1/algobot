@@ -108,7 +108,7 @@ func TestDomain(t *testing.T) {
 		t.Run("Get groups", func(t *testing.T) {
 			truncateBase(base)
 			base.Exec("INSERT INTO users (uid, user_agent, cookie, notification) VALUES(7, 'agent', 'cookie', 0);")
-			base.Exec("INSERT INTO groups (group_id, owner_id, title, string_next_time, time_lesson) VALUES(0, ?, 'title', 'string_next_time', '01.02.2025 16:00');", 7)
+			base.Exec("INSERT INTO groups (group_id, owner_id, title, string_next_time, time_lesson) VALUES(0, ?, 'title', 'string_next_time', '2025-02-01 16:00:00');", 7)
 
 			groups, err := sqlite3.Groups(7)
 			if err != nil {
@@ -171,6 +171,16 @@ func TestDomain(t *testing.T) {
 				t.Fatalf("Expected notification to be true, got false")
 			}
 		})
+	})
+	t.Run("Test set notification method", func(t *testing.T) {
+		truncateBase(base)
+		base.Exec("INSERT INTO users (uid, user_agent, cookie, notification) VALUES(5, 'agent', 'a', 0);")
+		sqlite3.SetNotification(5, true)
+		notif := sqlite3.Notification(5)
+
+		if notif != true {
+			t.Errorf("Expected notif to be 'true', got %v", notif)
+		}
 	})
 	t.Run("Register user ", func(t *testing.T) {
 		truncateBase(base)

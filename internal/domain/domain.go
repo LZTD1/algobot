@@ -42,5 +42,6 @@ type Domain interface {
 	Groups(uid int64) ([]Group, error)
 	SetGroups(uid int64, groups []Group)
 	Notification(uid int64) bool
+	SetNotification(uid int64, value bool)
 	RegisterUser(uid int64)
 }

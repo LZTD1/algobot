@@ -19,8 +19,8 @@ func NewSqlite3(db *sql.DB) *Sqlite3 {
 }
 
 func (s Sqlite3) User(uid int64) (User, error) {
-	sqlQuery := `SELECT u.uid, u.cookie, u.user_agent, u.notification FROM users u WHERE u.uid = ?`
-	row := s.db.QueryRow(sqlQuery, uid)
+	sqlQuery := fmt.Sprintf(`SELECT u.uid, u.cookie, u.user_agent, u.notification FROM users u WHERE u.uid = %d`, uid)
+	row := s.db.QueryRow(sqlQuery)
 	if row.Err() != nil {
 		log.Printf("Ошибка при выполнении запроса, %s, со значением %v", sqlQuery, uid)
 		return User{}, row.Err()
@@ -52,8 +52,8 @@ func (s Sqlite3) User(uid int64) (User, error) {
 }
 
 func (s Sqlite3) Cookie(uid int64) (string, error) {
-	sqlQuery := `SELECT u.cookie FROM users u WHERE u.uid = ?`
-	row := s.db.QueryRow(sqlQuery, uid)
+	sqlQuery := fmt.Sprintf(`SELECT u.cookie FROM users u WHERE u.uid = %d`, uid)
+	row := s.db.QueryRow(sqlQuery)
 
 	if row.Err() != nil {
 		return "", row.Err()
@@ -64,13 +64,13 @@ func (s Sqlite3) Cookie(uid int64) (string, error) {
 	row.Scan(&cookie)
 
 	if !cookie.Valid {
-		return "", errors.New("cookie не установлены")
+		return "", errors.New("Установите cookie в настройках!")
 	}
 	return cookie.String, nil
 }
 
 func (s Sqlite3) SetCookie(uid int64, cookie string) {
-	_, err := s.db.Exec("UPDATE users SET cookie=? WHERE uid= ?;", cookie, uid)
+	_, err := s.db.Exec(fmt.Sprintf("UPDATE users SET cookie=? WHERE uid= %d;", uid), cookie)
 	if err != nil {
 		log.Printf("Ошибка при обновлении cookie [%v, %v] - %v", cookie, uid, err)
 		return
@@ -78,7 +78,7 @@ func (s Sqlite3) SetCookie(uid int64, cookie string) {
 }
 
 func (s Sqlite3) SetUserAgent(uid int64, agent string) {
-	_, err := s.db.Exec("UPDATE users SET user_agent=? WHERE uid= ?;", agent, uid)
+	_, err := s.db.Exec(fmt.Sprintf("UPDATE users SET user_agent=? WHERE uid= %d;", uid), agent)
 	if err != nil {
 		log.Printf("Ошибка при обновлении useragent [%v, %v] - %v", agent, uid, err)
 		return
@@ -86,11 +86,11 @@ func (s Sqlite3) SetUserAgent(uid int64, agent string) {
 }
 
 func (s Sqlite3) Groups(uid int64) ([]Group, error) {
-	sqlQuery := `SELECT g.group_id, g.title, g.time_lesson 
+	sqlQuery := fmt.Sprintf(`SELECT g.group_id, g.title, g.time_lesson 
 		FROM groups g 
-		WHERE g.owner_id = ?;`
+		WHERE g.owner_id = %d;`, uid)
 
-	rows, err := s.db.Query(sqlQuery, uid)
+	rows, err := s.db.Query(sqlQuery)
 	if err != nil {
 		log.Printf("Ошибка при выполнении запроса, %s, со значением %v", sqlQuery, uid)
 		return nil, err
@@ -104,9 +104,9 @@ func (s Sqlite3) Groups(uid int64) ([]Group, error) {
 
 		rows.Scan(&groupId, &title, &timeGroup)
 
-		parsedTime, err := time.Parse("02.01.2006 15:04", timeGroup.String)
+		parsedTime, err := time.Parse("2006-01-02 15:04:05", timeGroup.String)
 		if err != nil {
-			log.Printf("Ошибка при парсинге даты %v - %v", timeGroup.String, err)
+			log.Printf("1 Ошибка при парсинге даты %v - %v", timeGroup.String, err)
 			return nil, fmt.Errorf("Ошибка при парсинге даты %v - %v", timeGroup.String, err)
 		}
 
@@ -124,26 +124,30 @@ func (s Sqlite3) Groups(uid int64) ([]Group, error) {
 }
 
 func (s Sqlite3) SetGroups(uid int64, groups []Group) {
+	s.db.Exec(fmt.Sprintf("DELETE FROM groups WHERE owner_id = %d", uid))
+
 	sqlQuery := strings.Builder{}
 	sqlQuery.WriteString("INSERT INTO groups (group_id, owner_id, title, string_next_time, time_lesson) VALUES ")
 
 	var preparedString []string
 	for _, g := range groups {
-		preparedString = append(preparedString, fmt.Sprintf("(%d, %d, '%s', '%s', '%s')", g.Id, uid, g.Name, "-", g.Time.Format("02.01.2006 15:04")))
+		preparedString = append(preparedString, fmt.Sprintf("(%d, %d, '%s', '%s', '%s')", g.Id, uid, g.Name, "-", g.Time.Format("2006-01-02 15:04:05")))
 	}
 
 	sqlQuery.WriteString(strings.Join(preparedString, ","))
 	sqlQuery.WriteString(";")
 
+	log.Printf("Выполнение SQL-запроса: %s", sqlQuery.String())
 	_, err := s.db.Exec(sqlQuery.String())
 	if err != nil {
-		log.Printf("Ошибка при заполнении групп %v", err)
+		log.Printf("Ошибка при заполнении групп: %v", err)
+		log.Printf("Проверьте, существует ли пользователь с ID: %d в таблице, на которую ссылается внешний ключ", uid)
 	}
 }
 
 func (s Sqlite3) Notification(uid int64) bool {
-	sqlQuery := `SELECT u.notification FROM users u WHERE u.uid = ?`
-	row := s.db.QueryRow(sqlQuery, uid)
+	sqlQuery := fmt.Sprintf(`SELECT u.notification FROM users u WHERE u.uid = %d`, uid)
+	row := s.db.QueryRow(sqlQuery)
 
 	if row.Err() != nil {
 		return false
@@ -159,9 +163,19 @@ func (s Sqlite3) Notification(uid int64) bool {
 
 	return notif.Bool
 }
-
+func (s Sqlite3) SetNotification(uid int64, value bool) {
+	digit := 0
+	if value {
+		digit = 1
+	}
+	_, err := s.db.Exec(fmt.Sprintf("UPDATE users SET notification=? WHERE uid= %d;", uid), digit)
+	if err != nil {
+		log.Printf("Ошибка при обновлении notification [%v, %v] - %v", digit, uid, err)
+		return
+	}
+}
 func (s Sqlite3) RegisterUser(uid int64) {
-	_, err := s.db.Exec("INSERT INTO users (uid, user_agent, cookie, notification) VALUES(?, NULL, NULL, 0);", uid)
+	_, err := s.db.Exec(fmt.Sprintf("INSERT INTO users (uid, user_agent, cookie, notification) VALUES(%d, NULL, NULL, 0);", uid))
 	if err != nil {
 		log.Fatalf("Ошибка при создании юзера, %v", err)
 		return
@@ -248,9 +262,9 @@ func (s Sqlite3) appendGroups(u *User, id int64) {
 
 		query.Scan(&groupId, &title, &timeGroup)
 
-		parsedTime, err := time.Parse("02.01.2006 15:04", timeGroup.String)
+		parsedTime, err := time.Parse("2006-01-02 15:04:05", timeGroup.String)
 		if err != nil {
-			log.Printf("Ошибка при парсинге даты %v - %v", timeGroup.String, err)
+			log.Printf("2 Ошибка при парсинге даты %v - %v", timeGroup.String, err)
 			return
 		}
 

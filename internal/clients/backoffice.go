@@ -30,7 +30,8 @@ func NewBackoffice(url string, settings BackofficeSetting) *Backoffice {
 	return &Backoffice{url: url, settings: settings}
 }
 
-func (b Backoffice) GetKidsNamesByGroup(cookie, group string) (*GroupResponse, *ClientError) {
+func (b Backoffice) GetKidsNamesByGroup(cookie, group string) (*GroupResponse, error) {
+
 	req, err := b.createReq("GET", "/api/v2/group/student/index", cookie, map[string]string{
 		"groupId": group,
 		"expand":  "lastGroup",
@@ -53,7 +54,7 @@ func (b Backoffice) GetKidsNamesByGroup(cookie, group string) (*GroupResponse, *
 	return &response, nil
 }
 
-func (b Backoffice) GetKidsStatsByGroup(cookie, group string) (*KidsStats, *ClientError) {
+func (b Backoffice) GetKidsStatsByGroup(cookie, group string) (*KidsStats, error) {
 	req, err := b.createReq("GET", "/api/v1/stats/default/attendance", cookie, map[string]string{
 		"group": group,
 	}, nil)
@@ -75,7 +76,7 @@ func (b Backoffice) GetKidsStatsByGroup(cookie, group string) (*KidsStats, *Clie
 	return &response, nil
 }
 
-func (b Backoffice) GetKidsMessages(cookie string) (*KidsMessages, *ClientError) {
+func (b Backoffice) GetKidsMessages(cookie string) (*KidsMessages, error) {
 	req, err := b.createReq("GET", "/api/v1/teacherComment/projects", cookie, map[string]string{
 		"from":  "0",
 		"limit": "30",
@@ -98,7 +99,7 @@ func (b Backoffice) GetKidsMessages(cookie string) (*KidsMessages, *ClientError)
 	return &response, nil
 }
 
-func (b Backoffice) GetAllGroupsByUser(cookie string) ([]AllGroupsUser, *ClientError) {
+func (b Backoffice) GetAllGroupsByUser(cookie string) ([]AllGroupsUser, error) {
 	req, err := b.createReq("GET", "/group", cookie, map[string]string{
 		"GroupSearch[status][]": "active",
 		"presetType":            "all",
@@ -119,7 +120,7 @@ func (b Backoffice) GetAllGroupsByUser(cookie string) ([]AllGroupsUser, *ClientE
 	return res, nil
 }
 
-func (b Backoffice) OpenLession(cookie, group, lession string) *ClientError {
+func (b Backoffice) OpenLession(cookie, group, lession string) error {
 	req, err := b.createReq("POST", "/api/v2/group/lesson/status", cookie, map[string]string{}, strings.NewReader("ajaxUrl=^%^2Fapi^%^2Fv2^%^2Fgroup^%^2Flesson^%^2Fstatus&btnClass=btn+btn-xs+btn-danger&status=10&lessonId="+lession+"&groupId="+group))
 	if err != nil {
 		return GetError(500, err.Error())
@@ -132,7 +133,7 @@ func (b Backoffice) OpenLession(cookie, group, lession string) *ClientError {
 	return nil
 }
 
-func (b Backoffice) CloseLession(cookie, group, lession string) *ClientError {
+func (b Backoffice) CloseLession(cookie, group, lession string) error {
 	req, err := b.createReq("POST", "/api/v2/group/lesson/status", cookie, map[string]string{}, strings.NewReader("ajaxUrl=^%^2Fapi^%^2Fv2^%^2Fgroup^%^2Flesson^%^2Fstatus&btnClass=btn+btn-xs+btn-danger&status=0&lessonId="+lession+"&groupId="+group))
 	if err != nil {
 		return GetError(500, err.Error())

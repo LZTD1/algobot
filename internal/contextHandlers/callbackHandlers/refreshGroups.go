@@ -30,8 +30,9 @@ func (r RefreshGroups) Process(ctx telebot.Context) error {
 	err = r.svc.RefreshGroups(ctx.Sender().ID)
 	if err != nil {
 		ctx.Edit(err.Error())
+	} else {
+		err = ctx.Edit(config.UpdateEnd)
 	}
 
-	err = ctx.Edit(config.UpdateEnd)
 	return err
 }

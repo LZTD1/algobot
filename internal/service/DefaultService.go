@@ -1,6 +1,10 @@
 package service
 
 import (
+	"fmt"
+	"log"
+	"regexp"
+	"strconv"
 	"tgbot/internal/clients"
 	"tgbot/internal/domain"
 	"tgbot/internal/helpers"
@@ -27,6 +31,7 @@ func (d DefaultService) CurrentGroup(uid int64, t time.Time) (domain.Group, erro
 		return domain.Group{}, err
 	}
 
+	fmt.Println(group)
 	kids, err := d.MissingKids(uid, t, group.Id)
 	if err != nil {
 		return domain.Group{}, err
@@ -38,8 +43,7 @@ func (d DefaultService) CurrentGroup(uid int64, t time.Time) (domain.Group, erro
 }
 
 func (d DefaultService) Groups(uid int64) ([]domain.Group, error) {
-	//TODO implement me
-	panic("implement me")
+	return d.domain.Groups(uid)
 }
 
 func (d DefaultService) MissingKids(uid int64, t time.Time, g int) ([]string, error) {
@@ -48,56 +52,123 @@ func (d DefaultService) MissingKids(uid int64, t time.Time, g int) ([]string, er
 		return nil, err
 	}
 
-	names, err := d.webClient.GetKidsNamesByGroup(cookie, string(g))
+	names, err := d.webClient.GetKidsNamesByGroup(cookie, strconv.FormatInt(int64(g), 10))
 	if err != nil {
 		return nil, err
 	}
 
-	stats, err := d.webClient.GetKidsStatsByGroup(cookie, string(g))
+	fmt.Println(names)
+	stats, err := d.webClient.GetKidsStatsByGroup(cookie, strconv.FormatInt(int64(g), 10))
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(stats)
 
-	for i, datum := range stats.Data {
-		_ = i
-		_ = datum
+	absentKids := make(map[int]string)
+	for _, datum := range stats.Data {
+		for _, attendance := range datum.Attendance {
+			if attendance.Status == "absent" && matchDates(attendance.StartTimeFormatted, t) {
+				absentKids[datum.StudentID] = ""
+				break
+			}
+		}
 	}
 
-	_ = names
-	panic("implement me")
+	fmt.Println(absentKids)
+	var readyNames []string
+	for _, item := range names.Data.Items {
+		if _, exists := absentKids[item.ID]; exists {
+			readyNames = append(readyNames, item.FullName)
+		}
+	}
+
+	return readyNames, nil
 }
 
 func (d DefaultService) Cookie(uid int64) (string, error) {
-	//TODO implement me
-	panic("implement me")
+	return d.domain.Cookie(uid)
 }
 
 func (d DefaultService) SetCookie(uid int64, cookie string) {
-	//TODO implement me
-	panic("implement me")
+	d.domain.SetCookie(uid, cookie)
 }
 
 func (d DefaultService) Notification(uid int64) bool {
-	//TODO implement me
-	panic("implement me")
+	return d.domain.Notification(uid)
 }
 
 func (d DefaultService) SetNotification(uid int64, notification bool) {
-	//TODO implement me
-	panic("implement me")
+	d.domain.SetNotification(uid, notification)
 }
 
 func (d DefaultService) IsUserRegistered(uid int64) bool {
-	//TODO implement me
-	panic("implement me")
+	_, err := d.domain.User(uid)
+	if err != nil {
+		return false
+	}
+	return true
 }
 
 func (d DefaultService) RegisterUser(uid int64) {
-	//TODO implement me
-	panic("implement me")
+	d.domain.RegisterUser(uid)
 }
 
 func (d DefaultService) RefreshGroups(uid int64) error {
-	//TODO implement me
-	panic("implement me")
+	cookie, err := d.domain.Cookie(uid)
+	if err != nil {
+		return err
+	}
+	groups, err := d.webClient.GetAllGroupsByUser(cookie)
+	if err != nil {
+		return err
+	}
+
+	groupsFormatted := make([]domain.Group, len(groups))
+	for i, group := range groups {
+		groupIdStr := group.GroupId
+		groupIdInt, err := strconv.Atoi(groupIdStr)
+		if err != nil {
+			log.Printf("Error converting group id %s to int\n", groupIdStr)
+			continue
+		}
+
+		groupsFormatted[i] = domain.Group{
+			Id:          groupIdInt,
+			Name:        group.Title,
+			Lesson:      "",
+			Time:        getTime(group.TimeLesson),
+			AllKids:     0,
+			MissingKids: nil,
+		}
+	}
+	d.domain.SetGroups(uid, groupsFormatted)
+
+	return nil
+}
+
+func getTime(lesson string) time.Time {
+	parse, err := time.Parse("02.01.2006 15:04", lesson)
+	if err != nil {
+		return time.Time{}
+	}
+	return parse
+}
+
+func matchDates(timeStr string, t time.Time) bool {
+	timeStr = regexp.MustCompile(`^[а-яА-Я]+(\s+)?`).ReplaceAllString(timeStr, "")
+	timeFormatted, err := time.Parse("02.01.06 15:04", timeStr)
+	if err != nil {
+		log.Printf("Cant convert date str to Time - '%s'\n", timeStr)
+		return false
+	}
+
+	fmt.Println(timeStr)
+	fmt.Println(t)
+	fmt.Println()
+	fmt.Println()
+	fmt.Println()
+	if t.YearDay() == timeFormatted.YearDay() {
+		return true
+	}
+	return false
 }

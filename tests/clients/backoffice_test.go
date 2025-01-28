@@ -201,7 +201,7 @@ func getBOServer(t *testing.T, wantedParams map[string]string, wantedMethod stri
 	return ts
 }
 
-func assertNoError(t *testing.T, err *clients.ClientError) {
+func assertNoError(t *testing.T, err error) {
 	t.Helper()
 
 	if err != nil {
@@ -209,20 +209,27 @@ func assertNoError(t *testing.T, err *clients.ClientError) {
 	}
 }
 
-func assertError(t *testing.T, err *clients.ClientError, i int, s string) {
+func assertError(t *testing.T, err error, i int, s string) {
 	t.Helper()
 
-	if err == nil {
+	// Приводим ошибку к типу *clients.ClientError
+	clientErr, ok := err.(*clients.ClientError)
+	if !ok {
+		t.Errorf("Expected error of type *clients.ClientError, but got: %T", err)
+		return
+	}
+
+	if clientErr == nil {
 		t.Fatal("Expected error, got nil")
 	}
-	if err.Code != i {
+	if clientErr.Code != i {
 		t.Errorf("%+v\n", err)
-		t.Fatalf("Expected code %d, got %d", i, err.Code)
+		t.Fatalf("Expected code %d, got %d", i, clientErr.Code)
 	}
 	if s != "_" {
-		if err.Message != s {
+		if clientErr.Message != s {
 			t.Errorf("%+v\n", err)
-			t.Fatalf("Expected message %s, got %s", s, err.Message)
+			t.Fatalf("Expected message %s, got %s", s, clientErr.Message)
 		}
 	}
 }
