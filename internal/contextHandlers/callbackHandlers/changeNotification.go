@@ -4,6 +4,7 @@ import (
 	"gopkg.in/telebot.v4"
 	"tgbot/internal/contextHandlers/defaultHandler"
 	"tgbot/internal/contextHandlers/textHandlers/defaultState"
+	"tgbot/internal/helpers"
 	"tgbot/internal/service"
 )
 
@@ -25,8 +26,16 @@ func (c ChangeNotification) CanHandle(ctx telebot.Context) bool {
 
 func (c ChangeNotification) Process(ctx telebot.Context) error {
 	uid := ctx.Callback().Sender.ID
-	notify := c.svc.Notification(uid)
-	c.svc.SetNotification(uid, !notify)
+	notify, err := c.svc.Notification(uid)
+	if err != nil {
+		t := helpers.LogWithRandomToken(err)
+		return ctx.Send(t + " | Ошибка при получении нотификаций! ")
+	}
+	err = c.svc.SetNotification(uid, !notify)
+	if err != nil {
+		t := helpers.LogWithRandomToken(err)
+		return ctx.Send(t + " | Ошибка при установлении нотификаций! ")
+	}
 
 	return c.settings.Process(ctx)
 }

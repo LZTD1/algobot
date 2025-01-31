@@ -3,6 +3,7 @@ package callbackHandlers
 import (
 	"gopkg.in/telebot.v4"
 	"tgbot/internal/config"
+	"tgbot/internal/helpers"
 	"tgbot/internal/service"
 )
 
@@ -29,7 +30,8 @@ func (r RefreshGroups) Process(ctx telebot.Context) error {
 
 	err = r.svc.RefreshGroups(ctx.Sender().ID)
 	if err != nil {
-		ctx.Edit(err.Error())
+		t := helpers.LogWithRandomToken(err)
+		return ctx.Send(t + " | Ошибка при обновлении групп! ")
 	} else {
 		err = ctx.Edit(config.UpdateEnd)
 	}

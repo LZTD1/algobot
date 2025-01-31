@@ -33,7 +33,6 @@ func (d DefaultService) CurrentGroup(uid int64, t time.Time) (domain.Group, erro
 		return domain.Group{}, fmt.Errorf("DefaultService.CurrentGroup(%d, %v) : %w", uid, t, err)
 	}
 
-	fmt.Println(group)
 	kids, err := d.MissingKids(uid, t, group.Id)
 	if err != nil {
 		return domain.Group{}, fmt.Errorf("DefaultService.CurrentGroup(%d, %v) : %w", uid, t, err)
@@ -53,7 +52,7 @@ func (d DefaultService) Groups(uid int64) ([]domain.Group, error) {
 }
 
 func (d DefaultService) MissingKids(uid int64, t time.Time, g int) ([]string, error) {
-	cookie, err := d.domain.Cookie(uid)
+	cookie, err := d.Cookie(uid)
 	if err != nil {
 		return nil, fmt.Errorf("DefaultService.MissingKids(%d, %v, %d) : %w", uid, t, g, err)
 	}

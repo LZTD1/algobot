@@ -3,6 +3,7 @@ package sendingCookieState
 import (
 	"gopkg.in/telebot.v4"
 	"tgbot/internal/config"
+	"tgbot/internal/helpers"
 	"tgbot/internal/service"
 	"tgbot/internal/stateMachine"
 )
@@ -27,7 +28,11 @@ func (s SendingCookieAction) Process(ctx telebot.Context) error {
 	uid := ctx.Sender().ID
 	cookie := ctx.Message().Text
 
-	s.service.SetCookie(uid, cookie)
+	err := s.service.SetCookie(uid, cookie)
+	if err != nil {
+		t := helpers.LogWithRandomToken(err)
+		return ctx.Send(t + " | Ошибка при установке Cookie! ")
+	}
 	s.state.SetStatement(uid, stateMachine.Default)
 
 	return ctx.Send(config.CookieSet, config.StartKeyboard)

@@ -2,6 +2,7 @@ package domain
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"io/fs"
 	"log"
@@ -31,7 +32,10 @@ func (s Sqlite3) User(uid int64) (User, error) {
 
 	err := row.Scan(&baseId, &cookie, &userAgent, &notifications)
 	if err != nil {
-		return User{}, fmt.Errorf("NewSqlite3.User(%d) : %w", uid, row.Err())
+		if errors.Is(err, sql.ErrNoRows) {
+			return User{}, fmt.Errorf("NewSqlite3.User(%d) : %w", uid, appError.ErrNotFound)
+		}
+		return User{}, fmt.Errorf("NewSqlite3.User(%d) : %w", uid, err)
 	}
 
 	if !baseId.Valid {

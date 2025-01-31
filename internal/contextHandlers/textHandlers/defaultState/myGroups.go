@@ -1,11 +1,13 @@
 package defaultState
 
 import (
+	"errors"
 	"fmt"
 	"gopkg.in/telebot.v4"
 	"strings"
 	"tgbot/internal/config"
 	"tgbot/internal/domain"
+	appError "tgbot/internal/error"
 	"tgbot/internal/helpers"
 	"tgbot/internal/service"
 	"time"
@@ -39,7 +41,11 @@ func (m MyGroups) Process(ctx telebot.Context) error {
 	g, e := m.s.Groups(ctx.Message().Sender.ID)
 
 	if e != nil {
-		return ctx.Send(config.UserDontHaveGroup, config.MyGroupsKeyboard)
+		if errors.Is(e, appError.ErrHasNone) {
+			return ctx.Send(config.UserDontHaveGroup, config.MyGroupsKeyboard)
+		}
+		t := helpers.LogWithRandomToken(e)
+		return ctx.Send(t + " | Ошибка при попытке получить группы! ")
 	}
 	sorted := helpers.GetSortedGroups(g)
 

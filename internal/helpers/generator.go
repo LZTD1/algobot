@@ -20,6 +20,6 @@ func GenerateRandomToken() string {
 
 func LogWithRandomToken(err error) string {
 	token := GenerateRandomToken()
-	log.Printf("ERR: %s | %v", token, err)
+	log.Printf("ERR: %s | %s\n", token, err.Error())
 	return token
 }

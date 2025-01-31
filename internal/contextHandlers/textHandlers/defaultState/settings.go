@@ -4,6 +4,7 @@ import (
 	"gopkg.in/telebot.v4"
 	"strings"
 	"tgbot/internal/config"
+	"tgbot/internal/helpers"
 	"tgbot/internal/service"
 )
 
@@ -26,10 +27,14 @@ func (s *Settings) Process(ctx telebot.Context) error {
 
 	c, err := s.svc.Cookie(uid)
 	if err != nil {
-		c = ""
+		t := helpers.LogWithRandomToken(err)
+		return ctx.Send(t + " | Ошибка при формировании настроек! ")
 	}
-	n := s.svc.Notification(uid)
-
+	n, err := s.svc.Notification(uid)
+	if err != nil {
+		t := helpers.LogWithRandomToken(err)
+		return ctx.Send(t + " | Ошибка при формировании настроек! ")
+	}
 	return ctx.Send(GetMessageSettings(c, n), config.SettingsKeyboard)
 }
 
