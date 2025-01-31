@@ -23,6 +23,12 @@ func NewDefaultService(domain domain.Domain, webClient clients.WebClient) *Defau
 }
 
 func (d DefaultService) CurrentGroup(uid int64, t time.Time) (domain.Group, error) {
+	// TODO зарефачить метод
+	// TODO выделить 2 разных обьекта для Domain в Service
+	// TODO Зарефачить схему БД
+
+	cookie, err := d.Cookie(uid)
+
 	allGroups, err := d.domain.Groups(uid)
 	if err != nil {
 		return domain.Group{}, fmt.Errorf("DefaultService.CurrentGroup(%d, %v) : %w", uid, t, err)
@@ -33,12 +39,28 @@ func (d DefaultService) CurrentGroup(uid int64, t time.Time) (domain.Group, erro
 		return domain.Group{}, fmt.Errorf("DefaultService.CurrentGroup(%d, %v) : %w", uid, t, err)
 	}
 
-	kids, err := d.MissingKids(uid, t, group.Id)
+	names, err := d.KidsNamesMap(cookie, group.Id)
+	group.AllKids = len(names)
+
+	stats, err := d.webClient.GetKidsStatsByGroup(cookie, strconv.FormatInt(int64(group.Id), 10))
 	if err != nil {
 		return domain.Group{}, fmt.Errorf("DefaultService.CurrentGroup(%d, %v) : %w", uid, t, err)
 	}
 
-	group.MissingKids = kids
+	var absentKids []string
+	var lession string
+	for _, datum := range stats.Data {
+		for _, attendance := range datum.Attendance {
+			if attendance.Status == "absent" && matchDates(attendance.StartTimeFormatted, t) {
+				absentKids = append(absentKids, names[datum.StudentID])
+				lession = attendance.LessonTitle
+				break
+			}
+		}
+	}
+
+	group.MissingKids = absentKids
+	group.Lesson = lession
 
 	return group, nil
 }
@@ -49,42 +71,6 @@ func (d DefaultService) Groups(uid int64) ([]domain.Group, error) {
 		return nil, fmt.Errorf("DefaultService.Groups(%d) : %w", uid, err)
 	}
 	return data, nil
-}
-
-func (d DefaultService) MissingKids(uid int64, t time.Time, g int) ([]string, error) {
-	cookie, err := d.Cookie(uid)
-	if err != nil {
-		return nil, fmt.Errorf("DefaultService.MissingKids(%d, %v, %d) : %w", uid, t, g, err)
-	}
-
-	names, err := d.webClient.GetKidsNamesByGroup(cookie, strconv.FormatInt(int64(g), 10))
-	if err != nil {
-		return nil, fmt.Errorf("DefaultService.MissingKids(%d, %v, %d) : %w", uid, t, g, err)
-	}
-
-	stats, err := d.webClient.GetKidsStatsByGroup(cookie, strconv.FormatInt(int64(g), 10))
-	if err != nil {
-		return nil, fmt.Errorf("DefaultService.MissingKids(%d, %v, %d) : %w", uid, t, g, err)
-	}
-
-	absentKids := make(map[int]string)
-	for _, datum := range stats.Data {
-		for _, attendance := range datum.Attendance {
-			if attendance.Status == "absent" && matchDates(attendance.StartTimeFormatted, t) {
-				absentKids[datum.StudentID] = ""
-				break
-			}
-		}
-	}
-
-	var readyNames []string
-	for _, item := range names.Data.Items {
-		if _, exists := absentKids[item.ID]; exists {
-			readyNames = append(readyNames, item.FullName)
-		}
-	}
-
-	return readyNames, nil
 }
 
 func (d DefaultService) Cookie(uid int64) (string, error) {
@@ -180,6 +166,20 @@ func (d DefaultService) RefreshGroups(uid int64) error {
 	return nil
 }
 
+func (d DefaultService) KidsNamesMap(cookie string, groupId int) (map[int]string, error) {
+	names, err := d.webClient.GetKidsNamesByGroup(cookie, groupId)
+	if err != nil {
+		return nil, fmt.Errorf("DefaultService.KidsNamesMap(%s, %d)  : %w", cookie, groupId, err)
+	}
+	returnMap := make(map[int]string)
+	for _, item := range names.Data.Items {
+		if item.LastGroup.ID == groupId && item.LastGroup.Status == 0 {
+			returnMap[item.ID] = item.FullName
+		}
+	}
+	return returnMap, nil
+}
+
 func getTime(lesson string) time.Time {
 	parse, err := time.Parse("02.01.2006 15:04", lesson)
 	if err != nil {
@@ -196,11 +196,6 @@ func matchDates(timeStr string, t time.Time) bool {
 		return false
 	}
 
-	fmt.Println(timeStr)
-	fmt.Println(t)
-	fmt.Println()
-	fmt.Println()
-	fmt.Println()
 	if t.YearDay() == timeFormatted.YearDay() {
 		return true
 	}

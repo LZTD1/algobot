@@ -33,15 +33,16 @@ func (m *MissingKids) Process(ctx telebot.Context) error {
 		if errors.Is(e, appError.ErrHasNone) {
 			return ctx.Send(config.CurrentGroupDontFind)
 		}
+		// TODO зарефачить эту логику
 		t := helpers.LogWithRandomToken(e)
 		return ctx.Send(t + " | Ошибка при получении групп!")
 	}
-	return ctx.Send(message(g))
+	return ctx.Send(message(g), telebot.ModeMarkdown)
 }
 
 func message(g domain.Group) string {
 	return fmt.Sprintf(
-		"%s%s\n%s%s\n%s%d\n%s%d\n%s",
+		"%s%s\n%s%s\n\n%s%d\n%s%d\n\n```Отсутсвующие\n%s\n```",
 		config.GroupName,
 		g.Name,
 		config.Lection,

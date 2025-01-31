@@ -19,7 +19,7 @@ func GetError(code int, message string) *ClientError {
 
 type WebClient interface {
 	// GetKidsNamesByGroup получить всех детей в группе
-	GetKidsNamesByGroup(cookie, group string) (*GroupResponse, error)
+	GetKidsNamesByGroup(cookie string, group int) (*GroupResponse, error)
 	// GetKidsStatsByGroup получить статистику посещения детей в группе
 	GetKidsStatsByGroup(cookie, group string) (*KidsStats, error)
 	// OpenLession открыть лекцию с идентификатором {lession}

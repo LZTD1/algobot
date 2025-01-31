@@ -8,7 +8,7 @@ import (
 type MockWebClient struct {
 }
 
-func (m MockWebClient) GetKidsNamesByGroup(cookie, group string) (*clients.GroupResponse, error) {
+func (m MockWebClient) GetKidsNamesByGroup(cookie string, group int) (*clients.GroupResponse, error) {
 	return &groupResponse, nil
 }
 

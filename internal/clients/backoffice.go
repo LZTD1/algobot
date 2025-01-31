@@ -2,11 +2,13 @@ package clients
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -30,25 +32,25 @@ func NewBackoffice(url string, settings BackofficeSetting) *Backoffice {
 	return &Backoffice{url: url, settings: settings}
 }
 
-func (b Backoffice) GetKidsNamesByGroup(cookie, group string) (*GroupResponse, error) {
+func (b Backoffice) GetKidsNamesByGroup(cookie string, group int) (*GroupResponse, error) {
 
 	req, err := b.createReq("GET", "/api/v2/group/student/index", cookie, map[string]string{
-		"groupId": group,
+		"groupId": strconv.Itoa(group),
 		"expand":  "lastGroup",
 	}, nil)
 	if err != nil {
-		return nil, GetError(500, err.Error())
+		return nil, fmt.Errorf("Backoffice.GetKidsNamesByGroup(%s, %s) : %w", cookie, group, err)
 	}
 
 	data, reqErr := b.doReq(req)
 	if reqErr != nil {
-		return nil, reqErr
+		return nil, fmt.Errorf("Backoffice.GetKidsNamesByGroup(%s, %s) : %w", cookie, group, reqErr)
 	}
 
 	var response GroupResponse
 	err = json.NewDecoder(data.Body).Decode(&response)
 	if err != nil {
-		return nil, GetError(500, err.Error())
+		return nil, fmt.Errorf("Backoffice.GetKidsNamesByGroup(%s, %s) : %w", cookie, group, err)
 	}
 
 	return &response, nil
@@ -59,18 +61,18 @@ func (b Backoffice) GetKidsStatsByGroup(cookie, group string) (*KidsStats, error
 		"group": group,
 	}, nil)
 	if err != nil {
-		return nil, GetError(500, err.Error())
+		return nil, fmt.Errorf("Backoffice.GetKidsStatsByGroup(%s, %s) : %w", cookie, group, err)
 	}
 
 	data, reqErr := b.doReq(req)
 	if reqErr != nil {
-		return nil, reqErr
+		return nil, fmt.Errorf("Backoffice.GetKidsStatsByGroup(%s, %s) : %w", cookie, group, reqErr)
 	}
 
 	var response KidsStats
 	err = json.NewDecoder(data.Body).Decode(&response)
 	if err != nil {
-		return nil, GetError(500, err.Error())
+		return nil, fmt.Errorf("Backoffice.GetKidsStatsByGroup(%s, %s) : %w", cookie, group, err)
 	}
 
 	return &response, nil
@@ -82,18 +84,18 @@ func (b Backoffice) GetKidsMessages(cookie string) (*KidsMessages, error) {
 		"limit": "30",
 	}, nil)
 	if err != nil {
-		return nil, GetError(500, err.Error())
+		return nil, fmt.Errorf("Backoffice.GetKidsMessages(%s) : %w", cookie, err)
 	}
 
 	data, reqErr := b.doReq(req)
 	if reqErr != nil {
-		return nil, reqErr
+		return nil, fmt.Errorf("Backoffice.GetKidsMessages(%s) : %w", cookie, reqErr)
 	}
 
 	var response KidsMessages
 	err = json.NewDecoder(data.Body).Decode(&response)
 	if err != nil {
-		return nil, GetError(500, err.Error())
+		return nil, fmt.Errorf("Backoffice.GetKidsMessages(%s) : %w", cookie, err)
 	}
 
 	return &response, nil
@@ -106,16 +108,16 @@ func (b Backoffice) GetAllGroupsByUser(cookie string) ([]AllGroupsUser, error) {
 		"_pjax":                 "#group-grid-pjax",
 	}, nil)
 	if err != nil {
-		return nil, GetError(500, err.Error())
+		return nil, fmt.Errorf("Backoffice.GetAllGroupsByUser(%s) : %w", cookie, err)
 	}
 	data, reqErr := b.doReq(req)
 	if reqErr != nil {
-		return nil, reqErr
+		return nil, fmt.Errorf("Backoffice.GetAllGroupsByUser(%s) : %w", cookie, reqErr)
 	}
 
 	res, err := parsedHtml(data.Body)
 	if err != nil {
-		return nil, GetError(500, err.Error())
+		return nil, fmt.Errorf("Backoffice.GetAllGroupsByUser(%s) : %w", cookie, err)
 	}
 	return res, nil
 }
@@ -123,11 +125,11 @@ func (b Backoffice) GetAllGroupsByUser(cookie string) ([]AllGroupsUser, error) {
 func (b Backoffice) OpenLession(cookie, group, lession string) error {
 	req, err := b.createReq("POST", "/api/v2/group/lesson/status", cookie, map[string]string{}, strings.NewReader("ajaxUrl=^%^2Fapi^%^2Fv2^%^2Fgroup^%^2Flesson^%^2Fstatus&btnClass=btn+btn-xs+btn-danger&status=10&lessonId="+lession+"&groupId="+group))
 	if err != nil {
-		return GetError(500, err.Error())
+		return fmt.Errorf("Backoffice.OpenLession(%s, %s, %s) : %w", cookie, group, lession, err)
 	}
 	_, reqErr := b.doReq(req)
 	if reqErr != nil {
-		return reqErr
+		return fmt.Errorf("Backoffice.OpenLession(%s, %s, %s) : %w", cookie, group, lession, reqErr)
 	}
 
 	return nil
@@ -136,11 +138,11 @@ func (b Backoffice) OpenLession(cookie, group, lession string) error {
 func (b Backoffice) CloseLession(cookie, group, lession string) error {
 	req, err := b.createReq("POST", "/api/v2/group/lesson/status", cookie, map[string]string{}, strings.NewReader("ajaxUrl=^%^2Fapi^%^2Fv2^%^2Fgroup^%^2Flesson^%^2Fstatus&btnClass=btn+btn-xs+btn-danger&status=0&lessonId="+lession+"&groupId="+group))
 	if err != nil {
-		return GetError(500, err.Error())
+		return fmt.Errorf("Backoffice.OpenLession(%s, %s, %s) : %w", cookie, group, lession, err)
 	}
 	_, reqErr := b.doReq(req)
 	if reqErr != nil {
-		return reqErr
+		return fmt.Errorf("Backoffice.OpenLession(%s, %s, %s) : %w", cookie, group, lession, reqErr)
 	}
 
 	return nil
@@ -149,7 +151,7 @@ func (b Backoffice) CloseLession(cookie, group, lession string) error {
 func parsedHtml(body io.ReadCloser) ([]AllGroupsUser, error) {
 	doc, err := goquery.NewDocumentFromReader(body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Backoffice.parsedHtml() : %w", err)
 	}
 	var groups []AllGroupsUser
 
@@ -178,26 +180,27 @@ func parsedHtml(body io.ReadCloser) ([]AllGroupsUser, error) {
 
 	return groups, nil
 }
-func (b Backoffice) doReq(req *http.Request) (*http.Response, *ClientError) {
+func (b Backoffice) doReq(req *http.Request) (*http.Response, error) {
 	client := &http.Client{
 		Timeout: b.settings.Timeout,
 	}
 
-	returnErr := &ClientError{}
+	var returnErr error
+
 	for i := 0; i < b.settings.Retry; i++ {
 		resp, err := client.Do(req)
 		if err != nil {
-			returnErr = GetError(500, err.Error())
+			returnErr = fmt.Errorf("Backoffice.doReq() : %w", err)
 			time.Sleep(b.settings.RetryTimeout)
 			continue
 		}
 		if resp.StatusCode >= 500 {
-			returnErr = GetError(resp.StatusCode, getString(resp.Body))
+			returnErr = fmt.Errorf("Backoffice.doReq() : %w", errors.New(resp.Status+" "+getString(resp.Body)))
 			time.Sleep(b.settings.RetryTimeout)
 			continue
 		}
 		if resp.StatusCode >= 400 && resp.StatusCode < 500 {
-			return nil, GetError(resp.StatusCode, getString(resp.Body))
+			return nil, fmt.Errorf("Backoffice.doReq() : %w", errors.New(resp.Status+" "+getString(resp.Body)))
 		}
 		if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 			return resp, nil
@@ -221,7 +224,7 @@ func (b Backoffice) createReq(method, uri, cookie string, params map[string]stri
 	reqUrl.RawQuery = p.Encode()
 	req, err := http.NewRequest(method, reqUrl.String(), body)
 	if err != nil {
-		return nil, GetError(500, err.Error())
+		return nil, fmt.Errorf("Backoffice.createReq() : %w", err)
 	}
 	req.Header.Add("Cookie", cookie)
 	return req, nil

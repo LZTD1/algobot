@@ -1,7 +1,6 @@
 package defaultState
 
 import (
-	"fmt"
 	"gopkg.in/telebot.v4"
 	"strings"
 	"tgbot/internal/service"
@@ -28,14 +27,11 @@ func (a AbsentKids) Process(ctx telebot.Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(parsedTime)
 	uid := ctx.Sender().ID
 	group, err := a.s.CurrentGroup(uid, parsedTime)
 	if err != nil {
 		return err
 	}
-	fmt.Println("")
-	fmt.Println(group)
 
 	return ctx.Send(strings.Join(group.MissingKids, "\n"))
 }

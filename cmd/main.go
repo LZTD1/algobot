@@ -24,6 +24,10 @@ const TOKEN = "6375608618:AAGtdaMkpj4SIJt495eNHOgw4oy5MZ_TIY4"
 var migrationsFS embed.FS
 
 func main() {
+	// TODO зарефачить main
+	// TODO добавить scheduler на сообщения
+	// TODO добавить закрывашку о открывашку лекций
+
 	db, closeDb := getSqliteBase("base.db")
 	defer closeDb()
 

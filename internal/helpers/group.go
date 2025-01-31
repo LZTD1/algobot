@@ -1,7 +1,6 @@
 package helpers
 
 import (
-	"errors"
 	"sort"
 	"tgbot/internal/domain"
 	appError "tgbot/internal/error"
@@ -48,7 +47,7 @@ func GetGroupsByDay(t time.Time, g []domain.Group) ([]domain.Group, error) {
 		}
 	}
 	if len(filtered) == 0 {
-		return nil, errors.New("no groups found")
+		return nil, appError.ErrHasNone
 	}
 
 	return filtered, nil

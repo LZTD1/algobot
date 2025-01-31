@@ -134,7 +134,7 @@ func TestDefaultHandler(t *testing.T) {
 				messageHandler.Handle(&mockContext)
 				assertContextOptsLen(t, mockContext.SentMessages[0], 0)
 				assertMessages(t, mockContext.SentMessages[0], fmt.Sprintf(
-					"%s%s\n%s%s\n%s%d\n%s%d\n%s",
+					"%s%s\n%s%s\n\n%s%d\n%s%d\n\n```Отсутсвующие\n%s\n```",
 					config.GroupName,
 					gr.Name,
 					config.Lection,

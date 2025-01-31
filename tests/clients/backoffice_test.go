@@ -68,7 +68,7 @@ func TestBackoffice(t *testing.T) {
 			defer ts.Close()
 
 			bo := clients.NewBackoffice(ts.URL, boSettings)
-			kids, err := bo.GetKidsNamesByGroup(cookie, groupId)
+			kids, err := bo.GetKidsNamesByGroup(cookie, 333)
 			assertNoError(t, err)
 
 			ks := clients.GroupResponse{}
