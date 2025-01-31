@@ -56,25 +56,28 @@ func (n *MockService) Cookie(uid int64) (string, error) {
 	return n.cookie, nil
 }
 
-func (n *MockService) SetCookie(uid int64, cookie string) {
+func (n *MockService) SetCookie(uid int64, cookie string) error {
 	n.SettedCookie = []string{strconv.FormatInt(uid, 10), cookie}
+	return nil
 }
-func (n *MockService) SetNotification(uid int64, notification bool) {
+func (n *MockService) SetNotification(uid int64, notification bool) error {
 	n.StubNotification = notification
+	return nil
 }
 
-func (n *MockService) Notification(uid int64) bool {
-	return n.StubNotification
+func (n *MockService) Notification(uid int64) (bool, error) {
+	return n.StubNotification, nil
 }
 
-func (n *MockService) IsUserRegistered(uid int64) bool {
+func (n *MockService) IsUserRegistered(uid int64) (bool, error) {
 	v, ok := n.m[uid]
 	if ok != true {
-		return false
+		return false, nil
 	}
-	return v
+	return v, nil
 }
 
-func (n *MockService) RegisterUser(uid int64) {
+func (n *MockService) RegisterUser(uid int64) error {
 	n.m[uid] = true
+	return nil
 }

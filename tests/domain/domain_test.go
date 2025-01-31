@@ -35,7 +35,7 @@ func TestDomain(t *testing.T) {
 			truncateBase(base)
 
 			base.Exec("INSERT INTO users (uid, user_agent, cookie, notification) VALUES(2, 'agent', 'cookie', 0);")
-			base.Exec("INSERT INTO groups (group_id, owner_id, title, string_next_time, time_lesson) VALUES(0, ?, 'title', 'string_next_time', '01.02.2025 16:00');", 2)
+			base.Exec("INSERT INTO groups (group_id, owner_id, title, string_next_time, time_lesson) VALUES(0, ?, 'title', 'string_next_time', '2025-02-01 16:00:00');", 2)
 
 			user, err := sqlite3.User(2)
 			if err != nil {
@@ -46,7 +46,7 @@ func TestDomain(t *testing.T) {
 			assertUser(t, user, "agent", "cookie", false)
 			assertGroups(
 				t,
-				user.Groups(),
+				user.Groups,
 				[]domain.Group{
 					{
 						Id:     0,
@@ -158,7 +158,7 @@ func TestDomain(t *testing.T) {
 		t.Run("notification not exists", func(t *testing.T) {
 			truncateBase(base)
 			base.Exec("INSERT INTO users (uid, user_agent, cookie, notification) VALUES(3, 'agent', NULL, NULL);")
-			notif := sqlite3.Notification(3)
+			notif, _ := sqlite3.Notification(3)
 			if notif != false {
 				t.Fatalf("Expected notification to be false, got true")
 			}
@@ -166,7 +166,7 @@ func TestDomain(t *testing.T) {
 		t.Run("notification exists", func(t *testing.T) {
 			truncateBase(base)
 			base.Exec("INSERT INTO users (uid, user_agent, cookie, notification) VALUES(4, 'agent', 'cookie', 1);")
-			notif := sqlite3.Notification(4)
+			notif, _ := sqlite3.Notification(4)
 			if notif != true {
 				t.Fatalf("Expected notification to be true, got false")
 			}
@@ -176,7 +176,7 @@ func TestDomain(t *testing.T) {
 		truncateBase(base)
 		base.Exec("INSERT INTO users (uid, user_agent, cookie, notification) VALUES(5, 'agent', 'a', 0);")
 		sqlite3.SetNotification(5, true)
-		notif := sqlite3.Notification(5)
+		notif, _ := sqlite3.Notification(5)
 
 		if notif != true {
 			t.Errorf("Expected notif to be 'true', got %v", notif)
@@ -211,14 +211,14 @@ func assertGroups(t *testing.T, groups []domain.Group, groups2 []domain.Group) {
 func assertUser(t *testing.T, user domain.User, userAgent string, cookie string, notif bool) {
 	t.Helper()
 
-	if user.UserAgent() != userAgent {
-		t.Fatalf("Expected userAgent to be %s, got %s", user.UserAgent(), userAgent)
+	if user.UserAgent != userAgent {
+		t.Fatalf("Expected userAgent to be %s, got %s", user.UserAgent, userAgent)
 	}
-	if user.Notifications() != notif {
-		t.Fatalf("Expected notifications to be %v, got %v", notif, user.Notifications())
+	if user.Notifications != notif {
+		t.Fatalf("Expected notifications to be %v, got %v", notif, user.Notifications)
 	}
-	if user.Cookie() != cookie {
-		t.Fatalf("Expected cookie to be %s, got %s", user.Cookie(), cookie)
+	if user.Cookie != cookie {
+		t.Fatalf("Expected cookie to be %s, got %s", user.Cookie, cookie)
 	}
 }
 

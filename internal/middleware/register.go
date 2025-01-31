@@ -3,6 +3,7 @@ package middleware
 import (
 	"gopkg.in/telebot.v4"
 	"tgbot/internal/config"
+	"tgbot/internal/helpers"
 	"tgbot/internal/service"
 )
 
@@ -18,7 +19,12 @@ func (r *Register) Middleware(next telebot.HandlerFunc) telebot.HandlerFunc {
 	return func(context telebot.Context) error {
 		uid := context.Sender().ID
 
-		if r.svc.IsUserRegistered(uid) == false {
+		reg, err := r.svc.IsUserRegistered(uid)
+		if err != nil {
+			t := helpers.LogWithRandomToken(err)
+			context.Send(t + " | Произошла ошибка при проверки регистрации!")
+		}
+		if reg == false {
 			r.svc.RegisterUser(uid)
 			context.Send(config.HelloWorld, config.StartKeyboard)
 		}

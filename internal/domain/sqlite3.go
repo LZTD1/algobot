@@ -2,11 +2,10 @@ package domain
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"io/fs"
 	"log"
-	"strings"
+	appError "tgbot/internal/error"
 	"time"
 )
 
@@ -22,8 +21,7 @@ func (s Sqlite3) User(uid int64) (User, error) {
 	sqlQuery := fmt.Sprintf(`SELECT u.uid, u.cookie, u.user_agent, u.notification FROM users u WHERE u.uid = %d`, uid)
 	row := s.db.QueryRow(sqlQuery)
 	if row.Err() != nil {
-		log.Printf("Ошибка при выполнении запроса, %s, со значением %v", sqlQuery, uid)
-		return User{}, row.Err()
+		return User{}, fmt.Errorf("NewSqlite3.User(%d) : %w", uid, row.Err())
 	}
 
 	var baseId sql.NullInt64
@@ -33,17 +31,17 @@ func (s Sqlite3) User(uid int64) (User, error) {
 
 	err := row.Scan(&baseId, &cookie, &userAgent, &notifications)
 	if err != nil {
-		return User{}, err
+		return User{}, fmt.Errorf("NewSqlite3.User(%d) : %w", uid, row.Err())
 	}
 
 	if !baseId.Valid {
-		return User{}, errors.New("пользователь не найден")
+		return User{}, fmt.Errorf("NewSqlite3.User(%d) : %w", uid, appError.ErrNotValid)
 	}
 
 	u := User{
-		cookie:        cookie.String,
-		userAgent:     userAgent.String,
-		notifications: notifications,
+		Cookie:        cookie.String,
+		UserAgent:     userAgent.String,
+		Notifications: notifications,
 	}
 
 	s.appendGroups(&u, baseId.Int64)
@@ -56,33 +54,36 @@ func (s Sqlite3) Cookie(uid int64) (string, error) {
 	row := s.db.QueryRow(sqlQuery)
 
 	if row.Err() != nil {
-		return "", row.Err()
+		return "", fmt.Errorf("NewSqlite3.Cookie(%d) : %w", uid, row.Err())
 	}
 
 	var cookie sql.NullString
 
-	row.Scan(&cookie)
+	err := row.Scan(&cookie)
+	if err != nil {
+		return "", fmt.Errorf("NewSqlite3.Cookie(%d) : %w", uid, err)
+	}
 
 	if !cookie.Valid {
-		return "", errors.New("Установите cookie в настройках!")
+		return "", fmt.Errorf("NewSqlite3.Cookie(%d) : %w", uid, appError.ErrNotValid)
 	}
 	return cookie.String, nil
 }
 
-func (s Sqlite3) SetCookie(uid int64, cookie string) {
-	_, err := s.db.Exec(fmt.Sprintf("UPDATE users SET cookie=? WHERE uid= %d;", uid), cookie)
+func (s Sqlite3) SetCookie(uid int64, cookie string) error {
+	_, err := s.db.Exec("UPDATE users SET cookie=? WHERE uid=?", cookie, uid)
 	if err != nil {
-		log.Printf("Ошибка при обновлении cookie [%v, %v] - %v", cookie, uid, err)
-		return
+		return fmt.Errorf("NewSqlite3.SetCookie(%d, %s) : %w", uid, cookie, err)
 	}
+	return nil
 }
 
-func (s Sqlite3) SetUserAgent(uid int64, agent string) {
+func (s Sqlite3) SetUserAgent(uid int64, agent string) error {
 	_, err := s.db.Exec(fmt.Sprintf("UPDATE users SET user_agent=? WHERE uid= %d;", uid), agent)
 	if err != nil {
-		log.Printf("Ошибка при обновлении useragent [%v, %v] - %v", agent, uid, err)
-		return
+		return fmt.Errorf("NewSqlite3.SetUserAgent(%d, %s) : %w", uid, agent, err)
 	}
+	return nil
 }
 
 func (s Sqlite3) Groups(uid int64) ([]Group, error) {
@@ -92,9 +93,9 @@ func (s Sqlite3) Groups(uid int64) ([]Group, error) {
 
 	rows, err := s.db.Query(sqlQuery)
 	if err != nil {
-		log.Printf("Ошибка при выполнении запроса, %s, со значением %v", sqlQuery, uid)
-		return nil, err
+		return nil, fmt.Errorf("NewSqlite3.Groups(%d) : %w", uid, err)
 	}
+	defer rows.Close()
 
 	groups := make([]Group, 0)
 	for rows.Next() {
@@ -102,12 +103,13 @@ func (s Sqlite3) Groups(uid int64) ([]Group, error) {
 		var title sql.NullString
 		var timeGroup sql.NullString
 
-		rows.Scan(&groupId, &title, &timeGroup)
+		if err := rows.Scan(&groupId, &title, &timeGroup); err != nil {
+			return nil, fmt.Errorf("NewSqlite3.Groups(%d) : %w", uid, err)
+		}
 
 		parsedTime, err := time.Parse("2006-01-02 15:04:05", timeGroup.String)
 		if err != nil {
-			log.Printf("1 Ошибка при парсинге даты %v - %v", timeGroup.String, err)
-			return nil, fmt.Errorf("Ошибка при парсинге даты %v - %v", timeGroup.String, err)
+			return nil, fmt.Errorf("NewSqlite3.Groups(%d) : %w", uid, err)
 		}
 
 		groups = append(groups, Group{
@@ -118,68 +120,74 @@ func (s Sqlite3) Groups(uid int64) ([]Group, error) {
 	}
 
 	if len(groups) == 0 {
-		return nil, errors.New("у пользователя нету групп")
+		return nil, fmt.Errorf("NewSqlite3.Groups(%d) : %w", uid, appError.ErrHasNone)
 	}
 	return groups, nil
 }
 
-func (s Sqlite3) SetGroups(uid int64, groups []Group) {
-	s.db.Exec(fmt.Sprintf("DELETE FROM groups WHERE owner_id = %d", uid))
-
-	sqlQuery := strings.Builder{}
-	sqlQuery.WriteString("INSERT INTO groups (group_id, owner_id, title, string_next_time, time_lesson) VALUES ")
-
-	var preparedString []string
-	for _, g := range groups {
-		preparedString = append(preparedString, fmt.Sprintf("(%d, %d, '%s', '%s', '%s')", g.Id, uid, g.Name, "-", g.Time.Format("2006-01-02 15:04:05")))
-	}
-
-	sqlQuery.WriteString(strings.Join(preparedString, ","))
-	sqlQuery.WriteString(";")
-
-	log.Printf("Выполнение SQL-запроса: %s", sqlQuery.String())
-	_, err := s.db.Exec(sqlQuery.String())
+func (s Sqlite3) SetGroups(uid int64, groups []Group) error {
+	tx, err := s.db.Begin()
 	if err != nil {
-		log.Printf("Ошибка при заполнении групп: %v", err)
-		log.Printf("Проверьте, существует ли пользователь с ID: %d в таблице, на которую ссылается внешний ключ", uid)
+		return fmt.Errorf("NewSqlite3.SetGroups(%d, %#v) : %w", uid, groups, err)
 	}
+	if _, err := tx.Exec("DELETE FROM groups WHERE owner_id=?", uid); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("NewSqlite3.SetGroups(%d, %#v) : %w", uid, groups, err)
+	}
+
+	stmt, err := tx.Prepare("INSERT INTO groups (group_id, owner_id, title, string_next_time, time_lesson) VALUES (?, ?, ?, ?, ?)")
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("NewSqlite3.SetGroups(%d, %#v) : %w", uid, groups, err)
+	}
+	defer stmt.Close()
+
+	for _, g := range groups {
+		if _, err := stmt.Exec(g.Id, uid, g.Name, "-", g.Time.Format("2006-01-02 15:04:05")); err != nil {
+			tx.Rollback()
+			return fmt.Errorf("NewSqlite3.SetGroups(%d, %#v) : %w", uid, groups, err)
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("NewSqlite3.SetGroups(%d, %#v) : %w", uid, groups, err)
+	}
+
+	return nil
 }
 
-func (s Sqlite3) Notification(uid int64) bool {
-	sqlQuery := fmt.Sprintf(`SELECT u.notification FROM users u WHERE u.uid = %d`, uid)
-	row := s.db.QueryRow(sqlQuery)
-
-	if row.Err() != nil {
-		return false
-	}
+func (s Sqlite3) Notification(uid int64) (bool, error) {
+	row := s.db.QueryRow("SELECT notification FROM users WHERE uid=?", uid)
 
 	var notif sql.NullBool
-
-	row.Scan(&notif)
+	if err := row.Scan(&notif); err != nil {
+		return false, fmt.Errorf("NewSqlite3.Notification(%d) : %w", uid, err)
+	}
 
 	if !notif.Valid {
-		return false
+		return false, fmt.Errorf("NewSqlite3.Notification(%d) : %w", uid, appError.ErrNotValid)
 	}
 
-	return notif.Bool
+	return notif.Bool, nil
 }
-func (s Sqlite3) SetNotification(uid int64, value bool) {
+func (s Sqlite3) SetNotification(uid int64, notification bool) error {
 	digit := 0
-	if value {
+	if notification {
 		digit = 1
 	}
-	_, err := s.db.Exec(fmt.Sprintf("UPDATE users SET notification=? WHERE uid= %d;", uid), digit)
+
+	_, err := s.db.Exec("UPDATE users SET notification=? WHERE uid=?", digit, uid)
 	if err != nil {
-		log.Printf("Ошибка при обновлении notification [%v, %v] - %v", digit, uid, err)
-		return
+		return fmt.Errorf("NewSqlite3.SetNotification(%d, %v) : %w", uid, notification, err)
 	}
+	return nil
 }
-func (s Sqlite3) RegisterUser(uid int64) {
-	_, err := s.db.Exec(fmt.Sprintf("INSERT INTO users (uid, user_agent, cookie, notification) VALUES(%d, NULL, NULL, 0);", uid))
+func (s Sqlite3) RegisterUser(uid int64) error {
+	_, err := s.db.Exec("INSERT INTO users (uid, user_agent, cookie, notification) VALUES (?, NULL, NULL, 0)", uid)
 	if err != nil {
-		log.Fatalf("Ошибка при создании юзера, %v", err)
-		return
+		return fmt.Errorf("NewSqlite3.RegisterUser(%d) : %w", uid, err)
 	}
+	return nil
 }
 
 func (s Sqlite3) Migrate(eFs fs.FS, dir string) {
@@ -268,7 +276,7 @@ func (s Sqlite3) appendGroups(u *User, id int64) {
 			return
 		}
 
-		u.groups = append(u.groups, Group{
+		u.Groups = append(u.Groups, Group{
 			Id:   int(groupId.Int64),
 			Name: title.String,
 			Time: parsedTime,

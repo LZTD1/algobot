@@ -4,6 +4,7 @@ import (
 	"errors"
 	"sort"
 	"tgbot/internal/domain"
+	appError "tgbot/internal/error"
 	"time"
 )
 
@@ -34,7 +35,7 @@ func GetCurrentGroup(t time.Time, g []domain.Group) (domain.Group, error) {
 		}
 	}
 
-	return domain.Group{}, errors.New("group not found")
+	return domain.Group{}, appError.ErrHasNone
 }
 
 // GetGroupsByDay получение групп по текущему дню

@@ -18,12 +18,12 @@ func (m *MockDomain) Cookie(uid int64) (string, error) {
 	return "", nil
 }
 
-func (m *MockDomain) SetCookie(uid int64, cookie string) {
+func (m *MockDomain) SetCookie(uid int64, cookie string) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (m *MockDomain) SetUserAgent(uid int64, agent string) {
+func (m *MockDomain) SetUserAgent(uid int64, agent string) error {
 	//TODO implement me
 	panic("implement me")
 }
@@ -49,18 +49,19 @@ func (m *MockDomain) Groups(uid int64) ([]domain.Group, error) {
 	}, nil
 }
 
-func (m *MockDomain) SetGroups(uid int64, groups []domain.Group) {
+func (m *MockDomain) SetGroups(uid int64, groups []domain.Group) error {
 	m.MockGroups = groups
+	return nil
 }
 
-func (m *MockDomain) Notification(uid int64) bool {
+func (m *MockDomain) Notification(uid int64) (bool, error) {
 	//TODO implement me
 	panic("implement me")
 }
-func (m *MockDomain) SetNotification(uid int64, value bool) {
-
+func (m *MockDomain) SetNotification(uid int64, value bool) error {
+	return nil
 }
-func (m *MockDomain) RegisterUser(uid int64) {
+func (m *MockDomain) RegisterUser(uid int64) error {
 	//TODO implement me
 	panic("implement me")
 }
