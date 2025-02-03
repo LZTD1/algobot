@@ -10,6 +10,7 @@ import (
 	"tgbot/internal/domain"
 	appError "tgbot/internal/error"
 	"tgbot/internal/helpers"
+	"tgbot/internal/models"
 	"time"
 )
 
@@ -22,55 +23,12 @@ func NewDefaultService(domain domain.Domain, webClient clients.WebClient) *Defau
 	return &DefaultService{domain: domain, webClient: webClient}
 }
 
-func (d DefaultService) CurrentGroup(uid int64, t time.Time) (domain.Group, error) {
-	// TODO зарефачить метод
-	// TODO выделить 2 разных обьекта для Domain в Service
-	// TODO Зарефачить схему БД
-
-	cookie, err := d.Cookie(uid)
-
-	allGroups, err := d.domain.Groups(uid)
-	if err != nil {
-		return domain.Group{}, fmt.Errorf("DefaultService.CurrentGroup(%d, %v) : %w", uid, t, err)
-	}
-
-	group, err := helpers.GetCurrentGroup(t, allGroups)
-	if err != nil {
-		return domain.Group{}, fmt.Errorf("DefaultService.CurrentGroup(%d, %v) : %w", uid, t, err)
-	}
-
-	names, err := d.KidsNamesMap(cookie, group.Id)
-	group.AllKids = len(names)
-
-	stats, err := d.webClient.GetKidsStatsByGroup(cookie, strconv.FormatInt(int64(group.Id), 10))
-	if err != nil {
-		return domain.Group{}, fmt.Errorf("DefaultService.CurrentGroup(%d, %v) : %w", uid, t, err)
-	}
-
-	var absentKids []string
-	var lession string
-	for _, datum := range stats.Data {
-		for _, attendance := range datum.Attendance {
-			if attendance.Status == "absent" && matchDates(attendance.StartTimeFormatted, t) {
-				absentKids = append(absentKids, names[datum.StudentID])
-				lession = attendance.LessonTitle
-				break
-			}
-		}
-	}
-
-	group.MissingKids = absentKids
-	group.Lesson = lession
-
-	return group, nil
-}
-
-func (d DefaultService) Groups(uid int64) ([]domain.Group, error) {
+func (d DefaultService) Groups(uid int64) ([]models.Group, error) {
 	data, err := d.domain.Groups(uid)
 	if err != nil {
 		return nil, fmt.Errorf("DefaultService.Groups(%d) : %w", uid, err)
 	}
-	return data, nil
+	return models.GroupMap(data), nil
 }
 
 func (d DefaultService) Cookie(uid int64) (string, error) {
@@ -83,7 +41,6 @@ func (d DefaultService) Cookie(uid int64) (string, error) {
 	}
 	return c, nil
 }
-
 func (d DefaultService) SetCookie(uid int64, cookie string) error {
 	err := d.domain.SetCookie(uid, cookie)
 	if err != nil {
@@ -102,7 +59,6 @@ func (d DefaultService) Notification(uid int64) (bool, error) {
 	}
 	return n, nil
 }
-
 func (d DefaultService) SetNotification(uid int64, notification bool) error {
 	err := d.domain.SetNotification(uid, notification)
 	if err != nil {
@@ -111,23 +67,65 @@ func (d DefaultService) SetNotification(uid int64, notification bool) error {
 	return nil
 }
 
-func (d DefaultService) IsUserRegistered(uid int64) (bool, error) {
-	_, err := d.domain.User(uid)
+func (d DefaultService) CurrentGroup(uid int64, t time.Time) (models.Group, error) {
+	allGroups, err := d.Groups(uid)
 	if err != nil {
-		if errors.Is(err, appError.ErrNotValid) {
-			return false, nil
-		}
-		return false, fmt.Errorf("DefaultService.IsUserRegistered(%d) : %w", uid, err)
+		return models.Group{}, fmt.Errorf("DefaultService.CurrentGroup(%d, %v) : %w", uid, t, err)
 	}
-	return true, nil
-}
 
-func (d DefaultService) RegisterUser(uid int64) error {
-	err := d.domain.RegisterUser(uid)
+	group, err := helpers.GetCurrentGroup(t, allGroups)
 	if err != nil {
-		return fmt.Errorf("DefaultService.RegisterUser(%d) : %w", uid, err)
+		return models.Group{}, fmt.Errorf("DefaultService.CurrentGroup(%d, %v) : %w", uid, t, err)
 	}
-	return nil
+
+	return group, nil
+}
+func (d DefaultService) ActualInformation(uid int64, t time.Time, groupId int) (models.ActualInformation, error) {
+	cookie, err := d.Cookie(uid)
+	if err != nil {
+		return models.ActualInformation{}, fmt.Errorf("DefaultService.ActualInformation(%d, %v, %d) : %w", uid, t, groupId, err)
+	}
+	stats, err := d.webClient.GetKidsStatsByGroup(cookie, strconv.Itoa(groupId))
+	if err != nil {
+		return models.ActualInformation{}, fmt.Errorf("DefaultService.ActualInformation(%d, %v, %d) : %w", uid, t, groupId, err)
+	}
+
+	actual := models.ActualInformation{}
+	for _, datum := range stats.Data {
+		studentID := datum.StudentID
+		for _, attendance := range datum.Attendance {
+			if matchDates(attendance.StartTimeFormatted, t) {
+				actual.LessonTitle = attendance.LessonTitle
+				actual.LessonId = attendance.LessonID
+
+				if attendance.Status == "absent" {
+					actual.MissingKids = append(actual.MissingKids, studentID)
+					break
+				}
+			}
+		}
+	}
+
+	return actual, nil
+}
+func (d DefaultService) AllKidsNames(uid int64, groupId int) (models.AllKids, error) {
+	cookie, err := d.Cookie(uid)
+	if err != nil {
+		return nil, fmt.Errorf("DefaultService.AllKidsNames(%d, %d) : %w", uid, groupId, err)
+	}
+	group, err := d.webClient.GetKidsNamesByGroup(cookie, groupId)
+	if err != nil {
+		return nil, fmt.Errorf("DefaultService.AllKidsNames(%d, %d) : %w", uid, groupId, err)
+	}
+
+	names := make(map[int]string, len(group.Data.Items))
+	for _, datum := range group.Data.Items {
+		if datum.LastGroup.ID == groupId && datum.LastGroup.Status == 0 {
+			names[datum.ID] = datum.FullName
+		}
+	}
+
+	return names, nil
 }
 
 func (d DefaultService) RefreshGroups(uid int64) error {
@@ -150,14 +148,12 @@ func (d DefaultService) RefreshGroups(uid int64) error {
 		}
 
 		groupsFormatted[i] = domain.Group{
-			Id:          groupIdInt,
-			Name:        group.Title,
-			Lesson:      "",
-			Time:        getTime(group.TimeLesson),
-			AllKids:     0,
-			MissingKids: nil,
+			GroupID:    groupIdInt,
+			Title:      group.Title,
+			TimeLesson: getTime(group.TimeLesson),
 		}
 	}
+
 	err = d.domain.SetGroups(uid, groupsFormatted)
 	if err != nil {
 		return fmt.Errorf("DefaultService.RefreshGroups(%d) : %w", uid, err)
@@ -166,26 +162,22 @@ func (d DefaultService) RefreshGroups(uid int64) error {
 	return nil
 }
 
-func (d DefaultService) KidsNamesMap(cookie string, groupId int) (map[int]string, error) {
-	names, err := d.webClient.GetKidsNamesByGroup(cookie, groupId)
+func (d DefaultService) RegisterUser(uid int64) error {
+	err := d.domain.RegisterUser(uid)
 	if err != nil {
-		return nil, fmt.Errorf("DefaultService.KidsNamesMap(%s, %d)  : %w", cookie, groupId, err)
+		return fmt.Errorf("DefaultService.RegisterUser(%d) : %w", uid, err)
 	}
-	returnMap := make(map[int]string)
-	for _, item := range names.Data.Items {
-		if item.LastGroup.ID == groupId && item.LastGroup.Status == 0 {
-			returnMap[item.ID] = item.FullName
-		}
-	}
-	return returnMap, nil
+	return nil
 }
-
-func getTime(lesson string) time.Time {
-	parse, err := time.Parse("02.01.2006 15:04", lesson)
+func (d DefaultService) IsUserRegistered(uid int64) (bool, error) {
+	_, err := d.domain.User(uid)
 	if err != nil {
-		return time.Time{}
+		if errors.Is(err, appError.ErrNotValid) {
+			return false, nil
+		}
+		return false, fmt.Errorf("DefaultService.IsUserRegistered(%d) : %w", uid, err)
 	}
-	return parse
+	return true, nil
 }
 
 func matchDates(timeStr string, t time.Time) bool {
@@ -200,4 +192,11 @@ func matchDates(timeStr string, t time.Time) bool {
 		return true
 	}
 	return false
+}
+func getTime(lesson string) time.Time {
+	parse, err := time.Parse("02.01.2006 15:04", lesson)
+	if err != nil {
+		return time.Time{}
+	}
+	return parse
 }

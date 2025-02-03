@@ -1,11 +1,15 @@
 package test
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"reflect"
 	"testing"
 	"tgbot/internal/clients"
@@ -27,8 +31,9 @@ func TestBackoffice(t *testing.T) {
 			}))
 
 			bo := clients.NewBackoffice(ts.URL, boSettings)
-			_, err := bo.GetKidsNamesByGroup("", "")
-			assertError(t, err, 401, "[]")
+			_, err := bo.GetKidsNamesByGroup("", 1)
+			fmt.Fprintf(os.Stdout, "%+v\n", err)
+			assertError(t, err, "Backoffice.GetKidsNamesByGroup(, %!s(int=1)) : Backoffice.doReq() : 401 Unauthorized []")
 		})
 		t.Run("GENERAL | 500 | Servers returns error", func(t *testing.T) {
 			var calls []string
@@ -39,8 +44,8 @@ func TestBackoffice(t *testing.T) {
 			defer ts.Close()
 
 			bo := clients.NewBackoffice(ts.URL, boSettings)
-			_, err := bo.GetKidsNamesByGroup("", "")
-			assertError(t, err, 500, "")
+			_, err := bo.GetKidsNamesByGroup("", 1)
+			assertError(t, err, "Backoffice.GetKidsNamesByGroup(, %!s(int=1)) : Backoffice.doReq() : 500 Internal Server Error ")
 			if len(calls) != 3 {
 				t.Fatalf("expected 3 calls, got %d", len(calls))
 			}
@@ -54,8 +59,10 @@ func TestBackoffice(t *testing.T) {
 			defer ts.Close()
 
 			bo := clients.NewBackoffice(ts.URL, boSettings)
-			_, err := bo.GetKidsNamesByGroup("", "")
-			assertError(t, err, 500, "_")
+			_, err := bo.GetKidsNamesByGroup("", 1)
+			if !errors.Is(err, context.DeadlineExceeded) {
+				t.Errorf("Wanted %s, got %s", context.DeadlineExceeded, err.Error())
+			}
 		})
 		t.Run("200 | Servers return OK", func(t *testing.T) {
 			cookie := "111"
@@ -200,7 +207,6 @@ func getBOServer(t *testing.T, wantedParams map[string]string, wantedMethod stri
 	}))
 	return ts
 }
-
 func assertNoError(t *testing.T, err error) {
 	t.Helper()
 
@@ -208,29 +214,11 @@ func assertNoError(t *testing.T, err error) {
 		t.Fatal(err)
 	}
 }
-
-func assertError(t *testing.T, err error, i int, s string) {
+func assertError(t *testing.T, err error, s string) {
 	t.Helper()
 
-	// Приводим ошибку к типу *clients.ClientError
-	clientErr, ok := err.(*clients.ClientError)
-	if !ok {
-		t.Errorf("Expected error of type *clients.ClientError, but got: %T", err)
-		return
-	}
-
-	if clientErr == nil {
-		t.Fatal("Expected error, got nil")
-	}
-	if clientErr.Code != i {
-		t.Errorf("%+v\n", err)
-		t.Fatalf("Expected code %d, got %d", i, clientErr.Code)
-	}
-	if s != "_" {
-		if clientErr.Message != s {
-			t.Errorf("%+v\n", err)
-			t.Fatalf("Expected message %s, got %s", s, clientErr.Message)
-		}
+	if err.Error() != s {
+		t.Errorf("Wanted %s, got %s", s, err.Error())
 	}
 }
 func getString(body io.Reader) string {

@@ -4,7 +4,6 @@ import (
 	"gopkg.in/telebot.v4"
 	"strings"
 	"tgbot/internal/service"
-	"time"
 )
 
 type AbsentKids struct {
@@ -23,15 +22,16 @@ func (a AbsentKids) CanHandle(ctx telebot.Context) bool {
 }
 
 func (a AbsentKids) Process(ctx telebot.Context) error {
-	parsedTime, err := time.Parse("2006-01-02 15:04", ctx.Message().Payload)
-	if err != nil {
-		return err
-	}
-	uid := ctx.Sender().ID
-	group, err := a.s.CurrentGroup(uid, parsedTime)
-	if err != nil {
-		return err
-	}
+	// TODO
+	//parsedTime, err := time.Parse("2006-01-02 15:04", ctx.Message().Payload)
+	//if err != nil {
+	//	return err
+	//}
+	//uid := ctx.Sender().ID
+	//_, err = a.s.CurrentGroup(uid, parsedTime)
+	//if err != nil {
+	//	return err
+	//}
 
-	return ctx.Send(strings.Join(group.MissingKids, "\n"))
+	return ctx.Send("В разработке... ")
 }

@@ -3,31 +3,31 @@ package helpers
 import (
 	"reflect"
 	"testing"
-	"tgbot/internal/domain"
+	"tgbot/internal/models"
 	"time"
 )
 
 func Test_GetGroupsByDay(t *testing.T) {
-	all := []domain.Group{
+	all := []models.Group{
 		{
-			Id:   1,
-			Name: "Lesson 1",
-			Time: getDayByTime(21, 12, 30),
+			GroupID:    1,
+			Title:      "Lesson 1",
+			TimeLesson: getDayByTime(21, 12, 30),
 		},
 		{
-			Id:   2,
-			Name: "Lesson 2",
-			Time: getDayByTime(27, 14, 00),
+			GroupID:    2,
+			Title:      "Lesson 2",
+			TimeLesson: getDayByTime(27, 14, 00),
 		},
 		{
-			Id:   3,
-			Name: "Lesson 3",
-			Time: getDayByTime(26, 14, 00),
+			GroupID:    3,
+			Title:      "Lesson 3",
+			TimeLesson: getDayByTime(26, 14, 00),
 		},
 		{
-			Id:   4,
-			Name: "Lesson 4",
-			Time: getDayByTime(28, 15, 30),
+			GroupID:    4,
+			Title:      "Lesson 4",
+			TimeLesson: getDayByTime(28, 15, 30),
 		},
 	}
 	t.Run("If groups exists", func(t *testing.T) {
@@ -35,7 +35,7 @@ func Test_GetGroupsByDay(t *testing.T) {
 		if e != nil {
 			t.Fatalf("Unexpected error %v", e)
 		}
-		want := []domain.Group{
+		want := []models.Group{
 			all[0],
 			all[3],
 		}
@@ -52,26 +52,26 @@ func Test_GetGroupsByDay(t *testing.T) {
 }
 
 func Test_GetCurrentGroup(t *testing.T) {
-	all := []domain.Group{
+	all := []models.Group{
 		{
-			Id:   1,
-			Name: "Lesson 1", // вск
-			Time: getDayByTime(21, 12, 30),
+			GroupID:    1,
+			Title:      "Lesson 1", // вск
+			TimeLesson: getDayByTime(21, 12, 30),
 		},
 		{
-			Id:   2,
-			Name: "Lesson 2", // суб
-			Time: getDayByTime(27, 14, 00),
+			GroupID:    2,
+			Title:      "Lesson 2", // суб
+			TimeLesson: getDayByTime(27, 14, 00),
 		},
 		{
-			Id:   3,
-			Name: "Lesson 3", // птн
-			Time: getDayByTime(26, 14, 00),
+			GroupID:    3,
+			Title:      "Lesson 3", // птн
+			TimeLesson: getDayByTime(26, 14, 00),
 		},
 		{
-			Id:   4,
-			Name: "Lesson 4", // вск
-			Time: getDayByTime(28, 15, 30),
+			GroupID:    4,
+			Title:      "Lesson 4", // вск
+			TimeLesson: getDayByTime(28, 15, 30),
 		},
 	}
 	t.Run("If group exists", func(t *testing.T) {

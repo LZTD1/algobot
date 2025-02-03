@@ -2,47 +2,47 @@ package helpers
 
 import (
 	"sort"
-	"tgbot/internal/domain"
 	appError "tgbot/internal/error"
+	"tgbot/internal/models"
 	"time"
 )
 
-// GetSortedGroups , получение списка групп отсортированных по дням
+// GetSortedGroups получение списка групп отсортированных по дням
 // И внутри дней по часам
-func GetSortedGroups(groups []domain.Group) []domain.Group {
+func GetSortedGroups(groups []models.Group) []models.Group {
 	sort.Slice(groups, func(i, j int) bool {
-		dayI, dayJ := groups[i].Time.Weekday(), groups[j].Time.Weekday()
+		dayI, dayJ := groups[i].TimeLesson.Weekday(), groups[j].TimeLesson.Weekday()
 		if dayI != dayJ {
 			return dayI > dayJ
 		}
-		return groups[i].Time.Hour() < groups[j].Time.Hour() ||
-			(groups[i].Time.Hour() == groups[j].Time.Hour() && groups[i].Time.Minute() < groups[j].Time.Minute())
+		return groups[i].TimeLesson.Hour() < groups[j].TimeLesson.Hour() ||
+			(groups[i].TimeLesson.Hour() == groups[j].TimeLesson.Hour() && groups[i].TimeLesson.Minute() < groups[j].TimeLesson.Minute())
 	})
 	return groups
 }
 
 // GetCurrentGroup , логика выдачи групп:
 // За 30 минут до начала и во время группы выдывать конкретную группу
-func GetCurrentGroup(t time.Time, g []domain.Group) (domain.Group, error) {
+func GetCurrentGroup(t time.Time, g []models.Group) (models.Group, error) {
 	current, err := GetGroupsByDay(t, g)
 	if err != nil {
-		return domain.Group{}, err
+		return models.Group{}, err
 	}
 	for _, group := range current {
-		if inDiapazon(-30, 90, t, group.Time) {
+		if inDiapazon(-30, 90, t, group.TimeLesson) {
 			return group, nil
 		}
 	}
 
-	return domain.Group{}, appError.ErrHasNone
+	return models.Group{}, appError.ErrHasNone
 }
 
 // GetGroupsByDay получение групп по текущему дню
-func GetGroupsByDay(t time.Time, g []domain.Group) ([]domain.Group, error) {
-	var filtered []domain.Group
+func GetGroupsByDay(t time.Time, g []models.Group) ([]models.Group, error) {
+	var filtered []models.Group
 
 	for _, group := range g {
-		if t.Weekday() == group.Time.Weekday() {
+		if t.Weekday() == group.TimeLesson.Weekday() {
 			filtered = append(filtered, group)
 		}
 	}

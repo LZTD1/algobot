@@ -35,7 +35,7 @@ func TestDomain(t *testing.T) {
 			truncateBase(base)
 
 			base.Exec("INSERT INTO users (uid, user_agent, cookie, notification) VALUES(2, 'agent', 'cookie', 0);")
-			base.Exec("INSERT INTO groups (group_id, owner_id, title, string_next_time, time_lesson) VALUES(0, ?, 'title', 'string_next_time', '2025-02-01 16:00:00');", 2)
+			base.Exec("INSERT INTO groups (group_id, owner_id, title, time_lesson) VALUES(0, ?, 'title', '2025-02-01 16:00:00');", 2)
 
 			user, err := sqlite3.User(2)
 			if err != nil {
@@ -49,10 +49,9 @@ func TestDomain(t *testing.T) {
 				user.Groups,
 				[]domain.Group{
 					{
-						Id:     0,
-						Name:   "title",
-						Lesson: "",
-						Time:   time.Date(2025, 2, 1, 16, 0, 0, 0, time.UTC),
+						GroupID:    0,
+						Title:      "title",
+						TimeLesson: time.Date(2025, 2, 1, 16, 0, 0, 0, time.UTC),
 					},
 				},
 			)
@@ -108,7 +107,7 @@ func TestDomain(t *testing.T) {
 		t.Run("Get groups", func(t *testing.T) {
 			truncateBase(base)
 			base.Exec("INSERT INTO users (uid, user_agent, cookie, notification) VALUES(7, 'agent', 'cookie', 0);")
-			base.Exec("INSERT INTO groups (group_id, owner_id, title, string_next_time, time_lesson) VALUES(0, ?, 'title', 'string_next_time', '2025-02-01 16:00:00');", 7)
+			base.Exec("INSERT INTO groups (group_id, owner_id, title, time_lesson) VALUES(0, ?, 'title', '2025-02-01 16:00:00');", 7)
 
 			groups, err := sqlite3.Groups(7)
 			if err != nil {
@@ -120,10 +119,10 @@ func TestDomain(t *testing.T) {
 				groups,
 				[]domain.Group{
 					{
-						Id:     0,
-						Name:   "title",
-						Lesson: "",
-						Time:   time.Date(2025, 2, 1, 16, 0, 0, 0, time.UTC),
+						GroupID: 0,
+						Title:   "title",
+
+						TimeLesson: time.Date(2025, 2, 1, 16, 0, 0, 0, time.UTC),
 					},
 				},
 			)
@@ -132,10 +131,10 @@ func TestDomain(t *testing.T) {
 			truncateBase(base)
 			wanted := []domain.Group{
 				{
-					Id:     0,
-					Name:   "title",
-					Lesson: "",
-					Time:   time.Date(2025, 2, 1, 16, 0, 0, 0, time.UTC),
+					GroupID: 0,
+					Title:   "title",
+
+					TimeLesson: time.Date(2025, 2, 1, 16, 0, 0, 0, time.UTC),
 				},
 			}
 

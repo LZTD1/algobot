@@ -23,16 +23,12 @@ func (r *Register) Middleware(next telebot.HandlerFunc) telebot.HandlerFunc {
 
 		reg, err := r.svc.IsUserRegistered(uid)
 		if err != nil && !errors.Is(err, appError.ErrNotFound) {
-			t := helpers.LogWithRandomToken(err)
-			context.Send(t + " | Произошла ошибка при проверки регистрации!")
-			return err
+			return helpers.LogError(err, context, "Произошла ошибка при проверки регистрации!")
 		}
 		if reg == false {
 			err := r.svc.RegisterUser(uid)
 			if err != nil {
-				t := helpers.LogWithRandomToken(err)
-				context.Send(t + " | Произошла ошибка при регистрации!")
-				return err
+				return helpers.LogError(err, context, "Произошла ошибка при регистрации!")
 			}
 			context.Send(config.HelloWorld, config.StartKeyboard)
 		}

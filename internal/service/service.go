@@ -1,13 +1,13 @@
 package service
 
 import (
-	"tgbot/internal/domain"
+	"tgbot/internal/models"
 	"time"
 )
 
 type Service interface {
-	CurrentGroup(uid int64, t time.Time) (domain.Group, error)
-	Groups(uid int64) ([]domain.Group, error)
+	CurrentGroup(uid int64, t time.Time) (models.Group, error)
+	Groups(uid int64) ([]models.Group, error)
 	Cookie(uid int64) (string, error)
 	SetCookie(uid int64, cookie string) error
 	Notification(uid int64) (bool, error)
@@ -15,4 +15,6 @@ type Service interface {
 	IsUserRegistered(uid int64) (bool, error)
 	RegisterUser(uid int64) error
 	RefreshGroups(uid int64) error
+	ActualInformation(uid int64, t time.Time, groupId int) (models.ActualInformation, error)
+	AllKidsNames(uid int64, groupId int) (models.AllKids, error)
 }

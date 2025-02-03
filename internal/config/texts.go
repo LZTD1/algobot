@@ -15,7 +15,7 @@ const CookieNotSetException = "Сперва вам необходимо уста
 const GroupName = "Группа по курсу: "
 const Lection = "Лекция: "
 const TotalKids = "Общее число детей: "
-const MissingKids = "Отсутсвуют: "
+const MissingKids = "Отсутствуют: "
 
 const MyGroups = "Всего групп: "
 const UserDontHaveGroup = "У вас нету никаких групп!"

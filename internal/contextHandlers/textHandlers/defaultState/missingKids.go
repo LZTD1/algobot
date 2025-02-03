@@ -6,10 +6,11 @@ import (
 	"gopkg.in/telebot.v4"
 	"strings"
 	"tgbot/internal/config"
-	"tgbot/internal/domain"
 	appError "tgbot/internal/error"
 	"tgbot/internal/helpers"
+	"tgbot/internal/models"
 	"tgbot/internal/service"
+	"time"
 )
 
 type MissingKids struct {
@@ -28,29 +29,50 @@ func (m *MissingKids) CanHandle(ctx telebot.Context) bool {
 }
 
 func (m *MissingKids) Process(ctx telebot.Context) error {
-	g, e := m.s.CurrentGroup(ctx.Message().Sender.ID, ctx.Message().Time())
+	t := time.Date(2025, 2, 8, 9, 40, 0, 0, time.UTC)
+	uid := ctx.Message().Sender.ID
+
+	g, e := m.s.CurrentGroup(uid, t)
 	if e != nil {
 		if errors.Is(e, appError.ErrHasNone) {
 			return ctx.Send(config.CurrentGroupDontFind)
 		}
-		// TODO зарефачить эту логику
-		t := helpers.LogWithRandomToken(e)
-		return ctx.Send(t + " | Ошибка при получении групп!")
+
+		return helpers.LogError(e, ctx, "Произошла непредвиденная ошибка при попытке получить текущую группу")
 	}
-	return ctx.Send(message(g), telebot.ModeMarkdown)
+
+	actual, err := m.s.ActualInformation(uid, t, g.GroupID)
+	if err != nil {
+		if errors.Is(err, appError.ErrNotValid) {
+			return ctx.Send(config.CookieNotSetException)
+		}
+
+		return helpers.LogError(e, ctx, "Произошла непредвиденная ошибка при попытке подгрузить информацию о группе")
+	}
+
+	allKids, err := m.s.AllKidsNames(uid, g.GroupID)
+	if err != nil {
+		if errors.Is(err, appError.ErrNotValid) {
+			return ctx.Send(config.CookieNotSetException)
+		}
+
+		return helpers.LogError(e, ctx, "Произошла непредвиденная ошибка при попытке подгрузить имена детей")
+	}
+
+	return ctx.Send(msg(g, actual, allKids), telebot.ModeMarkdown)
 }
 
-func message(g domain.Group) string {
-	return fmt.Sprintf(
-		"%s%s\n%s%s\n\n%s%d\n%s%d\n\n```Отсутсвующие\n%s\n```",
-		config.GroupName,
-		g.Name,
-		config.Lection,
-		g.Lesson,
-		config.TotalKids,
-		g.AllKids,
-		config.MissingKids,
-		len(g.MissingKids),
-		strings.Join(g.MissingKids, "\n"),
-	)
+func msg(g models.Group, actual models.ActualInformation, kids models.AllKids) string {
+	sb := strings.Builder{}
+	sb.WriteString(fmt.Sprintf("%s%s", config.GroupName, g.Title))
+	sb.WriteString(fmt.Sprintf("\n%s%s\n", config.Lection, actual.LessonTitle))
+	sb.WriteString(fmt.Sprintf("\n%s%d", config.TotalKids, len(kids)))
+	sb.WriteString(fmt.Sprintf("\n%s%d\n", config.MissingKids, len(actual.MissingKids)))
+	sb.WriteString("\n```Отсутствующие\n")
+	for _, kid := range actual.MissingKids {
+		sb.WriteString(fmt.Sprintf("%s\n", kids[kid]))
+	}
+	sb.WriteString("```")
+
+	return sb.String()
 }

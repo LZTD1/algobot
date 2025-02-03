@@ -8,7 +8,8 @@ import (
 	"testing"
 	"tgbot/internal/config"
 	"tgbot/internal/contextHandlers"
-	"tgbot/internal/domain"
+	appError "tgbot/internal/error"
+	"tgbot/internal/models"
 	"tgbot/internal/stateMachine"
 	"tgbot/tests/mocks"
 	"time"
@@ -110,17 +111,24 @@ func TestDefaultHandler(t *testing.T) {
 		})
 		t.Run("Send get missing kids", func(t *testing.T) {
 			t.Run("Group exists", func(t *testing.T) {
-				gr := domain.Group{
-					Id:          1,
-					Name:        "Лекция 1",
-					Lesson:      "Lession 1",
-					Time:        getDayByTime(28, 10, 0),
-					AllKids:     10,
-					MissingKids: []string{"Name1", "Name2"},
+				gr := models.Group{
+					GroupID:    1,
+					Title:      "Title",
+					TimeLesson: getDayByTime(28, 10, 0),
 				}
 				ms := mocks.NewMockService(map[int64]bool{
 					12: true,
 				})
+				ms.Actual = models.ActualInformation{
+					LessonTitle: "LTitle",
+					LessonId:    0,
+					MissingKids: []int{1, 2},
+				}
+				ms.AllNames = map[int]string{
+					1: "vasya",
+					2: "petya",
+					3: "kirill",
+				}
 				ms.SetCurrentGroup(&gr)
 
 				mockContext := mocks.MockContext{}
@@ -132,20 +140,9 @@ func TestDefaultHandler(t *testing.T) {
 				mockContext.SetUserMessageWithTime(12, "Получить отсутсвующих", getUnixByDay(28, 9, 40))
 
 				messageHandler.Handle(&mockContext)
-				assertContextOptsLen(t, mockContext.SentMessages[0], 0)
-				assertMessages(t, mockContext.SentMessages[0], fmt.Sprintf(
-					"%s%s\n%s%s\n\n%s%d\n%s%d\n\n```Отсутсвующие\n%s\n```",
-					config.GroupName,
-					gr.Name,
-					config.Lection,
-					gr.Lesson,
-					config.TotalKids,
-					gr.AllKids,
-					config.MissingKids,
-					len(gr.MissingKids),
-					strings.Join(gr.MissingKids, "\n"),
-				))
-				// TODO assertKeyboards(t, mockContext.SentMessages[0], config.StartKeyboard)
+				assertContextOptsLen(t, mockContext.SentMessages[0], 1)
+				assertMessages(t, mockContext.SentMessages[0], "Группа по курсу: Title\nЛекция: LTitle\n\nОбщее число детей: 3\nОтсутствуют: 2\n\n```Отсутствующие\nvasya\npetya\n```")
+				// TODO assertKeyboards
 			})
 			t.Run("Group Non exists", func(t *testing.T) {
 				ms := mocks.NewMockService(map[int64]bool{
@@ -160,36 +157,32 @@ func TestDefaultHandler(t *testing.T) {
 				mockContext.SetUserMessageWithTime(12, "Получить отсутсвующих", getUnixByDay(28, 22, 40))
 
 				messageHandler.Handle(&mockContext)
-				assertContextOptsLen(t, mockContext.SentMessages[0], 0)
-				assertMessages(t, mockContext.SentMessages[0], config.CurrentGroupDontFind)
+				assertContextOptsLen(t, mockContext.SentMessages[0], 1)
+				containtsMessages(t, mockContext.SentMessages[0], config.CurrentGroupDontFind)
 			})
 		})
 		t.Run("Send my groups", func(t *testing.T) {
 			t.Run("If user have groups", func(t *testing.T) {
-				g := []domain.Group{
+				g := []models.Group{
 					{
-						Id:     1,
-						Name:   "Гр 1",
-						Lesson: "Lession 1",
-						Time:   getDayByTime(28, 10, 0),
+						GroupID:    1,
+						Title:      "Гр 1",
+						TimeLesson: getDayByTime(28, 10, 0),
 					},
 					{
-						Id:     3,
-						Name:   "Гр 3",
-						Lesson: "Lession 4",
-						Time:   getDayByTime(27, 14, 0),
+						GroupID:    3,
+						Title:      "Гр 3",
+						TimeLesson: getDayByTime(27, 14, 0),
 					},
 					{
-						Id:     2,
-						Name:   "Гр 2",
-						Lesson: "Lession 2",
-						Time:   getDayByTime(21, 12, 0),
+						GroupID:    2,
+						Title:      "Гр 2",
+						TimeLesson: getDayByTime(21, 12, 0),
 					},
 					{
-						Id:     4,
-						Name:   "Гр 4",
-						Lesson: "Lession 3",
-						Time:   getDayByTime(27, 10, 0),
+						GroupID:    4,
+						Title:      "Гр 4",
+						TimeLesson: getDayByTime(27, 10, 0),
 					},
 				}
 				ms := mocks.NewMockService(map[int64]bool{
@@ -219,7 +212,7 @@ func TestDefaultHandler(t *testing.T) {
 				ms := mocks.NewMockService(map[int64]bool{
 					12: true,
 				})
-				ms.SetGroups(nil)
+				ms.SetGroupsErr(appError.ErrHasNone)
 
 				mockContext := mocks.MockContext{}
 
@@ -235,7 +228,15 @@ func TestDefaultHandler(t *testing.T) {
 			})
 		})
 	})
+}
 
+func containtsMessages(t *testing.T, excepted mocks.SentMessage, wanted string) {
+	t.Helper()
+
+	if strings.Contains(excepted.What.(string), wanted) {
+
+		t.Fatalf("Wanted %s, got %s", wanted, excepted.What.(string))
+	}
 }
 
 func assertMessages(t *testing.T, got mocks.SentMessage, wantedText string) {

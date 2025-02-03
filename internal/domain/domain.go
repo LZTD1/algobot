@@ -5,12 +5,9 @@ import (
 )
 
 type Group struct {
-	Id          int
-	Name        string
-	Lesson      string
-	Time        time.Time
-	AllKids     int
-	MissingKids []string
+	GroupID    int
+	Title      string
+	TimeLesson time.Time
 }
 
 type User struct {

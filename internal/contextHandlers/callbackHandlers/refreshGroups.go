@@ -30,8 +30,7 @@ func (r RefreshGroups) Process(ctx telebot.Context) error {
 
 	err = r.svc.RefreshGroups(ctx.Sender().ID)
 	if err != nil {
-		t := helpers.LogWithRandomToken(err)
-		return ctx.Send(t + " | Ошибка при обновлении групп! ")
+		return helpers.LogError(err, ctx, "Ошибка при обновлении групп!")
 	} else {
 		err = ctx.Edit(config.UpdateEnd)
 	}

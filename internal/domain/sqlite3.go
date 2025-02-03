@@ -19,8 +19,7 @@ func NewSqlite3(db *sql.DB) *Sqlite3 {
 }
 
 func (s Sqlite3) User(uid int64) (User, error) {
-	sqlQuery := fmt.Sprintf(`SELECT u.uid, u.cookie, u.user_agent, u.notification FROM users u WHERE u.uid = %d`, uid)
-	row := s.db.QueryRow(sqlQuery)
+	row := s.db.QueryRow(`SELECT u.uid, u.cookie, u.user_agent, u.notification FROM users u WHERE u.uid = ?`, uid)
 	if row.Err() != nil {
 		return User{}, fmt.Errorf("NewSqlite3.User(%d) : %w", uid, row.Err())
 	}
@@ -54,8 +53,7 @@ func (s Sqlite3) User(uid int64) (User, error) {
 }
 
 func (s Sqlite3) Cookie(uid int64) (string, error) {
-	sqlQuery := fmt.Sprintf(`SELECT u.cookie FROM users u WHERE u.uid = %d`, uid)
-	row := s.db.QueryRow(sqlQuery)
+	row := s.db.QueryRow(`SELECT u.cookie FROM users u WHERE u.uid = ?`, uid)
 
 	if row.Err() != nil {
 		return "", fmt.Errorf("NewSqlite3.Cookie(%d) : %w", uid, row.Err())
@@ -83,7 +81,7 @@ func (s Sqlite3) SetCookie(uid int64, cookie string) error {
 }
 
 func (s Sqlite3) SetUserAgent(uid int64, agent string) error {
-	_, err := s.db.Exec(fmt.Sprintf("UPDATE users SET user_agent=? WHERE uid= %d;", uid), agent)
+	_, err := s.db.Exec("UPDATE users SET user_agent=? WHERE uid= ?;", agent, uid)
 	if err != nil {
 		return fmt.Errorf("NewSqlite3.SetUserAgent(%d, %s) : %w", uid, agent, err)
 	}
@@ -91,11 +89,10 @@ func (s Sqlite3) SetUserAgent(uid int64, agent string) error {
 }
 
 func (s Sqlite3) Groups(uid int64) ([]Group, error) {
-	sqlQuery := fmt.Sprintf(`SELECT g.group_id, g.title, g.time_lesson 
-		FROM groups g 
-		WHERE g.owner_id = %d;`, uid)
 
-	rows, err := s.db.Query(sqlQuery)
+	rows, err := s.db.Query(`SELECT g.group_id, g.title, g.time_lesson 
+		FROM groups g 
+		WHERE g.owner_id = ?;`, uid)
 	if err != nil {
 		return nil, fmt.Errorf("NewSqlite3.Groups(%d) : %w", uid, err)
 	}
@@ -117,9 +114,9 @@ func (s Sqlite3) Groups(uid int64) ([]Group, error) {
 		}
 
 		groups = append(groups, Group{
-			Id:   int(groupId.Int64),
-			Name: title.String,
-			Time: parsedTime,
+			GroupID:    int(groupId.Int64),
+			Title:      title.String,
+			TimeLesson: parsedTime,
 		})
 	}
 
@@ -139,7 +136,7 @@ func (s Sqlite3) SetGroups(uid int64, groups []Group) error {
 		return fmt.Errorf("NewSqlite3.SetGroups(%d, %#v) : %w", uid, groups, err)
 	}
 
-	stmt, err := tx.Prepare("INSERT INTO groups (group_id, owner_id, title, string_next_time, time_lesson) VALUES (?, ?, ?, ?, ?)")
+	stmt, err := tx.Prepare("INSERT INTO groups (group_id, owner_id, title, time_lesson) VALUES (?, ?, ?, ?)")
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("NewSqlite3.SetGroups(%d, %#v) : %w", uid, groups, err)
@@ -147,7 +144,7 @@ func (s Sqlite3) SetGroups(uid int64, groups []Group) error {
 	defer stmt.Close()
 
 	for _, g := range groups {
-		if _, err := stmt.Exec(g.Id, uid, g.Name, "-", g.Time.Format("2006-01-02 15:04:05")); err != nil {
+		if _, err := stmt.Exec(g.GroupID, uid, g.Title, g.TimeLesson.Format("2006-01-02 15:04:05")); err != nil {
 			tx.Rollback()
 			return fmt.Errorf("NewSqlite3.SetGroups(%d, %#v) : %w", uid, groups, err)
 		}
@@ -192,6 +189,35 @@ func (s Sqlite3) RegisterUser(uid int64) error {
 		return fmt.Errorf("NewSqlite3.RegisterUser(%d) : %w", uid, err)
 	}
 	return nil
+}
+
+func (s Sqlite3) appendGroups(u *User, id int64) {
+	sqlQuery := "SELECT g.group_id, g.title, g.time_lesson FROM groups g WHERE g.owner_id = ?"
+	query, err := s.db.Query(sqlQuery, id)
+	if err != nil {
+		log.Printf("Ошибка при выполнении запроса, %s, со значением %v", sqlQuery, id)
+		return
+	}
+	defer query.Close()
+	for query.Next() {
+		var groupId sql.NullInt64
+		var title sql.NullString
+		var timeGroup sql.NullString
+
+		query.Scan(&groupId, &title, &timeGroup)
+
+		parsedTime, err := time.Parse("2006-01-02 15:04:05", timeGroup.String)
+		if err != nil {
+			log.Printf("2 Ошибка при парсинге даты %v - %v", timeGroup.String, err)
+			return
+		}
+
+		u.Groups = append(u.Groups, Group{
+			GroupID:    int(groupId.Int64),
+			Title:      title.String,
+			TimeLesson: parsedTime,
+		})
+	}
 }
 
 func (s Sqlite3) Migrate(eFs fs.FS, dir string) {
@@ -257,33 +283,4 @@ func (s Sqlite3) Migrate(eFs fs.FS, dir string) {
 	}
 
 	log.Print("База данных готова к использованию!\n")
-}
-
-func (s Sqlite3) appendGroups(u *User, id int64) {
-	sqlQuery := "SELECT g.group_id, g.title, g.time_lesson FROM groups g WHERE g.owner_id = ?"
-	query, err := s.db.Query(sqlQuery, id)
-	if err != nil {
-		log.Printf("Ошибка при выполнении запроса, %s, со значением %v", sqlQuery, id)
-		return
-	}
-	defer query.Close()
-	for query.Next() {
-		var groupId sql.NullInt64
-		var title sql.NullString
-		var timeGroup sql.NullString
-
-		query.Scan(&groupId, &title, &timeGroup)
-
-		parsedTime, err := time.Parse("2006-01-02 15:04:05", timeGroup.String)
-		if err != nil {
-			log.Printf("2 Ошибка при парсинге даты %v - %v", timeGroup.String, err)
-			return
-		}
-
-		u.Groups = append(u.Groups, Group{
-			Id:   int(groupId.Int64),
-			Name: title.String,
-			Time: parsedTime,
-		})
-	}
 }

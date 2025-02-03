@@ -6,9 +6,9 @@ import (
 	"gopkg.in/telebot.v4"
 	"strings"
 	"tgbot/internal/config"
-	"tgbot/internal/domain"
 	appError "tgbot/internal/error"
 	"tgbot/internal/helpers"
+	"tgbot/internal/models"
 	"tgbot/internal/service"
 	"time"
 )
@@ -44,27 +44,27 @@ func (m MyGroups) Process(ctx telebot.Context) error {
 		if errors.Is(e, appError.ErrHasNone) {
 			return ctx.Send(config.UserDontHaveGroup, config.MyGroupsKeyboard)
 		}
-		t := helpers.LogWithRandomToken(e)
-		return ctx.Send(t + " | Ошибка при попытке получить группы! ")
+		return helpers.LogError(e, ctx, "Ошибка при попытке получить группы!")
 	}
 	sorted := helpers.GetSortedGroups(g)
 
 	return ctx.Send(GetMyGroupsMessage(sorted), config.MyGroupsKeyboard)
 }
 
-func GetMyGroupsMessage(g []domain.Group) string {
+func GetMyGroupsMessage(g []models.Group) string {
 	s := strings.Builder{}
 	s.WriteString(fmt.Sprintf("%s%d\n", config.MyGroups, len(g)))
-	before := g[0].Time.Weekday()
+
+	before := g[0].TimeLesson.Weekday()
 	c := 1
 	for _, group := range g {
-		if before != group.Time.Weekday() {
+		if before != group.TimeLesson.Weekday() {
 			c = 1
-			before = group.Time.Weekday()
+			before = group.TimeLesson.Weekday()
 			s.WriteString("\n")
 		}
 		s.WriteString("\n")
-		s.WriteString(fmt.Sprintf("%d. %s 🕐 %s %s", c, group.Name, getLocale(group.Time), group.Time.Format("15:04")))
+		s.WriteString(fmt.Sprintf("%d. %s 🕐 %s %s", c, group.Title, getLocale(group.TimeLesson), group.TimeLesson.Format("15:04")))
 		c += 1
 	}
 

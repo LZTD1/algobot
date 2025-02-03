@@ -30,8 +30,7 @@ func (s SendingCookieAction) Process(ctx telebot.Context) error {
 
 	err := s.service.SetCookie(uid, cookie)
 	if err != nil {
-		t := helpers.LogWithRandomToken(err)
-		return ctx.Send(t + " | Ошибка при установке Cookie! ")
+		return helpers.LogError(err, ctx, "Ошибка при установке Cookie!")
 	}
 	s.state.SetStatement(uid, stateMachine.Default)
 

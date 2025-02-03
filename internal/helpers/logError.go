@@ -1,12 +1,14 @@
 package helpers
 
 import (
+	"fmt"
+	"gopkg.in/telebot.v4"
 	"log"
 	"math/rand"
 	"time"
 )
 
-func GenerateRandomToken() string {
+func token() string {
 	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -18,8 +20,13 @@ func GenerateRandomToken() string {
 	return string(token)
 }
 
-func LogWithRandomToken(err error) string {
-	token := GenerateRandomToken()
+func LogError(err error, ctx telebot.Context, reason string) error {
+	token := token()
+
 	log.Printf("ERR: %s | %s\n", token, err.Error())
-	return token
+	if reason == "" {
+		reason = "Произошла ошибка, классифицировать не удалось :("
+	}
+
+	return ctx.Send(fmt.Sprintf("<b>[%s]</b> %s", token, reason), telebot.ModeHTML)
 }

@@ -3,7 +3,7 @@ package mocks
 import (
 	"errors"
 	"strconv"
-	"tgbot/internal/domain"
+	"tgbot/internal/models"
 	"time"
 )
 
@@ -11,9 +11,20 @@ type MockService struct {
 	m                map[int64]bool
 	cookie           string
 	StubNotification bool
-	gr               *domain.Group
-	grs              []domain.Group
+	gr               *models.Group
+	grs              []models.Group
 	SettedCookie     []string
+	Actual           models.ActualInformation
+	AllNames         models.AllKids
+	grErr            error
+}
+
+func (n *MockService) ActualInformation(uid int64, t time.Time, groupId int) (models.ActualInformation, error) {
+	return n.Actual, nil
+}
+
+func (n *MockService) AllKidsNames(uid int64, groupId int) (models.AllKids, error) {
+	return n.AllNames, nil
 }
 
 func NewMockService(m map[int64]bool) *MockService {
@@ -26,21 +37,24 @@ func (n *MockService) SetMockCookie(s string) {
 func (n *MockService) RefreshGroups(uid int64) error {
 	return nil
 }
-func (n *MockService) SetCurrentGroup(group *domain.Group) {
+func (n *MockService) SetCurrentGroup(group *models.Group) {
 	n.gr = group
 }
-func (n *MockService) SetGroups(groups []domain.Group) {
+func (n *MockService) SetGroups(groups []models.Group) {
 	n.grs = groups
 }
 
-func (n *MockService) CurrentGroup(uid int64, t time.Time) (domain.Group, error) {
+func (n *MockService) CurrentGroup(uid int64, t time.Time) (models.Group, error) {
 	if n.gr == nil {
-		return domain.Group{}, errors.New("no gr")
+		return models.Group{}, errors.New("no gr")
 	}
 	return *n.gr, nil
 }
 
-func (n *MockService) Groups(uid int64) ([]domain.Group, error) {
+func (n *MockService) Groups(uid int64) ([]models.Group, error) {
+	if n.grErr != nil {
+		return nil, n.grErr
+	}
 	if n.grs == nil {
 		return nil, errors.New("no gr")
 	}
@@ -80,4 +94,8 @@ func (n *MockService) IsUserRegistered(uid int64) (bool, error) {
 func (n *MockService) RegisterUser(uid int64) error {
 	n.m[uid] = true
 	return nil
+}
+
+func (n *MockService) SetGroupsErr(err error) {
+	n.grErr = err
 }

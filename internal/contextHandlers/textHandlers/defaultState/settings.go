@@ -27,13 +27,11 @@ func (s *Settings) Process(ctx telebot.Context) error {
 
 	c, err := s.svc.Cookie(uid)
 	if err != nil {
-		t := helpers.LogWithRandomToken(err)
-		return ctx.Send(t + " | Ошибка при формировании настроек! ")
+		return helpers.LogError(err, ctx, "Ошибка при формировании настроек (получение cookie) !")
 	}
 	n, err := s.svc.Notification(uid)
 	if err != nil {
-		t := helpers.LogWithRandomToken(err)
-		return ctx.Send(t + " | Ошибка при формировании настроек! ")
+		return helpers.LogError(err, ctx, "Ошибка при формировании настроек (получение нотификаций) !")
 	}
 	return ctx.Send(GetMessageSettings(c, n), config.SettingsKeyboard)
 }

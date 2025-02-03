@@ -200,7 +200,7 @@ func (b Backoffice) doReq(req *http.Request) (*http.Response, error) {
 			continue
 		}
 		if resp.StatusCode >= 400 && resp.StatusCode < 500 {
-			return nil, fmt.Errorf("Backoffice.doReq() : %w", errors.New(resp.Status+" "+getString(resp.Body)))
+			return nil, fmt.Errorf("Backoffice.doReq() : %w", getErrorByCode(resp.Status, resp.Body))
 		}
 		if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 			return resp, nil
@@ -208,7 +208,12 @@ func (b Backoffice) doReq(req *http.Request) (*http.Response, error) {
 	}
 	return nil, returnErr
 }
-func getString(body io.ReadCloser) string {
+
+func getErrorByCode(status string, body io.Reader) error {
+	return errors.New(status + " " + getString(body))
+}
+
+func getString(body io.Reader) string {
 	all, err := io.ReadAll(body)
 	if err != nil {
 		return ""
