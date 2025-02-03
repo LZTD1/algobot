@@ -16,6 +16,18 @@ type KidData struct {
 	Login    string
 	Password string
 }
+type ScheduleData struct {
+	UID    int64
+	Cookie string
+}
+
+type Message struct {
+	Id      string
+	From    string
+	Theme   string
+	Link    string
+	Content string
+}
 
 type AllKids map[int]KidData
 

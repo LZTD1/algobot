@@ -21,6 +21,29 @@ type MockService struct {
 	Calls            []string
 }
 
+func (n *MockService) AllCredentials(uid int64, groupId int) (map[string]string, error) {
+	n.Calls = append(n.Calls, fmt.Sprintf("AllCredentials(%d, %d)", uid, groupId))
+	return map[string]string{
+		"Ваня": "van:12",
+	}, nil
+}
+
+func (n *MockService) UserUidsByNotif(status bool) ([]string, error) {
+	return []string{"1"}, nil
+}
+
+func (n *MockService) NewMessageByUID(uid string) ([]models.Message, error) {
+	return []models.Message{
+		{
+			Id:      0,
+			From:    "1",
+			Theme:   "2",
+			Link:    "3",
+			Content: "4",
+		},
+	}, nil
+}
+
 func (n *MockService) ActualInformation(uid int64, t time.Time, groupId int) (models.ActualInformation, error) {
 	return n.Actual, nil
 }
@@ -41,13 +64,6 @@ func (n *MockService) CloseLesson(uid int64, lessonId int, groupId int) error {
 func (n *MockService) OpenLesson(uid int64, lessonId int, groupId int) error {
 	n.Calls = append(n.Calls, fmt.Sprintf("OpenLesson(%d, %d, %d)", uid, lessonId, groupId))
 	return nil
-}
-
-func (n *MockService) GetAllCredentials(uid int64, groupId int) (map[string]string, error) {
-	n.Calls = append(n.Calls, fmt.Sprintf("GetAllCredentials(%d, %d)", uid, groupId))
-	return map[string]string{
-		"Ваня": "van:12",
-	}, nil
 }
 
 func (n *MockService) SetMockCookie(s string) {

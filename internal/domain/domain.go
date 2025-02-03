@@ -11,6 +11,7 @@ type Group struct {
 }
 
 type User struct {
+	UID           int64
 	Cookie        string
 	UserAgent     string
 	Notifications bool
@@ -27,4 +28,5 @@ type Domain interface {
 	Notification(uid int64) (bool, error)
 	SetNotification(uid int64, value bool) error
 	RegisterUser(uid int64) error
+	GetUsersByNotification(notifications int) ([]User, error)
 }

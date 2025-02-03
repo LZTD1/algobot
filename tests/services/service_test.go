@@ -154,12 +154,12 @@ func TestDefaultService(t *testing.T) {
 			t.Fatalf("Wanted %#v, got %#v", wanted, d.MockGroups[0])
 		}
 	})
-	t.Run("GetAllCredentials", func(t *testing.T) {
+	t.Run("AllCredentials", func(t *testing.T) {
 		d := mocks.MockDomain{}
 		webClient := mocks.MockWebClient{}
 		defaultService := service.NewDefaultService(&d, webClient)
 
-		creds, err := defaultService.GetAllCredentials(1, 1)
+		creds, err := defaultService.AllCredentials(1, 1)
 		if err != nil {
 			t.Fatalf("Got error: %v", err)
 		}
@@ -171,6 +171,49 @@ func TestDefaultService(t *testing.T) {
 
 		if !reflect.DeepEqual(creds, wanted) {
 			t.Fatalf("Wanted %#v, got %#v", wanted, creds)
+		}
+	})
+	t.Run("UserUidsByNotif", func(t *testing.T) {
+		d := mocks.MockDomain{}
+		webClient := mocks.MockWebClient{}
+		defaultService := service.NewDefaultService(&d, webClient)
+
+		uids, err := defaultService.UsersByNotif(true)
+		if err != nil {
+			t.Fatalf("Got error: %v", err)
+		}
+
+		wanted := []models.ScheduleData{
+			{
+				UID:    1,
+				Cookie: "2",
+			},
+		}
+		if !reflect.DeepEqual(uids, wanted) {
+			t.Fatalf("Wanted %#v, got %#v", wanted, uids)
+		}
+	})
+	t.Run("NewMessageByUID", func(t *testing.T) {
+		d := mocks.MockDomain{}
+		webClient := mocks.MockWebClient{}
+		defaultService := service.NewDefaultService(&d, webClient)
+
+		msgs, err := defaultService.NewMessageByUID(1)
+		if err != nil {
+			t.Fatalf("Got error: %v", err)
+		}
+
+		wanted := []models.Message{
+			{
+				Id:      "1",
+				From:    "2",
+				Theme:   "3",
+				Link:    "4",
+				Content: "5",
+			},
+		}
+		if !reflect.DeepEqual(msgs, wanted) {
+			t.Fatalf("Wanted %#v, got %#v", wanted, msgs)
 		}
 	})
 }

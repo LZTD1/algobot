@@ -6,6 +6,7 @@ import (
 	"log"
 	"regexp"
 	"strconv"
+	"strings"
 	"tgbot/internal/clients"
 	"tgbot/internal/domain"
 	appError "tgbot/internal/error"
@@ -14,6 +15,21 @@ import (
 	"time"
 )
 
+var dateMap map[string]string = map[string]string{
+	"янв":  "01",
+	"февр": "02",
+	"мар":  "03",
+	"апр":  "04",
+	"мая":  "05",
+	"июн":  "06",
+	"июл":  "07",
+	"авг":  "08",
+	"сент": "09",
+	"окт":  "10",
+	"нояб": "11",
+	"дек":  "12",
+}
+
 type DefaultService struct {
 	domain    domain.Domain
 	webClient clients.WebClient
@@ -21,6 +37,80 @@ type DefaultService struct {
 
 func NewDefaultService(domain domain.Domain, webClient clients.WebClient) *DefaultService {
 	return &DefaultService{domain: domain, webClient: webClient}
+}
+
+func (d DefaultService) UsersByNotif(status bool) ([]models.ScheduleData, error) {
+	notif := 0
+	if status {
+		notif = 1
+	}
+
+	notification, err := d.domain.GetUsersByNotification(notif)
+	if err != nil {
+		return nil, fmt.Errorf("DefaultService.UserUidsByNotif(%v) : %w", status, err)
+	}
+
+	data := make([]models.ScheduleData, len(notification))
+	for i, user := range notification {
+		data[i] = models.ScheduleData{
+			UID:    user.UID,
+			Cookie: user.Cookie,
+		}
+	}
+	return data, nil
+}
+
+func (d DefaultService) NewMessageByUID(uid int64) ([]models.Message, error) {
+	cookie, err := d.Cookie(uid)
+	if err != nil {
+		return nil, fmt.Errorf("DefaultService.NewMessageByUID(%d) : %w", uid, err)
+	}
+	messages, err := d.webClient.GetKidsMessages(cookie)
+	if err != nil {
+		return nil, fmt.Errorf("DefaultService.NewMessageByUID(%d) : %w", uid, err)
+	}
+
+	var msgs []models.Message // TODO ДОДЕЛАТЬ СЕРВИС
+	var lastNotifData time.Time = d.domain.LastNotificationDate(uid)
+	for i := len(messages.Data.Projects); i > 0; i-- {
+		if messages.Data.Projects[i].SenderScope == "student" {
+			if lastNotifData.Before(parseDate(messages.Data.Projects[i].LastTime)) {
+				msgs = append(msgs, models.Message{
+					Id:      messages.Data.Projects[i].UID,
+					From:    messages.Data.Projects[i].Name,
+					Theme:   messages.Data.Projects[i].Title,
+					Link:    fmt.Sprintf("https://backoffice.algoritmika.org%s", messages.Data.Projects[i].Link),
+					Content: messages.Data.Projects[i].Content,
+				})
+			}
+
+		}
+	}
+
+	return msgs, nil
+}
+
+func parseDate(lastTime string) time.Time {
+	parts := strings.Split(lastTime, " ")
+
+	day := parts[0]
+	month := dateMap[strings.Replace(parts[1], ".", "", -1)]
+
+	if len(parts) == 3 {
+		timeHour := parts[2]
+
+		retTime, _ := time.Parse("2 01 2006 15:04", fmt.Sprintf("%s %s %d %s", day, month, time.Now().Year(), timeHour))
+		return retTime
+	}
+	if len(parts) == 4 {
+		year := strings.Replace(parts[2], "`", "", -1)
+		year = strings.Replace(year, ",", "", -1)
+		timeHour := parts[3]
+
+		retTime, _ := time.Parse("2 01 06 15:04", fmt.Sprintf("%s %s %s %s", day, month, year, timeHour))
+		return retTime
+	}
+
 }
 
 func (d DefaultService) OpenLesson(uid int64, groupId int, lessonId int) error {
@@ -48,10 +138,10 @@ func (d DefaultService) CloseLesson(uid int64, groupId int, lessonId int) error 
 	return nil
 }
 
-func (d DefaultService) GetAllCredentials(uid int64, groupId int) (map[string]string, error) {
+func (d DefaultService) AllCredentials(uid int64, groupId int) (map[string]string, error) {
 	names, err := d.AllKidsNames(uid, groupId)
 	if err != nil {
-		return nil, fmt.Errorf("DefaultService.GetAllCredentials(%d, %d) : %w", uid, groupId, err)
+		return nil, fmt.Errorf("DefaultService.AllCredentials(%d, %d) : %w", uid, groupId, err)
 	}
 
 	creds := make(map[string]string, len(names))

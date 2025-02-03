@@ -19,5 +19,7 @@ type Service interface {
 	AllKidsNames(uid int64, groupId int) (models.AllKids, error)
 	OpenLesson(uid int64, lessonId int, groupId int) error
 	CloseLesson(uid int64, lessonId int, groupId int) error
-	GetAllCredentials(uid int64, groupId int) (map[string]string, error)
+	AllCredentials(uid int64, groupId int) (map[string]string, error)
+	UsersByNotif(status bool) ([]models.ScheduleData, error)
+	NewMessageByUID(uid int64) ([]models.Message, error)
 }

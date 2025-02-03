@@ -32,7 +32,7 @@ func (c GetCredentials) Process(ctx telebot.Context) error {
 		return helpers.LogError(err, ctx, "(1) Ошибка при анализе данных от кнопки!")
 	}
 
-	creds, err := c.s.GetAllCredentials(ctx.Callback().Sender.ID, groupID)
+	creds, err := c.s.AllCredentials(ctx.Callback().Sender.ID, groupID)
 	if err != nil {
 		return helpers.LogError(err, ctx, "(2) Ошибка при анализе данных от кнопки!")
 	}

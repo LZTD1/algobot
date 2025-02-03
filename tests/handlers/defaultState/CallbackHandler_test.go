@@ -138,7 +138,7 @@ func TestCallback(t *testing.T) {
 		queryHandler.Handle(&mockContext)
 
 		assertContextOptsLen(t, mockContext.SentMessages[0], 0)
-		sprintf := fmt.Sprintf("GetAllCredentials(%d, %d)", 12, 1)
+		sprintf := fmt.Sprintf("AllCredentials(%d, %d)", 12, 1)
 		if ms.Calls[0] != sprintf {
 			t.Errorf("Wanted %s, got %s", sprintf, ms.Calls[0])
 		}

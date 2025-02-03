@@ -11,6 +11,18 @@ type MockDomain struct {
 	errNotif   error
 }
 
+func (m *MockDomain) GetUsersByNotification(notifications int) ([]domain.User, error) {
+	return []domain.User{
+		{
+			UID:           1,
+			Cookie:        "2",
+			UserAgent:     "2",
+			Notifications: false,
+			Groups:        nil,
+		},
+	}, nil
+}
+
 func (m *MockDomain) User(uid int64) (domain.User, error) {
 	//TODO implement me
 	panic("implement me")
