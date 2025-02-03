@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"tgbot/internal/models"
 	"time"
@@ -17,6 +18,7 @@ type MockService struct {
 	Actual           models.ActualInformation
 	AllNames         models.AllKids
 	grErr            error
+	Calls            []string
 }
 
 func (n *MockService) ActualInformation(uid int64, t time.Time, groupId int) (models.ActualInformation, error) {
@@ -29,6 +31,23 @@ func (n *MockService) AllKidsNames(uid int64, groupId int) (models.AllKids, erro
 
 func NewMockService(m map[int64]bool) *MockService {
 	return &MockService{m: m}
+}
+
+func (n *MockService) CloseLesson(uid int64, lessonId int, groupId int) error {
+	n.Calls = append(n.Calls, fmt.Sprintf("CloseLesson(%d, %d, %d)", uid, lessonId, groupId))
+	return nil
+}
+
+func (n *MockService) OpenLesson(uid int64, lessonId int, groupId int) error {
+	n.Calls = append(n.Calls, fmt.Sprintf("OpenLesson(%d, %d, %d)", uid, lessonId, groupId))
+	return nil
+}
+
+func (n *MockService) GetAllCredentials(uid int64, groupId int) (map[string]string, error) {
+	n.Calls = append(n.Calls, fmt.Sprintf("GetAllCredentials(%d, %d)", uid, groupId))
+	return map[string]string{
+		"Ваня": "van:12",
+	}, nil
 }
 
 func (n *MockService) SetMockCookie(s string) {

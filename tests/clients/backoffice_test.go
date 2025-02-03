@@ -157,7 +157,7 @@ func TestBackoffice(t *testing.T) {
 			cookie := "111"
 			group := "111"
 			lession := "222"
-			ts := getBOServer(t, map[string]string{}, "POST", cookie, "ajaxUrl=^%^2Fapi^%^2Fv2^%^2Fgroup^%^2Flesson^%^2Fstatus&btnClass=btn+btn-xs+btn-danger&status=0&lessonId=222&groupId=111", "[]")
+			ts := getBOServer(t, map[string]string{}, "POST", cookie, `ajaxUrl=%2Fapi%2Fv2%2Fgroup%2Flesson%2Fstatus&btnClass=btn+btn-xs+btn-danger&groupId=111&lessonId=222&status=0`, "[]")
 			defer ts.Close()
 
 			bo := clients.NewBackoffice(ts.URL, boSettings)
@@ -170,7 +170,7 @@ func TestBackoffice(t *testing.T) {
 			cookie := "111"
 			group := "111"
 			lession := "222"
-			ts := getBOServer(t, map[string]string{}, "POST", cookie, "ajaxUrl=^%^2Fapi^%^2Fv2^%^2Fgroup^%^2Flesson^%^2Fstatus&btnClass=btn+btn-xs+btn-danger&status=10&lessonId=222&groupId=111", "[]")
+			ts := getBOServer(t, map[string]string{}, "POST", cookie, `ajaxUrl=%2Fapi%2Fv2%2Fgroup%2Flesson%2Fstatus&btnClass=btn+btn-xs+btn-danger&groupId=111&lessonId=222&status=10`, "[]")
 			defer ts.Close()
 
 			bo := clients.NewBackoffice(ts.URL, boSettings)

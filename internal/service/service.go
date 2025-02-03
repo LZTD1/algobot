@@ -17,4 +17,7 @@ type Service interface {
 	RefreshGroups(uid int64) error
 	ActualInformation(uid int64, t time.Time, groupId int) (models.ActualInformation, error)
 	AllKidsNames(uid int64, groupId int) (models.AllKids, error)
+	OpenLesson(uid int64, lessonId int, groupId int) error
+	CloseLesson(uid int64, lessonId int, groupId int) error
+	GetAllCredentials(uid int64, groupId int) (map[string]string, error)
 }

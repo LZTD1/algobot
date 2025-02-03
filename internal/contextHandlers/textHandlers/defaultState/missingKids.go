@@ -59,7 +59,17 @@ func (m *MissingKids) Process(ctx telebot.Context) error {
 		return helpers.LogError(e, ctx, "Произошла непредвиденная ошибка при попытке подгрузить имена детей")
 	}
 
-	return ctx.Send(msg(g, actual, allKids), telebot.ModeMarkdown)
+	return ctx.Send(msg(g, actual, allKids), getKeyboard(g, actual), telebot.ModeMarkdown)
+}
+
+func getKeyboard(g models.Group, actual models.ActualInformation) *telebot.ReplyMarkup {
+	markup := telebot.ReplyMarkup{ResizeKeyboard: true}
+	markup.Inline(
+		markup.Row(markup.Data(config.CloseLessonBtn, fmt.Sprintf("close_lesson_%d_%d", g.GroupID, actual.LessonId)), markup.Data(config.OpenLessonBtn, fmt.Sprintf("open_lesson_%d_%d", g.GroupID, actual.LessonId))),
+		markup.Row(markup.Data(config.GetCredsBtn, fmt.Sprintf("get_creds_%d", g.GroupID))),
+	)
+
+	return &markup
 }
 
 func msg(g models.Group, actual models.ActualInformation, kids models.AllKids) string {
@@ -70,7 +80,7 @@ func msg(g models.Group, actual models.ActualInformation, kids models.AllKids) s
 	sb.WriteString(fmt.Sprintf("\n%s%d\n", config.MissingKids, len(actual.MissingKids)))
 	sb.WriteString("\n```Отсутствующие\n")
 	for _, kid := range actual.MissingKids {
-		sb.WriteString(fmt.Sprintf("%s\n", kids[kid]))
+		sb.WriteString(fmt.Sprintf("%s\n", kids[kid].FullName))
 	}
 	sb.WriteString("```")
 

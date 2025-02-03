@@ -26,3 +26,9 @@ const CookieSet = "Куки успешно установлены"
 
 const UpdateStarted = "Происходит процесс обновления ..."
 const UpdateEnd = "Успешно обновлено!"
+
+const OpenLessonBtn = "Открыть лекцию"
+const CloseLessonBtn = "Закрыть лекцию"
+const GetCredsBtn = "Получить аккаунты"
+
+const SuccessfulChangeStatus = "Статус лекции успешно изменен"

@@ -81,6 +81,69 @@ func TestCallback(t *testing.T) {
 		assertMessages(t, mockContext.SentMessages[0], config.UpdateStarted)
 		assertMessages(t, mockContext.SentMessages[1], config.UpdateEnd)
 	})
+	t.Run("Close lesson", func(t *testing.T) {
+		ms := mocks.NewMockService(map[int64]bool{
+			12: true,
+		})
+		mockState := mocks.MockStateMachine{}
+		mockState.SetStatement(12, stateMachine.Default)
+
+		mockContext := mocks.MockContext{}
+		mockContext.SetUserMessage(12, "close_lesson_1_1")
+
+		queryHandler := contextHandlers.NewOnCallback(ms, &mockState)
+
+		queryHandler.Handle(&mockContext)
+
+		assertContextOptsLen(t, mockContext.SentMessages[0], 0)
+		sprintf := fmt.Sprintf("CloseLesson(%d, %d, %d)", 12, 1, 1)
+		if ms.Calls[0] != sprintf {
+			t.Errorf("Wanted %s, got %s", sprintf, ms.Calls[0])
+		}
+		assertMessages(t, mockContext.SentMessages[0], config.SuccessfulChangeStatus)
+	})
+	t.Run("Open lesson", func(t *testing.T) {
+		ms := mocks.NewMockService(map[int64]bool{
+			12: true,
+		})
+		mockState := mocks.MockStateMachine{}
+		mockState.SetStatement(12, stateMachine.Default)
+
+		mockContext := mocks.MockContext{}
+		mockContext.SetUserMessage(12, "open_lesson_1_1")
+
+		queryHandler := contextHandlers.NewOnCallback(ms, &mockState)
+
+		queryHandler.Handle(&mockContext)
+
+		assertContextOptsLen(t, mockContext.SentMessages[0], 0)
+		sprintf := fmt.Sprintf("OpenLesson(%d, %d, %d)", 12, 1, 1)
+		if ms.Calls[0] != sprintf {
+			t.Errorf("Wanted %s, got %s", sprintf, ms.Calls[0])
+		}
+		assertMessages(t, mockContext.SentMessages[0], config.SuccessfulChangeStatus)
+	})
+	t.Run("Get creds", func(t *testing.T) {
+		ms := mocks.NewMockService(map[int64]bool{
+			12: true,
+		})
+		mockState := mocks.MockStateMachine{}
+		mockState.SetStatement(12, stateMachine.Default)
+
+		mockContext := mocks.MockContext{}
+		mockContext.SetUserMessage(12, "get_creds_1")
+
+		queryHandler := contextHandlers.NewOnCallback(ms, &mockState)
+
+		queryHandler.Handle(&mockContext)
+
+		assertContextOptsLen(t, mockContext.SentMessages[0], 0)
+		sprintf := fmt.Sprintf("GetAllCredentials(%d, %d)", 12, 1)
+		if ms.Calls[0] != sprintf {
+			t.Errorf("Wanted %s, got %s", sprintf, ms.Calls[0])
+		}
+		assertMessages(t, mockContext.SentMessages[0], fmt.Sprintf("Учетные записи детей:\n\nВаня [van:12]"))
+	})
 }
 
 func assertMockStatement(t *testing.T, mockState mocks.MockStateMachine, wantedState stateMachine.Statement, wantedLen int) {

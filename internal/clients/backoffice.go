@@ -123,7 +123,15 @@ func (b Backoffice) GetAllGroupsByUser(cookie string) ([]AllGroupsUser, error) {
 }
 
 func (b Backoffice) OpenLession(cookie, group, lession string) error {
-	req, err := b.createReq("POST", "/api/v2/group/lesson/status", cookie, map[string]string{}, strings.NewReader("ajaxUrl=^%^2Fapi^%^2Fv2^%^2Fgroup^%^2Flesson^%^2Fstatus&btnClass=btn+btn-xs+btn-danger&status=10&lessonId="+lession+"&groupId="+group))
+	params := url.Values{}
+	params.Add("ajaxUrl", "/api/v2/group/lesson/status")
+	params.Add("btnClass", "btn btn-xs btn-danger")
+	params.Add("status", "10")
+	params.Add("lessonId", lession)
+	params.Add("groupId", group)
+	query := params.Encode()
+
+	req, err := b.createReq("POST", "/api/v2/group/lesson/status", cookie, map[string]string{}, strings.NewReader(query))
 	if err != nil {
 		return fmt.Errorf("Backoffice.OpenLession(%s, %s, %s) : %w", cookie, group, lession, err)
 	}
@@ -136,13 +144,23 @@ func (b Backoffice) OpenLession(cookie, group, lession string) error {
 }
 
 func (b Backoffice) CloseLession(cookie, group, lession string) error {
-	req, err := b.createReq("POST", "/api/v2/group/lesson/status", cookie, map[string]string{}, strings.NewReader("ajaxUrl=^%^2Fapi^%^2Fv2^%^2Fgroup^%^2Flesson^%^2Fstatus&btnClass=btn+btn-xs+btn-danger&status=0&lessonId="+lession+"&groupId="+group))
+	params := url.Values{}
+	params.Add("ajaxUrl", "/api/v2/group/lesson/status")
+	params.Add("btnClass", "btn btn-xs btn-danger")
+	params.Add("status", "0")
+	params.Add("lessonId", lession)
+	params.Add("groupId", group)
+	query := params.Encode()
+
+	fmt.Println(query)
+	req, err := b.createReq("POST", "/api/v2/group/lesson/status", cookie, map[string]string{}, strings.NewReader(query))
 	if err != nil {
-		return fmt.Errorf("Backoffice.OpenLession(%s, %s, %s) : %w", cookie, group, lession, err)
+		return fmt.Errorf("Backoffice.CloseLession(%s, %s, %s) : %w", cookie, group, lession, err)
 	}
+
 	_, reqErr := b.doReq(req)
 	if reqErr != nil {
-		return fmt.Errorf("Backoffice.OpenLession(%s, %s, %s) : %w", cookie, group, lession, reqErr)
+		return fmt.Errorf("Backoffice.CloseLession(%s, %s, %s) : %w", cookie, group, lession, reqErr)
 	}
 
 	return nil
@@ -228,9 +246,15 @@ func (b Backoffice) createReq(method, uri, cookie string, params map[string]stri
 	}
 	reqUrl.RawQuery = p.Encode()
 	req, err := http.NewRequest(method, reqUrl.String(), body)
+
 	if err != nil {
 		return nil, fmt.Errorf("Backoffice.createReq() : %w", err)
 	}
 	req.Header.Add("Cookie", cookie)
+
+	if method == "POST" {
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+	}
+
 	return req, nil
 }

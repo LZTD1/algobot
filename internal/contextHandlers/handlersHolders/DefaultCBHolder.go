@@ -25,5 +25,8 @@ func (d DefaultCBHolder) GetHandlers() []defaultHandler.ContextHandler {
 		callbackHandlers.NewSetCookie(d.service, d.state),
 		callbackHandlers.NewChangeNotification(d.service),
 		callbackHandlers.NewRefreshGroups(d.service),
+		callbackHandlers.NewCloseLesson(d.service),
+		callbackHandlers.NewOpenLesson(d.service),
+		callbackHandlers.NewGetCredentials(d.service),
 	}
 }

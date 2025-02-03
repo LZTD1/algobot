@@ -23,6 +23,45 @@ func NewDefaultService(domain domain.Domain, webClient clients.WebClient) *Defau
 	return &DefaultService{domain: domain, webClient: webClient}
 }
 
+func (d DefaultService) OpenLesson(uid int64, groupId int, lessonId int) error {
+	cookie, err := d.Cookie(uid)
+	if err != nil {
+		return fmt.Errorf("DefaultService.OpenLesson(%d, %d, %d) : %w", uid, lessonId, groupId, err)
+	}
+	err = d.webClient.OpenLession(cookie, strconv.Itoa(groupId), strconv.Itoa(lessonId))
+	if err != nil {
+		return fmt.Errorf("DefaultService.OpenLesson(%d, %d, %d) : %w", uid, lessonId, groupId, err)
+	}
+
+	return nil
+}
+func (d DefaultService) CloseLesson(uid int64, groupId int, lessonId int) error {
+	cookie, err := d.Cookie(uid)
+	if err != nil {
+		return fmt.Errorf("DefaultService.CloseLesson(%d, %d, %d) : %w", uid, lessonId, groupId, err)
+	}
+	err = d.webClient.CloseLession(cookie, strconv.Itoa(groupId), strconv.Itoa(lessonId))
+	if err != nil {
+		return fmt.Errorf("DefaultService.CloseLesson(%d, %d, %d) : %w", uid, lessonId, groupId, err)
+	}
+
+	return nil
+}
+
+func (d DefaultService) GetAllCredentials(uid int64, groupId int) (map[string]string, error) {
+	names, err := d.AllKidsNames(uid, groupId)
+	if err != nil {
+		return nil, fmt.Errorf("DefaultService.GetAllCredentials(%d, %d) : %w", uid, groupId, err)
+	}
+
+	creds := make(map[string]string, len(names))
+	for _, kid := range names {
+		creds[kid.FullName] = fmt.Sprintf("%s:%s", kid.Login, kid.Password)
+	}
+
+	return creds, nil
+}
+
 func (d DefaultService) Groups(uid int64) ([]models.Group, error) {
 	data, err := d.domain.Groups(uid)
 	if err != nil {
@@ -118,10 +157,14 @@ func (d DefaultService) AllKidsNames(uid int64, groupId int) (models.AllKids, er
 		return nil, fmt.Errorf("DefaultService.AllKidsNames(%d, %d) : %w", uid, groupId, err)
 	}
 
-	names := make(map[int]string, len(group.Data.Items))
+	names := make(map[int]models.KidData, len(group.Data.Items))
 	for _, datum := range group.Data.Items {
 		if datum.LastGroup.ID == groupId && datum.LastGroup.Status == 0 {
-			names[datum.ID] = datum.FullName
+			names[datum.ID] = models.KidData{
+				FullName: datum.FullName,
+				Login:    datum.Username,
+				Password: datum.Password,
+			}
 		}
 	}
 

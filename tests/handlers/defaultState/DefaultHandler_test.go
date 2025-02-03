@@ -124,10 +124,16 @@ func TestDefaultHandler(t *testing.T) {
 					LessonId:    0,
 					MissingKids: []int{1, 2},
 				}
-				ms.AllNames = map[int]string{
-					1: "vasya",
-					2: "petya",
-					3: "kirill",
+				ms.AllNames = models.AllKids{
+					1: models.KidData{
+						FullName: "vasya",
+					},
+					2: models.KidData{
+						FullName: "petya",
+					},
+					3: models.KidData{
+						FullName: "kirill",
+					},
 				}
 				ms.SetCurrentGroup(&gr)
 
@@ -140,9 +146,15 @@ func TestDefaultHandler(t *testing.T) {
 				mockContext.SetUserMessageWithTime(12, "Получить отсутсвующих", getUnixByDay(28, 9, 40))
 
 				messageHandler.Handle(&mockContext)
-				assertContextOptsLen(t, mockContext.SentMessages[0], 1)
+				assertContextOptsLen(t, mockContext.SentMessages[0], 2)
 				assertMessages(t, mockContext.SentMessages[0], "Группа по курсу: Title\nЛекция: LTitle\n\nОбщее число детей: 3\nОтсутствуют: 2\n\n```Отсутствующие\nvasya\npetya\n```")
-				// TODO assertKeyboards
+
+				wantedMarkup := telebot.ReplyMarkup{ResizeKeyboard: true}
+				wantedMarkup.Inline(
+					wantedMarkup.Row(wantedMarkup.Data(config.CloseLessonBtn, "close_lesson_1_0"), wantedMarkup.Data(config.OpenLessonBtn, "open_lesson_1_0")),
+					wantedMarkup.Row(wantedMarkup.Data(config.GetCredsBtn, "get_creds_1")),
+				)
+				assertKeyboards(t, mockContext.SentMessages[0], &wantedMarkup)
 			})
 			t.Run("Group Non exists", func(t *testing.T) {
 				ms := mocks.NewMockService(map[int64]bool{

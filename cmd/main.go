@@ -26,7 +26,6 @@ var migrationsFS embed.FS
 func main() {
 	// TODO зарефачить main
 	// TODO добавить scheduler на сообщения
-	// TODO добавить закрывашку о открывашку лекций
 
 	db, closeDb := getSqliteBase("base.db")
 	defer closeDb()

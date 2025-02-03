@@ -121,8 +121,16 @@ func TestDefaultService(t *testing.T) {
 			t.Fatalf("Got error: %v", err)
 		}
 		wanted := models.AllKids{
-			1: "Иван Иванов",
-			2: "Мария Петрова",
+			1: models.KidData{
+				FullName: "Иван Иванов",
+				Login:    "ivan_ivanov",
+				Password: "secret_password_123",
+			},
+			2: models.KidData{
+				FullName: "Мария Петрова",
+				Login:    "maria_petrov",
+				Password: "password_321",
+			},
 		}
 		if !reflect.DeepEqual(wanted, group) {
 			t.Fatalf("Wanted %#v, got %#v", wanted, group)
@@ -144,6 +152,25 @@ func TestDefaultService(t *testing.T) {
 
 		if !reflect.DeepEqual(d.MockGroups[0], wanted) {
 			t.Fatalf("Wanted %#v, got %#v", wanted, d.MockGroups[0])
+		}
+	})
+	t.Run("GetAllCredentials", func(t *testing.T) {
+		d := mocks.MockDomain{}
+		webClient := mocks.MockWebClient{}
+		defaultService := service.NewDefaultService(&d, webClient)
+
+		creds, err := defaultService.GetAllCredentials(1, 1)
+		if err != nil {
+			t.Fatalf("Got error: %v", err)
+		}
+
+		wanted := map[string]string{
+			"Иван Иванов":   "ivan_ivanov:secret_password_123",
+			"Мария Петрова": "maria_petrov:password_321",
+		}
+
+		if !reflect.DeepEqual(creds, wanted) {
+			t.Fatalf("Wanted %#v, got %#v", wanted, creds)
 		}
 	})
 }

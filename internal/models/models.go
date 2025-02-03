@@ -11,7 +11,13 @@ type ActualInformation struct {
 	MissingKids []int
 }
 
-type AllKids map[int]string
+type KidData struct {
+	FullName string
+	Login    string
+	Password string
+}
+
+type AllKids map[int]KidData
 
 type Group struct {
 	GroupID    int
