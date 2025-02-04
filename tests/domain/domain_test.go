@@ -2,6 +2,7 @@ package domain
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
@@ -10,6 +11,7 @@ import (
 	"reflect"
 	"testing"
 	"tgbot/internal/domain"
+	appError "tgbot/internal/error"
 	"time"
 )
 
@@ -190,6 +192,63 @@ func TestDomain(t *testing.T) {
 		base.QueryRow("SELECT EXISTS (SELECT 1 FROM users where uid = ?)", 1).Scan(&exists)
 		if exists == false {
 			t.Fatalf("User does not exist")
+		}
+	})
+	t.Run("NotificationDate", func(t *testing.T) {
+		t.Run("Get if not exists", func(t *testing.T) {
+			truncateBase(base)
+			base.Exec("INSERT INTO users (uid, user_agent, cookie, last_notification_msg, notification) VALUES(14, 'agent', 'cookie', '', 0);")
+			_, err := sqlite3.LastNotificationDate(14)
+			if err == nil {
+				if errors.Is(err, appError.ErrNotValid) {
+					t.Errorf("Wanted errNotValid, got %v", err)
+				}
+				t.Errorf("Wanted error, got nothing")
+			}
+		})
+		t.Run("Get if exists", func(t *testing.T) {
+			truncateBase(base)
+			base.Exec("INSERT INTO users (uid, user_agent, cookie, last_notification_msg, notification) VALUES(14, 'agent', 'cookie', 'last_notification_msg', 0);")
+			notif, err := sqlite3.LastNotificationDate(14)
+			if err != nil {
+				t.Errorf("Wanted result, got error")
+			}
+			if notif != "last_notification_msg" {
+				t.Errorf("Wanted last_notification_msg, got %v", notif)
+			}
+		})
+		t.Run("Set", func(t *testing.T) {
+			truncateBase(base)
+			base.Exec("INSERT INTO users (uid, user_agent, cookie, last_notification_msg, notification) VALUES(14, 'agent', 'cookie', 'last_notification_msg', 0);")
+			err := sqlite3.SetLastNotificationDate(14, "asd")
+			if err != nil {
+				t.Errorf("Wanted change, got error")
+			}
+			notif, err := sqlite3.LastNotificationDate(14)
+			if err != nil {
+				t.Errorf("Wanted result, got error")
+			}
+			if notif != "asd" {
+				t.Errorf("Wanted asd, got %v", notif)
+			}
+		})
+	})
+	t.Run("GetUsersByNotification", func(t *testing.T) {
+		truncateBase(base)
+		base.Exec("INSERT INTO users (uid, user_agent, cookie, last_notification_msg, notification) VALUES(14, 'agent', 'cookie', '', 0);")
+		base.Exec("INSERT INTO users (uid, user_agent, cookie, last_notification_msg, notification) VALUES(15, 'agent', 'cookie', '', 1);")
+		base.Exec("INSERT INTO users (uid, user_agent, cookie, last_notification_msg, notification) VALUES(16, 'agent', 'cookie', '', 0);")
+		base.Exec("INSERT INTO users (uid, user_agent, cookie, last_notification_msg, notification) VALUES(17, 'agent', 'cookie', '', 1);")
+
+		users, err := sqlite3.GetUsersByNotification(1)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(users) != 2 {
+			t.Errorf("Expected 2 users, got %v", len(users))
+		}
+		if users[0].UID != 15 || users[1].UID != 17 {
+			t.Errorf("Expected 15, 17 UID user, got %v, %v", users[0].UID, users[0].UID)
 		}
 	})
 }

@@ -28,22 +28,6 @@ func (n *MockService) AllCredentials(uid int64, groupId int) (map[string]string,
 	}, nil
 }
 
-func (n *MockService) UserUidsByNotif(status bool) ([]string, error) {
-	return []string{"1"}, nil
-}
-
-func (n *MockService) NewMessageByUID(uid string) ([]models.Message, error) {
-	return []models.Message{
-		{
-			Id:      0,
-			From:    "1",
-			Theme:   "2",
-			Link:    "3",
-			Content: "4",
-		},
-	}, nil
-}
-
 func (n *MockService) ActualInformation(uid int64, t time.Time, groupId int) (models.ActualInformation, error) {
 	return n.Actual, nil
 }
@@ -54,6 +38,28 @@ func (n *MockService) AllKidsNames(uid int64, groupId int) (models.AllKids, erro
 
 func NewMockService(m map[int64]bool) *MockService {
 	return &MockService{m: m}
+}
+
+func (n *MockService) UsersByNotif(status bool) ([]models.ScheduleData, error) {
+	return []models.ScheduleData{
+		{
+			UID:    1,
+			Cookie: "c",
+		},
+	}, nil
+
+}
+
+func (n *MockService) NewMessageByUID(uid int64) ([]models.Message, error) {
+	return []models.Message{
+		{
+			Id:      "0",
+			From:    "1",
+			Theme:   "2",
+			Link:    "3",
+			Content: "4",
+		},
+	}, nil
 }
 
 func (n *MockService) CloseLesson(uid int64, lessonId int, groupId int) error {

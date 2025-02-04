@@ -3,6 +3,8 @@ package schedulers
 import (
 	"fmt"
 	"gopkg.in/telebot.v4"
+	"log"
+	"strconv"
 	"strings"
 	"tgbot/internal/models"
 	"tgbot/internal/service"
@@ -18,11 +20,22 @@ func NewMessage(b telebot.API, svc service.Service) *Message {
 }
 
 func (m Message) Schedule() {
-	uids, _ := m.svc.UserUidsByNotif(true)
-	for _, uid := range uids {
-		allMessages, _ := m.svc.NewMessageByUID(uid)
+	users, err := m.svc.UsersByNotif(true)
+	if err != nil {
+		log.Println(err)
+	}
+	for _, user := range users {
+		allMessages, err := m.svc.NewMessageByUID(user.UID)
+		if err != nil {
+			log.Println(err)
+		}
 		for _, msg := range allMessages {
-			m.b.Send(RecipientUser{uid}, getMsg(msg))
+			if msg.Type == "img" {
+				p := &telebot.Photo{File: telebot.FromURL(msg.Content), Caption: getMsg(msg)}
+				m.b.Send(RecipientUser{strconv.FormatInt(user.UID, 10)}, p, telebot.ModeMarkdown)
+			} else {
+				m.b.Send(RecipientUser{strconv.FormatInt(user.UID, 10)}, getMsg(msg), telebot.ModeMarkdown)
+			}
 		}
 	}
 }
@@ -33,10 +46,11 @@ func getMsg(msg models.Message) string {
 	sb.WriteString(fmt.Sprintf("От: %s\n", msg.From))
 	sb.WriteString(fmt.Sprintf("Тема: %s\n", msg.Theme))
 	sb.WriteString(fmt.Sprintf("Ссылка: %s\n\n", msg.Link))
-	sb.WriteString(fmt.Sprintf("<%s>\n", strings.Repeat("=", 5)))
-	sb.WriteString(msg.Content)
-	sb.WriteString(fmt.Sprintf("\n<%s>", strings.Repeat("=", 5)))
-
+	if msg.Type != "img" {
+		sb.WriteString("```Сообщение:\n")
+		sb.WriteString(msg.Content)
+		sb.WriteString("\n```")
+	}
 	return sb.String()
 }
 

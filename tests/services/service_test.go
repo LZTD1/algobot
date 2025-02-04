@@ -205,15 +205,20 @@ func TestDefaultService(t *testing.T) {
 
 		wanted := []models.Message{
 			{
-				Id:      "1",
+				Id:      "2",
 				From:    "2",
-				Theme:   "3",
-				Link:    "4",
-				Content: "5",
+				Theme:   "2",
+				Link:    "https://backoffice.algoritmika.org2",
+				Content: "2",
 			},
 		}
 		if !reflect.DeepEqual(msgs, wanted) {
 			t.Fatalf("Wanted %#v, got %#v", wanted, msgs)
+		}
+
+		wantedDate := "29 дек. `24, 18:51"
+		if d.DataNotif != wantedDate {
+			t.Fatalf("Wanted %s, but got %s", wantedDate, d.DataNotif)
 		}
 	})
 }

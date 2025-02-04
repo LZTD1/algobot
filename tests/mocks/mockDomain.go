@@ -9,6 +9,16 @@ type MockDomain struct {
 	MockGroups []domain.Group
 	errCookie  error
 	errNotif   error
+	DataNotif  string
+}
+
+func (m *MockDomain) LastNotificationDate(uid int64) (string, error) {
+	return "14 дек. `24, 18:36", nil
+}
+
+func (m *MockDomain) SetLastNotificationDate(uid int64, data string) error {
+	m.DataNotif = data
+	return nil
 }
 
 func (m *MockDomain) GetUsersByNotification(notifications int) ([]domain.User, error) {

@@ -70,20 +70,41 @@ func (d DefaultService) NewMessageByUID(uid int64) ([]models.Message, error) {
 		return nil, fmt.Errorf("DefaultService.NewMessageByUID(%d) : %w", uid, err)
 	}
 
-	var msgs []models.Message // TODO ДОДЕЛАТЬ СЕРВИС
-	var lastNotifData time.Time = d.domain.LastNotificationDate(uid)
-	for i := len(messages.Data.Projects); i > 0; i-- {
+	var msgs []models.Message
+	lastNotif, err := d.domain.LastNotificationDate(uid)
+	var lastNotifData time.Time
+	if err != nil {
+		if !errors.Is(err, appError.ErrNotValid) {
+			return nil, fmt.Errorf("DefaultService.NewMessageByUID(%d) : %w", uid, err)
+		}
+		lastNotifData = time.Time{}
+	} else {
+		lastNotifData = parseDate(lastNotif)
+	}
+	var lastNotifString string
+	for i := len(messages.Data.Projects) - 1; i >= 0; i-- {
 		if messages.Data.Projects[i].SenderScope == "student" {
 			if lastNotifData.Before(parseDate(messages.Data.Projects[i].LastTime)) {
-				msgs = append(msgs, models.Message{
+				m := models.Message{
 					Id:      messages.Data.Projects[i].UID,
+					Type:    messages.Data.Projects[i].Type,
 					From:    messages.Data.Projects[i].Name,
 					Theme:   messages.Data.Projects[i].Title,
 					Link:    fmt.Sprintf("https://backoffice.algoritmika.org%s", messages.Data.Projects[i].Link),
 					Content: messages.Data.Projects[i].Content,
-				})
+				}
+				if m.Type == "img" {
+					m.Content = fmt.Sprintf("https://backoffice.algoritmika.org%s", m.Content)
+				}
+				msgs = append(msgs, m)
+				lastNotifString = messages.Data.Projects[i].LastTime
 			}
-
+		}
+	}
+	if lastNotifString != "" {
+		err := d.domain.SetLastNotificationDate(uid, lastNotifString)
+		if err != nil {
+			return nil, fmt.Errorf("DefaultService.NewMessageByUID(%d) : %w", uid, err)
 		}
 	}
 
@@ -110,7 +131,7 @@ func parseDate(lastTime string) time.Time {
 		retTime, _ := time.Parse("2 01 06 15:04", fmt.Sprintf("%s %s %s %s", day, month, year, timeHour))
 		return retTime
 	}
-
+	return time.Date(0, 1, 1, 0, 0, 0, 0, time.UTC)
 }
 
 func (d DefaultService) OpenLesson(uid int64, groupId int, lessonId int) error {

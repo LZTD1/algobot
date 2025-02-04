@@ -29,4 +29,6 @@ type Domain interface {
 	SetNotification(uid int64, value bool) error
 	RegisterUser(uid int64) error
 	GetUsersByNotification(notifications int) ([]User, error)
+	LastNotificationDate(uid int64) (string, error)
+	SetLastNotificationDate(uid int64, data string) error
 }

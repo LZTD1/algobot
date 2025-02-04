@@ -33,6 +33,7 @@ func (s *Settings) Process(ctx telebot.Context) error {
 	if err != nil {
 		return helpers.LogError(err, ctx, "Ошибка при формировании настроек (получение нотификаций) !")
 	}
+
 	return ctx.Send(GetMessageSettings(c, n), config.SettingsKeyboard)
 }
 

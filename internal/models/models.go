@@ -25,6 +25,7 @@ type Message struct {
 	Id      string
 	From    string
 	Theme   string
+	Type    string
 	Link    string
 	Content string
 }

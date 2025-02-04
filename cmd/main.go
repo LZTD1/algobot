@@ -13,6 +13,7 @@ import (
 	"tgbot/internal/contextHandlers"
 	"tgbot/internal/domain"
 	"tgbot/internal/middleware"
+	"tgbot/internal/schedulers"
 	"tgbot/internal/service"
 	"tgbot/internal/stateMachine"
 	"time"
@@ -25,7 +26,6 @@ var migrationsFS embed.FS
 
 func main() {
 	// TODO зарефачить main
-	// TODO добавить scheduler на сообщения
 
 	db, closeDb := getSqliteBase("base.db")
 	defer closeDb()
@@ -59,11 +59,31 @@ func main() {
 	msgHandler := contextHandlers.NewOnText(svc, state)
 	callbackHandler := contextHandlers.NewOnCallback(svc, state)
 
+	tickerStop := goSchedule(b, svc)
+	defer tickerStop()
+
 	b.Use(regMid.Middleware, middleware.MessageLogger, middleware2.AutoRespond())
 	b.Handle(tele.OnText, msgHandler.Handle)
 	b.Handle(tele.OnCallback, callbackHandler.Handle)
 
 	b.Start()
+}
+
+func goSchedule(b *tele.Bot, svc *service.DefaultService) func() {
+	sch := schedulers.NewMessage(b, svc)
+	ticker := time.NewTicker(10 * time.Minute)
+
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				fmt.Println("Tick")
+				sch.Schedule()
+			}
+		}
+	}()
+
+	return ticker.Stop
 }
 
 func getSqliteBase(name string) (*sql.DB, func() error) {

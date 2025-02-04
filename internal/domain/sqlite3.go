@@ -18,6 +18,69 @@ func NewSqlite3(db *sql.DB) *Sqlite3 {
 	return &Sqlite3{db: db}
 }
 
+func (s Sqlite3) GetUsersByNotification(notif int) ([]User, error) {
+	row, err := s.db.Query(`SELECT u.uid, u.cookie, u.user_agent, u.notification FROM users u WHERE notification = ?`, notif)
+	if err != nil {
+		return nil, fmt.Errorf("NewSqlite3.GetUsersByNotification(%d) : %w", notif, row.Err())
+	}
+
+	var users []User
+	for row.Next() {
+		var baseId sql.NullInt64
+		var cookie sql.NullString
+		var userAgent sql.NullString
+		var notifications bool
+
+		err := row.Scan(&baseId, &cookie, &userAgent, &notifications)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return nil, fmt.Errorf("NewSqlite3.GetUsersByNotification(%d) : %w", notif, appError.ErrHasNone)
+			}
+			return nil, fmt.Errorf("NewSqlite3.GetUsersByNotification(%d) : %w", notif, row.Err())
+		}
+
+		u := User{
+			UID:           baseId.Int64,
+			Cookie:        cookie.String,
+			UserAgent:     userAgent.String,
+			Notifications: notifications,
+			Groups:        nil,
+		}
+		users = append(users, u)
+		s.appendGroups(&u, baseId.Int64)
+	}
+
+	return users, nil
+}
+
+func (s Sqlite3) LastNotificationDate(uid int64) (string, error) {
+	row := s.db.QueryRow(`SELECT u.last_notification_msg FROM users u WHERE u.uid = ?`, uid)
+
+	if row.Err() != nil {
+		return "", fmt.Errorf("NewSqlite3.LastNotificationDate(%d) : %w", uid, row.Err())
+	}
+
+	var notifString sql.NullString
+
+	err := row.Scan(&notifString)
+	if err != nil {
+		return "", fmt.Errorf("NewSqlite3.LastNotificationDate(%d) : %w", uid, err)
+	}
+
+	if !notifString.Valid || notifString.String == "" {
+		return "", fmt.Errorf("NewSqlite3.LastNotificationDate(%d) : %w", uid, appError.ErrNotValid)
+	}
+	return notifString.String, nil
+}
+
+func (s Sqlite3) SetLastNotificationDate(uid int64, data string) error {
+	_, err := s.db.Exec("UPDATE users SET last_notification_msg=? WHERE uid=?", data, uid)
+	if err != nil {
+		return fmt.Errorf("NewSqlite3.SetLastNotificationDate(%d, %s) : %w", uid, data, err)
+	}
+	return nil
+}
+
 func (s Sqlite3) User(uid int64) (User, error) {
 	row := s.db.QueryRow(`SELECT u.uid, u.cookie, u.user_agent, u.notification FROM users u WHERE u.uid = ?`, uid)
 	if row.Err() != nil {

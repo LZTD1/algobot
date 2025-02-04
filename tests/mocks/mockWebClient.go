@@ -27,8 +27,37 @@ func (m MockWebClient) CloseLession(cookie, group, lession string) error {
 }
 
 func (m MockWebClient) GetKidsMessages(cookie string) (*clients.KidsMessages, error) {
-	//TODO implement me
-	panic("implement me")
+	return &clients.KidsMessages{
+		Status: "ok",
+		Data: clients.MessagesData{
+			Projects: []clients.Message{
+				{
+					UID:         "1",
+					New:         false,
+					SenderID:    0,
+					SenderScope: "user",
+					Type:        "",
+					Content:     "1",
+					Name:        "1",
+					LastTime:    "18 янв. 15:09",
+					Title:       "1",
+					Link:        "1",
+				},
+				{
+					UID:         "2",
+					New:         false,
+					SenderID:    0,
+					SenderScope: "student",
+					Type:        "",
+					Content:     "2",
+					Name:        "2",
+					LastTime:    "29 дек. `24, 18:51",
+					Title:       "2",
+					Link:        "2",
+				},
+			},
+		},
+	}, nil
 }
 
 func (m MockWebClient) GetAllGroupsByUser(cookie string) ([]clients.AllGroupsUser, error) {
