@@ -35,5 +35,5 @@ func (c ChangeNotification) Process(ctx telebot.Context) error {
 		return helpers.LogError(err, ctx, "Ошибка при установлении нотификаций!")
 	}
 
-	return c.settings.Process(ctx)
+	return ctx.Edit("Настройки уведомлений были изменены!")
 }
