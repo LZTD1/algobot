@@ -9,6 +9,7 @@ import (
 	tele "gopkg.in/telebot.v4"
 	middleware2 "gopkg.in/telebot.v4/middleware"
 	"log"
+	"os"
 	"tgbot/internal/clients"
 	"tgbot/internal/contextHandlers"
 	"tgbot/internal/domain"
@@ -19,7 +20,7 @@ import (
 	"time"
 )
 
-const TOKEN = "6375608618:AAGtdaMkpj4SIJt495eNHOgw4oy5MZ_TIY4"
+var TOKEN = os.Getenv("TELEGRAM_TOKEN")
 
 //go:embed migrations/*.sql
 var migrationsFS embed.FS
