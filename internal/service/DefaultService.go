@@ -308,6 +308,9 @@ func (d DefaultService) RefreshGroups(uid int64) error {
 		}
 	}
 
+	if len(groupsFormatted) == 0 {
+		return fmt.Errorf("DefaultService.RefreshGroups(%d) : %w", uid, appError.ErrHasNone)
+	}
 	err = d.domain.SetGroups(uid, groupsFormatted)
 	if err != nil {
 		return fmt.Errorf("DefaultService.RefreshGroups(%d) : %w", uid, err)

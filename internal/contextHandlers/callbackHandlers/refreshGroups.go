@@ -1,8 +1,10 @@
 package callbackHandlers
 
 import (
+	"errors"
 	"gopkg.in/telebot.v4"
 	"tgbot/internal/config"
+	appError "tgbot/internal/error"
 	"tgbot/internal/helpers"
 	"tgbot/internal/service"
 )
@@ -30,10 +32,11 @@ func (r RefreshGroups) Process(ctx telebot.Context) error {
 
 	err = r.svc.RefreshGroups(ctx.Sender().ID)
 	if err != nil {
+		if errors.Is(err, appError.ErrHasNone) {
+			return ctx.Edit("Я не смог найти ни одной группы, может быть дело в cookie?")
+		}
 		return helpers.LogError(err, ctx, "Ошибка при обновлении групп!")
-	} else {
-		err = ctx.Edit(config.UpdateEnd)
 	}
 
-	return err
+	return ctx.Edit(config.UpdateEnd)
 }

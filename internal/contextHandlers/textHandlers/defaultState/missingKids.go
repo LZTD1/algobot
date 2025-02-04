@@ -10,7 +10,6 @@ import (
 	"tgbot/internal/helpers"
 	"tgbot/internal/models"
 	"tgbot/internal/service"
-	"time"
 )
 
 type MissingKids struct {
@@ -29,7 +28,7 @@ func (m *MissingKids) CanHandle(ctx telebot.Context) bool {
 }
 
 func (m *MissingKids) Process(ctx telebot.Context) error {
-	t := time.Date(2025, 2, 8, 9, 40, 0, 0, time.UTC)
+	t := ctx.Message().Time()
 	uid := ctx.Message().Sender.ID
 
 	g, e := m.s.CurrentGroup(uid, t)
