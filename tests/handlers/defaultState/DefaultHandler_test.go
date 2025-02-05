@@ -3,6 +3,7 @@ package test
 import (
 	"fmt"
 	"gopkg.in/telebot.v4"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -16,6 +17,8 @@ import (
 )
 
 func TestDefaultHandler(t *testing.T) {
+	os.Setenv("TELEGRAM_NAME", "test")
+
 	t.Run("If user is not register", func(t *testing.T) {
 		ms := mocks.NewMockService(make(map[int64]bool))
 
@@ -214,8 +217,8 @@ func TestDefaultHandler(t *testing.T) {
 				assertMessages(t, mockContext.SentMessages[0], fmt.Sprintf(
 					"%s4\n\n%s\n\n%s",
 					config.MyGroups,
-					"1. [Гр 4](t.me/tinkoff_scrapper_bot?start=eyJBY3Rpb24iOiJnZXRHcm91cEluZm8iLCJQYXlsb2FkIjpbIjQiXX0=) 🕐 сб 10:00\n2. [Гр 3](t.me/tinkoff_scrapper_bot?start=eyJBY3Rpb24iOiJnZXRHcm91cEluZm8iLCJQYXlsb2FkIjpbIjMiXX0=) 🕐 сб 14:00",
-					"1. [Гр 1](t.me/tinkoff_scrapper_bot?start=eyJBY3Rpb24iOiJnZXRHcm91cEluZm8iLCJQYXlsb2FkIjpbIjEiXX0=) 🕐 вс 10:00\n2. [Гр 2](t.me/tinkoff_scrapper_bot?start=eyJBY3Rpb24iOiJnZXRHcm91cEluZm8iLCJQYXlsb2FkIjpbIjIiXX0=) 🕐 вс 12:00",
+					"1. [Гр 4](t.me/test?start=eyJBY3Rpb24iOiJnZXRHcm91cEluZm8iLCJQYXlsb2FkIjpbIjQiXX0=) 🕐 сб 10:00\n2. [Гр 3](t.me/test?start=eyJBY3Rpb24iOiJnZXRHcm91cEluZm8iLCJQYXlsb2FkIjpbIjMiXX0=) 🕐 сб 14:00",
+					"1. [Гр 1](t.me/test?start=eyJBY3Rpb24iOiJnZXRHcm91cEluZm8iLCJQYXlsb2FkIjpbIjEiXX0=) 🕐 вс 10:00\n2. [Гр 2](t.me/test?start=eyJBY3Rpb24iOiJnZXRHcm91cEluZm8iLCJQYXlsb2FkIjpbIjIiXX0=) 🕐 вс 12:00",
 				))
 				assertKeyboards(t, mockContext.SentMessages[0], config.MyGroupsKeyboard)
 			})
@@ -257,7 +260,7 @@ func TestDefaultHandler(t *testing.T) {
 
 				messageHandler.Handle(&mockContext)
 				assertContextOptsLen(t, mockContext.SentMessages[0], 1)
-				assertMessages(t, mockContext.SentMessages[0], "[Title Content](https://backoffice.algoritmika.org/group/view/1)\n\n***Следующая лекция***: 15.03.2025 16:00\n***Всего пройдено*** 10 лекций из 20\n\nАктивные дети: 2 | Выбыло: 2 | Всего: 4\n***Активные дети***:\n1. [Иван Иванов](t.me/tinkoff_scrapper_bot?start=eyJBY3Rpb24iOiJnZXRLaWRJbmZvIiwiUGF5bG9hZCI6WyIxIl19)\n2. [Мария Петрова](t.me/tinkoff_scrapper_bot?start=eyJBY3Rpb24iOiJnZXRLaWRJbmZvIiwiUGF5bG9hZCI6WyIyIl19)\n***Выбыли дети***:\n1. [Иван Иванов](t.me/tinkoff_scrapper_bot?start=eyJBY3Rpb24iOiJnZXRLaWRJbmZvIiwiUGF5bG9hZCI6WyIxIl19) (Переведен: 2025-01-15)\n2. [Мария Петрова](t.me/tinkoff_scrapper_bot?start=eyJBY3Rpb24iOiJnZXRLaWRJbmZvIiwiUGF5bG9hZCI6WyIyIl19) (Переведен: 2025-02-01)\n")
+				assertMessages(t, mockContext.SentMessages[0], "[Title Content](https://backoffice.algoritmika.org/group/view/1)\n\n***Следующая лекция***: 15.03.2025 16:00\n***Всего пройдено*** 10 лекций из 20\n\nАктивные дети: 2 | Выбыло: 2 | Всего: 4\n***Активные дети***:\n1. [Иван Иванов](t.me/test?start=eyJBY3Rpb24iOiJnZXRLaWRJbmZvIiwiUGF5bG9hZCI6WyIxIl19)\n2. [Мария Петрова](t.me/test?start=eyJBY3Rpb24iOiJnZXRLaWRJbmZvIiwiUGF5bG9hZCI6WyIyIl19)\n***Выбыли дети***:\n1. [Иван Иванов](t.me/test?start=eyJBY3Rpb24iOiJnZXRLaWRJbmZvIiwiUGF5bG9hZCI6WyIxIl19) (Переведен: 2025-01-15)\n2. [Мария Петрова](t.me/test?start=eyJBY3Rpb24iOiJnZXRLaWRJbmZvIiwiUGF5bG9hZCI6WyIyIl19) (Переведен: 2025-02-01)\n")
 			})
 			t.Run("Get student", func(t *testing.T) {
 				mockContext := mocks.MockContext{}
@@ -277,7 +280,7 @@ func TestDefaultHandler(t *testing.T) {
 
 				messageHandler.Handle(&mockContext)
 				assertContextOptsLen(t, mockContext.SentMessages[0], 1)
-				assertMessages(t, mockContext.SentMessages[0], "***Иван Иванов***\nВозраст: 22\nДень рождения: 1995-07-15\n\n***Данные от аккаунта:***\nЛогин: _ivanov123_\nПароль: _password123_\n\n***Родитель:***\nИмя: Мария Иванова\nТелефон: +78001234567\nПочта: ivanov-maria@example.com\n\n***Группы***\n1 . [Математика 101 Основы математики](https://backoffice.algoritmika.org/group/view/987654)\nУчиться (2023-06-01 - 2025-06-01)\n\n")
+				assertMessages(t, mockContext.SentMessages[0], "***Иван Иванов***\nВозраст: 22\nДень рождения: 1995-07-15\n\n***Данные от аккаунта:***\nЛогин: _ivanov123_\nПароль: _password123_\n\n***Родитель:***\nИмя: Мария Иванова\nТелефон: +78001234567\nПочта: ivanov-maria@example.com\n\n***Группы***\n1 . [Математика 101 Основы математики](https://backoffice.algoritmika.org/group/view/987654)\n🟢 Учиться (2023-06-01 - 2025-06-01)\n\n")
 			})
 		})
 	})

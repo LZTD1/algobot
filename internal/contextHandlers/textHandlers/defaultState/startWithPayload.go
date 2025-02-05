@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"gopkg.in/telebot.v4"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -14,9 +15,9 @@ import (
 )
 
 var statuses = map[int]string{
-	0:  "Учиться",
-	20: "Выбыл",
-	10: "Закончил",
+	0:  "🟢 Учиться",
+	20: "🔴 Выбыл",
+	10: "🟡 Переведен",
 }
 
 type StartWithPayload struct {
@@ -77,7 +78,7 @@ func (s StartWithPayload) getGroupInfo(ctx telebot.Context, payload models.Start
 		})
 		encodedStr := base64.StdEncoding.EncodeToString(marshal)
 
-		msg.WriteString(fmt.Sprintf("%d. [%s](t.me/tinkoff_scrapper_bot?start=%s)\n", i+1, kid.FullName, encodedStr))
+		msg.WriteString(fmt.Sprintf("%d. [%s](t.me/%s?start=%s)\n", i+1, kid.FullName, os.Getenv("TELEGRAM_NAME"), encodedStr))
 	}
 	msg.WriteString("***Выбыли дети***:\n")
 	for i, kid := range full.NotActiveKids {
@@ -88,9 +89,9 @@ func (s StartWithPayload) getGroupInfo(ctx telebot.Context, payload models.Start
 		encodedStr := base64.StdEncoding.EncodeToString(marshal)
 
 		if kid.LastGroup.ID == g {
-			msg.WriteString(fmt.Sprintf("%d. [%s](t.me/tinkoff_scrapper_bot?start=%s) (Выбыл: %s)\n", i+1, kid.FullName, encodedStr, kid.LastGroup.EndTime.Format("2006-01-02")))
+			msg.WriteString(fmt.Sprintf("%d. [%s](t.me/%s?start=%s) (Выбыл: %s)\n", i+1, kid.FullName, os.Getenv("TELEGRAM_NAME"), encodedStr, kid.LastGroup.EndTime.Format("2006-01-02")))
 		} else {
-			msg.WriteString(fmt.Sprintf("%d. [%s](t.me/tinkoff_scrapper_bot?start=%s) (Переведен: %s)\n", i+1, kid.FullName, encodedStr, kid.LastGroup.StartTime.Format("2006-01-02")))
+			msg.WriteString(fmt.Sprintf("%d. [%s](t.me/%s?start=%s) (Переведен: %s)\n", i+1, kid.FullName, os.Getenv("TELEGRAM_NAME"), encodedStr, kid.LastGroup.StartTime.Format("2006-01-02")))
 		}
 	}
 	return ctx.Send(msg.String(), telebot.ModeMarkdown)

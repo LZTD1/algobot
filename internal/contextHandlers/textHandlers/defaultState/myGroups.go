@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"gopkg.in/telebot.v4"
+	"os"
 	"strconv"
 	"strings"
 	"tgbot/internal/config"
@@ -85,7 +86,7 @@ func getGroupTitle(group models.Group) string {
 		fmt.Println(err)
 		return group.Title
 	}
-	return fmt.Sprintf("[%s](t.me/tinkoff_scrapper_bot?start=%s)", group.Title, encodedStr)
+	return fmt.Sprintf("[%s](t.me/%s?start=%s)", group.Title, os.Getenv("TELEGRAM_NAME"), encodedStr)
 }
 
 func getLocale(t time.Time) string {

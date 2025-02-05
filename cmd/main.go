@@ -45,6 +45,7 @@ func main() {
 		return
 	}
 	defer b.Stop()
+	os.Setenv("TELEGRAM_NAME", b.Me.Username)
 
 	boClient := clients.NewBackoffice("", clients.BackofficeSetting{
 		Retry:        3,
