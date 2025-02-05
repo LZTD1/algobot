@@ -104,6 +104,8 @@ func (s StartWithPayload) getKidInfo(ctx telebot.Context, payload models.StartPa
 		return helpers.LogError(err, ctx, "Ошибка при получении данного ученика!")
 	}
 
+	parentPhone := regexp.MustCompile(`[^0-9+]`).ReplaceAllString(full.Kid.Data.Phone, "")
+
 	msg := strings.Builder{}
 	msg.WriteString(fmt.Sprintf("***%s***\n", full.Kid.Data.FullName))
 	msg.WriteString(fmt.Sprintf("Возраст: %d\n", full.Kid.Data.Age))
@@ -114,7 +116,7 @@ func (s StartWithPayload) getKidInfo(ctx telebot.Context, payload models.StartPa
 	msg.WriteString("\n***Родитель:***\n")
 	msg.WriteString(fmt.Sprintf("Имя: %s\n", full.Kid.Data.ParentName))
 
-	msg.WriteString(fmt.Sprintf("Телефон: %s\n", regexp.MustCompile(`[^0-9+]`).ReplaceAllString(full.Kid.Data.Phone, "")))
+	msg.WriteString(fmt.Sprintf("Телефон: %s [🟩 Whatsapp](https://wa.me/%s)\n", parentPhone, strings.TrimPrefix(parentPhone, "+")))
 	msg.WriteString(fmt.Sprintf("Почта: %s\n", full.Kid.Data.Email))
 	msg.WriteString("\n***Группы***\n")
 

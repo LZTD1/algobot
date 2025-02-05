@@ -280,7 +280,7 @@ func TestDefaultHandler(t *testing.T) {
 
 				messageHandler.Handle(&mockContext)
 				assertContextOptsLen(t, mockContext.SentMessages[0], 2)
-				assertMessages(t, mockContext.SentMessages[0], "***Иван Иванов***\nВозраст: 22\nДень рождения: 1995-07-15\n\n***Данные от аккаунта:***\nЛогин: _ivanov123_\nПароль: _password123_\n\n***Родитель:***\nИмя: Мария Иванова\nТелефон: +78001234567\nПочта: ivanov-maria@example.com\n\n***Группы***\n1 . [Математика 101 Основы математики](https://backoffice.algoritmika.org/group/view/987654)\n🟢 Учится (2023-06-01 - 2025-06-01)\n\n")
+				assertMessages(t, mockContext.SentMessages[0], "***Иван Иванов***\nВозраст: 22\nДень рождения: 1995-07-15\n\n***Данные от аккаунта:***\nЛогин: _ivanov123_\nПароль: _password123_\n\n***Родитель:***\nИмя: Мария Иванова\nТелефон: +78001234567 [🟩 Whatsapp](https://wa.me/78001234567)\nПочта: ivanov-maria@example.com\n\n***Группы***\n1 . [Математика 101 Основы математики](https://backoffice.algoritmika.org/group/view/987654)\n🟢 Учится (2023-06-01 - 2025-06-01)\n\n")
 			})
 		})
 	})
