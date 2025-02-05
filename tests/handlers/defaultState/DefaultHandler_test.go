@@ -213,7 +213,7 @@ func TestDefaultHandler(t *testing.T) {
 
 				messageHandler.Handle(&mockContext)
 
-				assertContextOptsLen(t, mockContext.SentMessages[0], 2)
+				assertContextOptsLen(t, mockContext.SentMessages[0], 3)
 				assertMessages(t, mockContext.SentMessages[0], fmt.Sprintf(
 					"%s4\n\n%s\n\n%s",
 					config.MyGroups,
@@ -259,8 +259,8 @@ func TestDefaultHandler(t *testing.T) {
 				mockContext.SetUserMessage(12, "/start="+payload)
 
 				messageHandler.Handle(&mockContext)
-				assertContextOptsLen(t, mockContext.SentMessages[0], 1)
-				assertMessages(t, mockContext.SentMessages[0], "[Title Content](https://backoffice.algoritmika.org/group/view/1)\n\n***Следующая лекция***: 15.03.2025 16:00\n***Всего пройдено*** 10 лекций из 20\n\nАктивные дети: 2 | Выбыло: 2 | Всего: 4\n***Активные дети***:\n1. [Иван Иванов](t.me/test?start=eyJBY3Rpb24iOiJnZXRLaWRJbmZvIiwiUGF5bG9hZCI6WyIxIl19)\n2. [Мария Петрова](t.me/test?start=eyJBY3Rpb24iOiJnZXRLaWRJbmZvIiwiUGF5bG9hZCI6WyIyIl19)\n***Выбыли дети***:\n1. [Иван Иванов](t.me/test?start=eyJBY3Rpb24iOiJnZXRLaWRJbmZvIiwiUGF5bG9hZCI6WyIxIl19) (Переведен: 2025-01-15)\n2. [Мария Петрова](t.me/test?start=eyJBY3Rpb24iOiJnZXRLaWRJbmZvIiwiUGF5bG9hZCI6WyIyIl19) (Переведен: 2025-02-01)\n")
+				assertContextOptsLen(t, mockContext.SentMessages[0], 2)
+				assertMessages(t, mockContext.SentMessages[0], "[Title Content](https://backoffice.algoritmika.org/group/view/1)\n\n***Следующая лекция***: 15.03.2025 16:00\n***Всего пройдено*** 10 лекций из 20\n\nАктивные дети: 2 | Выбыло: 2 | Всего: 4\n***Активные дети***:\n1. [Иван Иванов](t.me/test?start=eyJBY3Rpb24iOiJnZXRLaWRJbmZvIiwiUGF5bG9hZCI6WyIxIl19)\n2. [Мария Петрова](t.me/test?start=eyJBY3Rpb24iOiJnZXRLaWRJbmZvIiwiUGF5bG9hZCI6WyIyIl19)\n***Выбыли дети***:\n1. [Иван Иванов](t.me/test?start=eyJBY3Rpb24iOiJnZXRLaWRJbmZvIiwiUGF5bG9hZCI6WyIxIl19) (🟡 Переведен: 2025-01-15)\n2. [Мария Петрова](t.me/test?start=eyJBY3Rpb24iOiJnZXRLaWRJbmZvIiwiUGF5bG9hZCI6WyIyIl19) (🟡 Переведен: 2025-02-01)\n")
 			})
 			t.Run("Get student", func(t *testing.T) {
 				mockContext := mocks.MockContext{}
@@ -279,8 +279,8 @@ func TestDefaultHandler(t *testing.T) {
 				mockContext.SetUserMessage(12, "/start="+payload)
 
 				messageHandler.Handle(&mockContext)
-				assertContextOptsLen(t, mockContext.SentMessages[0], 1)
-				assertMessages(t, mockContext.SentMessages[0], "***Иван Иванов***\nВозраст: 22\nДень рождения: 1995-07-15\n\n***Данные от аккаунта:***\nЛогин: _ivanov123_\nПароль: _password123_\n\n***Родитель:***\nИмя: Мария Иванова\nТелефон: +78001234567\nПочта: ivanov-maria@example.com\n\n***Группы***\n1 . [Математика 101 Основы математики](https://backoffice.algoritmika.org/group/view/987654)\n🟢 Учиться (2023-06-01 - 2025-06-01)\n\n")
+				assertContextOptsLen(t, mockContext.SentMessages[0], 2)
+				assertMessages(t, mockContext.SentMessages[0], "***Иван Иванов***\nВозраст: 22\nДень рождения: 1995-07-15\n\n***Данные от аккаунта:***\nЛогин: _ivanov123_\nПароль: _password123_\n\n***Родитель:***\nИмя: Мария Иванова\nТелефон: +78001234567\nПочта: ivanov-maria@example.com\n\n***Группы***\n1 . [Математика 101 Основы математики](https://backoffice.algoritmika.org/group/view/987654)\n🟢 Учится (2023-06-01 - 2025-06-01)\n\n")
 			})
 		})
 	})

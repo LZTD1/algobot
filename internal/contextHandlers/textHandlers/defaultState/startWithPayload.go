@@ -15,7 +15,7 @@ import (
 )
 
 var statuses = map[int]string{
-	0:  "🟢 Учиться",
+	0:  "🟢 Учится",
 	20: "🔴 Выбыл",
 	10: "🟡 Переведен",
 }
@@ -89,14 +89,12 @@ func (s StartWithPayload) getGroupInfo(ctx telebot.Context, payload models.Start
 		encodedStr := base64.StdEncoding.EncodeToString(marshal)
 
 		if kid.LastGroup.ID == g {
-			msg.WriteString(fmt.Sprintf("%d. [%s](t.me/%s?start=%s) (Выбыл: %s)\n", i+1, kid.FullName, os.Getenv("TELEGRAM_NAME"), encodedStr, kid.LastGroup.EndTime.Format("2006-01-02")))
+			msg.WriteString(fmt.Sprintf("%d. [%s](t.me/%s?start=%s) (🔴 Выбыл: %s)\n", i+1, kid.FullName, os.Getenv("TELEGRAM_NAME"), encodedStr, kid.LastGroup.EndTime.Format("2006-01-02")))
 		} else {
-			msg.WriteString(fmt.Sprintf("%d. [%s](t.me/%s?start=%s) (Переведен: %s)\n", i+1, kid.FullName, os.Getenv("TELEGRAM_NAME"), encodedStr, kid.LastGroup.StartTime.Format("2006-01-02")))
+			msg.WriteString(fmt.Sprintf("%d. [%s](t.me/%s?start=%s) (🟡 Переведен: %s)\n", i+1, kid.FullName, os.Getenv("TELEGRAM_NAME"), encodedStr, kid.LastGroup.StartTime.Format("2006-01-02")))
 		}
 	}
-	return ctx.Send(msg.String(), telebot.ModeMarkdown, telebot.SendOptions{
-		DisableWebPagePreview: true,
-	})
+	return ctx.Send(msg.String(), telebot.ModeMarkdown, telebot.NoPreview)
 }
 
 func (s StartWithPayload) getKidInfo(ctx telebot.Context, payload models.StartPayload) error {
@@ -130,7 +128,5 @@ func (s StartWithPayload) getKidInfo(ctx telebot.Context, payload models.StartPa
 		msg.WriteString(fmt.Sprintf("%s (%s - %s)\n\n", v, groups[i].StartTime.Format("2006-01-02"), groups[i].EndTime.Format("2006-01-02")))
 	}
 
-	return ctx.Send(msg.String(), telebot.ModeMarkdown, telebot.SendOptions{
-		DisableWebPagePreview: true,
-	})
+	return ctx.Send(msg.String(), telebot.ModeMarkdown, telebot.NoPreview)
 }
