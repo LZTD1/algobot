@@ -22,4 +22,6 @@ type Service interface {
 	AllCredentials(uid int64, groupId int) (map[string]string, error)
 	UsersByNotif(status bool) ([]models.ScheduleData, error)
 	NewMessageByUID(uid int64) ([]models.Message, error)
+	FullGroupInfo(uid int64, groupId int) (models.FullGroupInfo, error)
+	FullKidInfo(uid int64, kidID int) (models.FullKidInfo, error)
 }

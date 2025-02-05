@@ -21,6 +21,19 @@ type MockService struct {
 	Calls            []string
 }
 
+func (n *MockService) FullGroupInfo(uid int64, groupId int) (models.FullGroupInfo, error) {
+	return models.FullGroupInfo{
+		GroupID:        1,
+		GroupTitle:     "Title",
+		GroupContent:   "Content",
+		NextLessonTime: "15.03.2025 16:00",
+		LessonsTotal:   20,
+		LessonsPassed:  10,
+		ActiveKids:     MockGroupResponse.Data.Items,
+		NotActiveKids:  MockGroupResponse.Data.Items,
+	}, nil
+}
+
 func (n *MockService) AllCredentials(uid int64, groupId int) (map[string]string, error) {
 	n.Calls = append(n.Calls, fmt.Sprintf("AllCredentials(%d, %d)", uid, groupId))
 	return map[string]string{
@@ -38,6 +51,12 @@ func (n *MockService) AllKidsNames(uid int64, groupId int) (models.AllKids, erro
 
 func NewMockService(m map[int64]bool) *MockService {
 	return &MockService{m: m}
+}
+
+func (n *MockService) FullKidInfo(uid int64, kidID int) (models.FullKidInfo, error) {
+	return models.FullKidInfo{
+		Kid: KidFullInfo,
+	}, nil
 }
 
 func (n *MockService) UsersByNotif(status bool) ([]models.ScheduleData, error) {

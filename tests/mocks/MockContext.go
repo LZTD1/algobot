@@ -14,6 +14,7 @@ type MockContext struct {
 	telebot.Context
 
 	SentMessages []SentMessage
+	payload      string
 }
 
 func (m *MockContext) Sender() *telebot.User {
@@ -44,6 +45,7 @@ func (m *MockContext) Message() *telebot.Message {
 		},
 		Text:     m.userMessage,
 		Unixtime: m.unixTime,
+		Payload:  m.payload,
 	}
 }
 
@@ -64,4 +66,8 @@ func (m *MockContext) Callback() *telebot.Callback {
 		},
 		Data: m.userMessage,
 	}
+}
+
+func (m *MockContext) SetPayload(s string) {
+	m.payload = s
 }

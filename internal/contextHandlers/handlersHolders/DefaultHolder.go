@@ -27,5 +27,6 @@ func (d DefaultHolders) GetHandlers() []defaultHandler.ContextHandler {
 		defaultState.NewSettings(d.service),
 		defaultState.NewMyGroups(d.service),
 		defaultState.NewAbsentKids(d.service),
+		defaultState.NewStartWithPayload(d.service),
 	}
 }

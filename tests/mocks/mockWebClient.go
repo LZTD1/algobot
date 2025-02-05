@@ -9,7 +9,31 @@ type MockWebClient struct {
 }
 
 func (m MockWebClient) GetKidsNamesByGroup(cookie string, group int) (*clients.GroupResponse, error) {
-	return &groupResponse, nil
+	return &MockGroupResponse, nil
+}
+
+func (m MockWebClient) GetKidInfo(cookie string, kidID string) (*clients.FullKidInfo, error) {
+	return &KidFullInfo, nil
+}
+
+func (m MockWebClient) GetGroupInfo(cookie string, group string) (*clients.FullGroupInfo, error) {
+	return &clients.FullGroupInfo{
+		Status: "active",
+		Data: clients.GroupDataFull{
+			ID:              1,
+			Title:           "Math Group",
+			Content:         "Some group content",
+			Type:            clients.TypeFull{Value: "online", Label: "Online", Tag: "online-tag"},
+			Status:          clients.StatusFull{Value: 1, Label: "Active", Tag: "active-tag"},
+			StatusChangedAt: "2025-02-05T12:00:00Z",
+			StartTime:       "2025-02-06T09:00:00Z",
+			NextLessonTime:  "2025-02-06T10:00:00Z",
+			LessonsTotal:    20,
+			LessonsPassed:   5,
+			HardwareNeeded:  2,
+			ClientManager:   nil,
+		},
+	}, nil
 }
 
 func (m MockWebClient) GetKidsStatsByGroup(cookie, group string) (*clients.KidsStats, error) {
@@ -71,7 +95,7 @@ func (m MockWebClient) GetAllGroupsByUser(cookie string) ([]clients.AllGroupsUse
 	}, nil
 }
 
-var groupResponse = clients.GroupResponse{
+var MockGroupResponse = clients.GroupResponse{
 	Status: "success",
 	Data: clients.GroupData{
 		Items: []clients.Student{
@@ -148,6 +172,44 @@ var groupResponse = clients.GroupResponse{
 						Href: "http://example.com/students/2",
 					},
 				},
+			},
+		},
+	},
+}
+
+var KidFullInfo = clients.FullKidInfo{
+	Status: "success",
+	Data: clients.DataKidInfo{
+		ID:              123456,
+		FirstName:       "Иван",
+		LastName:        "Иванов",
+		FullName:        "Иван Иванов",
+		ParentName:      "Мария Иванова",
+		Email:           "ivanov-maria@example.com",
+		HasLaptop:       1,
+		Phone:           "+7 (800) 123-45-67",
+		Age:             22,
+		BirthDate:       time.Date(1995, time.July, 15, 0, 0, 0, 0, time.UTC),
+		CreatedAt:       time.Date(2022, time.May, 1, 12, 30, 0, 0, time.UTC),
+		UpdatedAt:       time.Date(2024, time.January, 20, 18, 45, 30, 0, time.UTC),
+		DeletedAt:       nil,
+		HasBranchAccess: false,
+		Username:        "ivanov123",
+		Password:        "password123",
+		Groups: []clients.GroupKidInfo{
+			{
+				ID:             987654,
+				GroupStudentID: 123456,
+				Title:          "Математика 101",
+				Content:        "Основы математики",
+				Track:          2,
+				Status:         0,
+				StartTime:      time.Date(2023, time.June, 1, 10, 0, 0, 0, time.UTC),
+				EndTime:        time.Date(2025, time.June, 1, 0, 0, 0, 0, time.UTC),
+				CourseID:       101,
+				CreatedAt:      time.Date(2023, time.April, 10, 15, 15, 30, 0, time.UTC),
+				UpdatedAt:      time.Date(2024, time.January, 15, 14, 0, 10, 0, time.UTC),
+				DeletedAt:      nil,
 			},
 		},
 	},

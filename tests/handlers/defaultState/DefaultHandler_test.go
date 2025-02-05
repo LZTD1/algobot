@@ -55,7 +55,6 @@ func TestDefaultHandler(t *testing.T) {
 			assertKeyboards(t, mockContext.SentMessages[0], config.StartKeyboard)
 		})
 		t.Run("Send settings", func(t *testing.T) {
-
 			t.Run("Cookie set, notif off", func(t *testing.T) {
 				mockContext := mocks.MockContext{}
 
@@ -211,12 +210,12 @@ func TestDefaultHandler(t *testing.T) {
 
 				messageHandler.Handle(&mockContext)
 
-				assertContextOptsLen(t, mockContext.SentMessages[0], 1)
+				assertContextOptsLen(t, mockContext.SentMessages[0], 2)
 				assertMessages(t, mockContext.SentMessages[0], fmt.Sprintf(
 					"%s4\n\n%s\n\n%s",
 					config.MyGroups,
-					"1. Гр 4 🕐 сб 10:00\n2. Гр 3 🕐 сб 14:00",
-					"1. Гр 1 🕐 вс 10:00\n2. Гр 2 🕐 вс 12:00",
+					"1. [Гр 4](t.me/tinkoff_scrapper_bot?start=eyJBY3Rpb24iOiJnZXRHcm91cEluZm8iLCJQYXlsb2FkIjpbIjQiXX0=) 🕐 сб 10:00\n2. [Гр 3](t.me/tinkoff_scrapper_bot?start=eyJBY3Rpb24iOiJnZXRHcm91cEluZm8iLCJQYXlsb2FkIjpbIjMiXX0=) 🕐 сб 14:00",
+					"1. [Гр 1](t.me/tinkoff_scrapper_bot?start=eyJBY3Rpb24iOiJnZXRHcm91cEluZm8iLCJQYXlsb2FkIjpbIjEiXX0=) 🕐 вс 10:00\n2. [Гр 2](t.me/tinkoff_scrapper_bot?start=eyJBY3Rpb24iOiJnZXRHcm91cEluZm8iLCJQYXlsb2FkIjpbIjIiXX0=) 🕐 вс 12:00",
 				))
 				assertKeyboards(t, mockContext.SentMessages[0], config.MyGroupsKeyboard)
 			})
@@ -239,6 +238,48 @@ func TestDefaultHandler(t *testing.T) {
 				assertKeyboards(t, mockContext.SentMessages[0], config.MyGroupsKeyboard)
 			})
 		})
+		t.Run("Send /start with payload", func(t *testing.T) {
+			t.Run("Get group", func(t *testing.T) {
+				mockContext := mocks.MockContext{}
+
+				ms := mocks.NewMockService(map[int64]bool{
+					12: true,
+				})
+
+				mockState := mocks.MockStateMachine{}
+				mockState.SetStatement(12, stateMachine.Default)
+				messageHandler := contextHandlers.NewOnText(ms, &mockState)
+
+				ms.SetMockCookie("Cookie")
+				payload := "eyJBY3Rpb24iOiJnZXRHcm91cEluZm8iLCJQYXlsb2FkIjpbIjk4NjE5OTEzIl19"
+				mockContext.SetPayload(payload)
+				mockContext.SetUserMessage(12, "/start="+payload)
+
+				messageHandler.Handle(&mockContext)
+				assertContextOptsLen(t, mockContext.SentMessages[0], 1)
+				assertMessages(t, mockContext.SentMessages[0], "[Title Content](https://backoffice.algoritmika.org/group/view/1)\n\n***Следующая лекция***: 15.03.2025 16:00\n***Всего пройдено*** 10 лекций из 20\n\nАктивные дети: 2 | Выбыло: 2 | Всего: 4\n***Активные дети***:\n1. [Иван Иванов](t.me/tinkoff_scrapper_bot?start=eyJBY3Rpb24iOiJnZXRLaWRJbmZvIiwiUGF5bG9hZCI6WyIxIl19)\n2. [Мария Петрова](t.me/tinkoff_scrapper_bot?start=eyJBY3Rpb24iOiJnZXRLaWRJbmZvIiwiUGF5bG9hZCI6WyIyIl19)\n***Выбыли дети***:\n1. [Иван Иванов](t.me/tinkoff_scrapper_bot?start=eyJBY3Rpb24iOiJnZXRLaWRJbmZvIiwiUGF5bG9hZCI6WyIxIl19) (Переведен: 2025-01-15)\n2. [Мария Петрова](t.me/tinkoff_scrapper_bot?start=eyJBY3Rpb24iOiJnZXRLaWRJbmZvIiwiUGF5bG9hZCI6WyIyIl19) (Переведен: 2025-02-01)\n")
+			})
+			t.Run("Get student", func(t *testing.T) {
+				mockContext := mocks.MockContext{}
+
+				ms := mocks.NewMockService(map[int64]bool{
+					12: true,
+				})
+
+				mockState := mocks.MockStateMachine{}
+				mockState.SetStatement(12, stateMachine.Default)
+				messageHandler := contextHandlers.NewOnText(ms, &mockState)
+
+				ms.SetMockCookie("Cookie")
+				payload := "eyJBY3Rpb24iOiJnZXRLaWRJbmZvIiwiUGF5bG9hZCI6WyIzMTM0MzcyIl19"
+				mockContext.SetPayload(payload)
+				mockContext.SetUserMessage(12, "/start="+payload)
+
+				messageHandler.Handle(&mockContext)
+				assertContextOptsLen(t, mockContext.SentMessages[0], 1)
+				assertMessages(t, mockContext.SentMessages[0], "***Иван Иванов***\nВозраст: 22\nДень рождения: 1995-07-15\n\n***Данные от аккаунта:***\nЛогин: _ivanov123_\nПароль: _password123_\n\n***Родитель:***\nИмя: Мария Иванова\nТелефон: +78001234567\nПочта: ivanov-maria@example.com\n\n***Группы***\n1 . [Математика 101 Основы математики](https://backoffice.algoritmika.org/group/view/987654)\nУчиться (2023-06-01 - 2025-06-01)\n\n")
+			})
+		})
 	})
 }
 
@@ -255,7 +296,8 @@ func assertMessages(t *testing.T, got mocks.SentMessage, wantedText string) {
 	t.Helper()
 
 	if got.What.(string) != wantedText {
-		t.Errorf("Wanted [%s], but got [%s]", wantedText, got.What.(string))
+		t.Errorf("MESSAGES ERROR\n")
+		t.Errorf("Wanted [%s],\n but got [%s]", wantedText, got.What.(string))
 	}
 }
 func assertKeyboards(t *testing.T, got mocks.SentMessage, wantedMarkup *telebot.ReplyMarkup) {
@@ -278,6 +320,7 @@ func assertContextOptsLen(t *testing.T, sent mocks.SentMessage, i int) {
 	t.Helper()
 
 	if len(sent.Opts) != i {
+		t.Errorf("OPTS LEN ERROR\n")
 		t.Errorf("%+v\n", sent)
 		t.Errorf("Wanted context len = %d, got, %d", i, len(sent.Opts))
 	}

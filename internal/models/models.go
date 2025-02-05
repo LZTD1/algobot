@@ -1,6 +1,7 @@
 package models
 
 import (
+	"tgbot/internal/clients"
 	"tgbot/internal/domain"
 	"time"
 )
@@ -52,4 +53,19 @@ func mapGroup(group domain.Group) Group {
 		Title:      group.Title,
 		TimeLesson: group.TimeLesson,
 	}
+}
+
+type FullGroupInfo struct {
+	GroupID        int
+	GroupTitle     string
+	GroupContent   string
+	NextLessonTime string
+	LessonsTotal   int
+	LessonsPassed  int
+	ActiveKids     []clients.Student
+	NotActiveKids  []clients.Student
+}
+
+type FullKidInfo struct {
+	Kid clients.FullKidInfo
 }

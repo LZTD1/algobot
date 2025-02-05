@@ -1,9 +1,12 @@
 package defaultState
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"gopkg.in/telebot.v4"
+	"strconv"
 	"strings"
 	"tgbot/internal/config"
 	appError "tgbot/internal/error"
@@ -48,7 +51,7 @@ func (m MyGroups) Process(ctx telebot.Context) error {
 	}
 	sorted := helpers.GetSortedGroups(g)
 
-	return ctx.Send(GetMyGroupsMessage(sorted), config.MyGroupsKeyboard)
+	return ctx.Send(GetMyGroupsMessage(sorted), config.MyGroupsKeyboard, telebot.ModeMarkdown)
 }
 
 func GetMyGroupsMessage(g []models.Group) string {
@@ -64,11 +67,25 @@ func GetMyGroupsMessage(g []models.Group) string {
 			s.WriteString("\n")
 		}
 		s.WriteString("\n")
-		s.WriteString(fmt.Sprintf("%d. %s 🕐 %s %s", c, group.Title, getLocale(group.TimeLesson), group.TimeLesson.Format("15:04")))
+		s.WriteString(fmt.Sprintf("%d. %s 🕐 %s %s", c, getGroupTitle(group), getLocale(group.TimeLesson), group.TimeLesson.Format("15:04")))
 		c += 1
 	}
 
 	return s.String()
+}
+
+func getGroupTitle(group models.Group) string {
+	marshal, err := json.Marshal(models.StartPayload{
+		Action:  models.GetGroupInfo,
+		Payload: []string{strconv.Itoa(group.GroupID)},
+	})
+	encodedStr := base64.StdEncoding.EncodeToString(marshal)
+
+	if err != nil {
+		fmt.Println(err)
+		return group.Title
+	}
+	return fmt.Sprintf("[%s](t.me/tinkoff_scrapper_bot?start=%s)", group.Title, encodedStr)
 }
 
 func getLocale(t time.Time) string {

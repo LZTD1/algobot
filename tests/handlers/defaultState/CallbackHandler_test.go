@@ -50,16 +50,8 @@ func TestCallback(t *testing.T) {
 			t.Fatalf("Wanted notif true, got false")
 		}
 
-		assertContextOptsLen(t, mockContext.SentMessages[0], 1)
-		assertMessages(t, mockContext.SentMessages[0], fmt.Sprintf(
-			"%s\n\n%s%s\n%s%s",
-			config.Settings,
-			config.Cookie,
-			config.NotSetParam,
-			config.ChatNotifications,
-			config.SetParam,
-		))
-		assertKeyboards(t, mockContext.SentMessages[0], config.SettingsKeyboard)
+		assertContextOptsLen(t, mockContext.SentMessages[0], 0)
+		assertMessages(t, mockContext.SentMessages[0], "Настройки уведомлений были изменены!")
 
 	})
 	t.Run("Refresh groups without error", func(t *testing.T) {

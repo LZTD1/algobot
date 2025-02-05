@@ -39,6 +39,21 @@ func NewDefaultService(domain domain.Domain, webClient clients.WebClient) *Defau
 	return &DefaultService{domain: domain, webClient: webClient}
 }
 
+func (d DefaultService) FullKidInfo(uid int64, kidID int) (models.FullKidInfo, error) {
+	cookie, err := d.Cookie(uid)
+	if err != nil {
+		return models.FullKidInfo{}, fmt.Errorf("DefaultService.FullKidInfo(%d, %d) : %w", uid, kidID, err)
+	}
+	kid, err := d.webClient.GetKidInfo(cookie, strconv.Itoa(kidID))
+	if err != nil {
+		return models.FullKidInfo{}, fmt.Errorf("DefaultService.FullKidInfo(%d, %d) : %w", uid, kidID, err)
+	}
+
+	return models.FullKidInfo{
+		Kid: *kid,
+	}, nil
+}
+
 func (d DefaultService) UsersByNotif(status bool) ([]models.ScheduleData, error) {
 	notif := 0
 	if status {
@@ -132,6 +147,38 @@ func parseDate(lastTime string) time.Time {
 		return retTime
 	}
 	return time.Date(0, 1, 1, 0, 0, 0, 0, time.UTC)
+}
+
+func (d DefaultService) FullGroupInfo(uid int64, groupId int) (models.FullGroupInfo, error) {
+	cookie, err := d.Cookie(uid)
+	if err != nil {
+		return models.FullGroupInfo{}, fmt.Errorf("DefaultService.FullGroupInfo(%d, %d) : %w", uid, groupId, err)
+	}
+	retObject := models.FullGroupInfo{}
+	info, err := d.webClient.GetGroupInfo(cookie, strconv.Itoa(groupId))
+	if err != nil {
+		return models.FullGroupInfo{}, fmt.Errorf("DefaultService.FullGroupInfo(%d, %d) : %w", uid, groupId, err)
+	}
+	retObject.GroupID = info.Data.ID
+	retObject.GroupTitle = info.Data.Title
+	retObject.GroupContent = info.Data.Content
+	retObject.NextLessonTime = info.Data.NextLessonTime
+	retObject.LessonsPassed = info.Data.LessonsPassed
+	retObject.LessonsTotal = info.Data.LessonsTotal
+
+	names, err := d.webClient.GetKidsNamesByGroup(cookie, groupId)
+	if err != nil {
+		return models.FullGroupInfo{}, fmt.Errorf("DefaultService.FullGroupInfo(%d, %d) : %w", uid, groupId, err)
+	}
+	for _, item := range names.Data.Items {
+		if item.LastGroup.ID == groupId && item.LastGroup.Status == 0 {
+			retObject.ActiveKids = append(retObject.ActiveKids, item)
+		} else {
+			retObject.NotActiveKids = append(retObject.NotActiveKids, item)
+		}
+	}
+
+	return retObject, nil
 }
 
 func (d DefaultService) OpenLesson(uid int64, groupId int, lessonId int) error {

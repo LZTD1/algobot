@@ -32,6 +32,48 @@ func NewBackoffice(url string, settings BackofficeSetting) *Backoffice {
 	return &Backoffice{url: url, settings: settings}
 }
 
+func (b Backoffice) GetKidInfo(cookie string, kidID string) (*FullKidInfo, error) {
+	req, err := b.createReq("GET", "/api/v2/student/default/view/"+kidID, cookie, map[string]string{
+		"expand": "groups",
+	}, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Backoffice.GetKidInfo(%s, %s) : %w", cookie, kidID, err)
+	}
+	data, reqErr := b.doReq(req)
+	if reqErr != nil {
+		return nil, fmt.Errorf("Backoffice.GetKidInfo(%s, %s) : %w", cookie, kidID, reqErr)
+	}
+
+	var response FullKidInfo
+	err = json.NewDecoder(data.Body).Decode(&response)
+	if err != nil {
+		return nil, fmt.Errorf("Backoffice.GetKidInfo(%s, %s) : %w", cookie, kidID, err)
+	}
+
+	return &response, nil
+}
+
+func (b Backoffice) GetGroupInfo(cookie string, group string) (*FullGroupInfo, error) {
+	req, err := b.createReq("GET", "/api/v1/group/"+group, cookie, map[string]string{
+		"expand": "venue,teacher,curator,branch",
+	}, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Backoffice.GetGroupInfo(%s, %s) : %w", cookie, group, err)
+	}
+	data, reqErr := b.doReq(req)
+	if reqErr != nil {
+		return nil, fmt.Errorf("Backoffice.GetGroupInfo(%s, %s) : %w", cookie, group, reqErr)
+	}
+
+	var response FullGroupInfo
+	err = json.NewDecoder(data.Body).Decode(&response)
+	if err != nil {
+		return nil, fmt.Errorf("Backoffice.GetGroupInfo(%s, %s) : %w", cookie, group, err)
+	}
+
+	return &response, nil
+}
+
 func (b Backoffice) GetKidsNamesByGroup(cookie string, group int) (*GroupResponse, error) {
 
 	req, err := b.createReq("GET", "/api/v2/group/student/index", cookie, map[string]string{

@@ -221,4 +221,42 @@ func TestDefaultService(t *testing.T) {
 			t.Fatalf("Wanted %s, but got %s", wantedDate, d.DataNotif)
 		}
 	})
+	t.Run("FullGroupInfo", func(t *testing.T) {
+		d := mocks.MockDomain{}
+		webClient := mocks.MockWebClient{}
+		defaultService := service.NewDefaultService(&d, webClient)
+
+		got, err := defaultService.FullGroupInfo(1, 1)
+		if err != nil {
+			t.Fatalf("Got error: %v", err)
+		}
+
+		wanted := models.FullGroupInfo{
+			GroupID:        1,
+			GroupTitle:     "Math Group",
+			GroupContent:   "Some group content",
+			NextLessonTime: "2025-02-06T10:00:00Z",
+			LessonsPassed:  5,
+			LessonsTotal:   20,
+			ActiveKids:     mocks.MockGroupResponse.Data.Items,
+			NotActiveKids:  nil,
+		}
+		if !reflect.DeepEqual(got, wanted) {
+			t.Fatalf("Wanted %#v, got %#v", wanted, got)
+		}
+	})
+	t.Run("FullKidInfo", func(t *testing.T) {
+		d := mocks.MockDomain{}
+		webClient := mocks.MockWebClient{}
+		defaultService := service.NewDefaultService(&d, webClient)
+
+		got, err := defaultService.FullKidInfo(1, 1)
+		if err != nil {
+			t.Fatalf("Got error: %v", err)
+		}
+
+		if !reflect.DeepEqual(got.Kid, mocks.KidFullInfo) {
+			t.Fatalf("Wanted %#v, got %#v", mocks.KidFullInfo, got)
+		}
+	})
 }
