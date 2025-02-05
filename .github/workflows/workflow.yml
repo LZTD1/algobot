@@ -16,22 +16,57 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - name: Checkout code
+        uses: actions/checkout@v4
+        id: checkout
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
           go-version: '1.23.3'
 
       - name: Install rsrc
-        run: go install github.com/akavel/rsrc@latest
+        run: |
+          echo "Installing rsrc..."
+          go install github.com/akavel/rsrc@latest
+          echo "rsrc installed."
 
       - name: Add icon and build binary
         run: |
+          echo "Changing directory to ./cmd"
           cd ./cmd
+
+          # Проверка, что файл иконки существует
+          echo "Checking if icon.ico exists..."
+          if [ -f "./icon.ico" ]; then
+            echo "Icon file found: ./icon.ico"
+          else
+            echo "ERROR: Icon file ./icon.ico not found!" && exit 1
+          fi
+
+          # Запуск rsrc
+          echo "Running rsrc to embed icon..."
           rsrc -ico ./icon.ico
+          echo "rsrc finished."
+
+          # Сборка бинарника для Windows
+          echo "Building Go binary for Windows..."
           GOOS=windows GOARCH=amd64 go build -o ./cmd/algobot.exe 
+          
+          # Проверка, что бинарник был создан
+          if [ -f "./cmd/algobot.exe" ]; then
+            echo "Binary built successfully: ./cmd/algobot.exe"
+          else
+            echo "ERROR: Binary ./cmd/algobot.exe not created!" && exit 1
+          fi
 
       - name: Upload Windows binary
         uses: actions/upload-artifact@v4
         with:
           name: windows-binary
           path: ./cmd/algobot.exe
+
+      - name: Check files in directory after build
+        run: |
+          echo "Listing files in ./cmd directory:"
+          ls -la ./cmd
