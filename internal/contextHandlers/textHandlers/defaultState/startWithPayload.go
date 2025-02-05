@@ -94,7 +94,9 @@ func (s StartWithPayload) getGroupInfo(ctx telebot.Context, payload models.Start
 			msg.WriteString(fmt.Sprintf("%d. [%s](t.me/%s?start=%s) (Переведен: %s)\n", i+1, kid.FullName, os.Getenv("TELEGRAM_NAME"), encodedStr, kid.LastGroup.StartTime.Format("2006-01-02")))
 		}
 	}
-	return ctx.Send(msg.String(), telebot.ModeMarkdown)
+	return ctx.Send(msg.String(), telebot.ModeMarkdown, telebot.SendOptions{
+		DisableWebPagePreview: true,
+	})
 }
 
 func (s StartWithPayload) getKidInfo(ctx telebot.Context, payload models.StartPayload) error {
@@ -128,5 +130,7 @@ func (s StartWithPayload) getKidInfo(ctx telebot.Context, payload models.StartPa
 		msg.WriteString(fmt.Sprintf("%s (%s - %s)\n\n", v, groups[i].StartTime.Format("2006-01-02"), groups[i].EndTime.Format("2006-01-02")))
 	}
 
-	return ctx.Send(msg.String(), telebot.ModeMarkdown)
+	return ctx.Send(msg.String(), telebot.ModeMarkdown, telebot.SendOptions{
+		DisableWebPagePreview: true,
+	})
 }

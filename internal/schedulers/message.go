@@ -32,9 +32,13 @@ func (m Message) Schedule() {
 		for _, msg := range allMessages {
 			if msg.Type == "img" {
 				p := &telebot.Photo{File: telebot.FromURL(msg.Content), Caption: getMsg(msg)}
-				m.b.Send(RecipientUser{strconv.FormatInt(user.UID, 10)}, p, telebot.ModeMarkdown)
+				m.b.Send(RecipientUser{strconv.FormatInt(user.UID, 10)}, p, telebot.ModeMarkdown, telebot.SendOptions{
+					DisableWebPagePreview: true,
+				})
 			} else {
-				m.b.Send(RecipientUser{strconv.FormatInt(user.UID, 10)}, getMsg(msg), telebot.ModeMarkdown)
+				m.b.Send(RecipientUser{strconv.FormatInt(user.UID, 10)}, getMsg(msg), telebot.ModeMarkdown, telebot.SendOptions{
+					DisableWebPagePreview: true,
+				})
 			}
 		}
 	}

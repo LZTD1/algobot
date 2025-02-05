@@ -52,7 +52,9 @@ func (m MyGroups) Process(ctx telebot.Context) error {
 	}
 	sorted := helpers.GetSortedGroups(g)
 
-	return ctx.Send(GetMyGroupsMessage(sorted), config.MyGroupsKeyboard, telebot.ModeMarkdown)
+	return ctx.Send(GetMyGroupsMessage(sorted), config.MyGroupsKeyboard, telebot.ModeMarkdown, telebot.SendOptions{
+		DisableWebPagePreview: true,
+	})
 }
 
 func GetMyGroupsMessage(g []models.Group) string {
