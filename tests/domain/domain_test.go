@@ -298,7 +298,7 @@ func getSqliteBase(name string) (*sql.DB, func() error) {
 
 	err = db.Ping()
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 
 	log.Print("Подключение к базе данных установлено\n")

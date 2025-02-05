@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"embed"
-	"fmt"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
 	tele "gopkg.in/telebot.v4"
@@ -79,7 +78,7 @@ func goSchedule(b *tele.Bot, svc *service.DefaultService) func() {
 		for {
 			select {
 			case <-ticker.C:
-				fmt.Println("Tick")
+				log.Println("SCHEDULER | Просмотр сообщений от детей ...")
 				sch.Schedule()
 			}
 		}
@@ -96,7 +95,7 @@ func getSqliteBase(name string) (*sql.DB, func() error) {
 
 	err = db.Ping()
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 
 	log.Print("Подключение к базе данных установлено\n")

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"gopkg.in/telebot.v4"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -83,7 +84,7 @@ func getGroupTitle(group models.Group) string {
 	encodedStr := base64.StdEncoding.EncodeToString(marshal)
 
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return group.Title
 	}
 	return fmt.Sprintf("[%s](t.me/%s?start=%s)", group.Title, os.Getenv("TELEGRAM_NAME"), encodedStr)

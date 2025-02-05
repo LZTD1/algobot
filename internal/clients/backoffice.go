@@ -194,7 +194,6 @@ func (b Backoffice) CloseLession(cookie, group, lession string) error {
 	params.Add("groupId", group)
 	query := params.Encode()
 
-	fmt.Println(query)
 	req, err := b.createReq("POST", "/api/v2/group/lesson/status", cookie, map[string]string{}, strings.NewReader(query))
 	if err != nil {
 		return fmt.Errorf("Backoffice.CloseLession(%s, %s, %s) : %w", cookie, group, lession, err)
