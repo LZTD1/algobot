@@ -19,6 +19,7 @@ type MockService struct {
 	AllNames         models.AllKids
 	grErr            error
 	Calls            []string
+	TimeAbs          time.Time
 }
 
 func (n *MockService) FullGroupInfo(uid int64, groupId int) (models.FullGroupInfo, error) {
@@ -105,6 +106,7 @@ func (n *MockService) SetGroups(groups []models.Group) {
 }
 
 func (n *MockService) CurrentGroup(uid int64, t time.Time) (models.Group, error) {
+	n.TimeAbs = t
 	if n.gr == nil {
 		return models.Group{}, errors.New("no gr")
 	}

@@ -58,10 +58,10 @@ func (m *MissingKids) Process(ctx telebot.Context) error {
 		return helpers.LogError(e, ctx, "Произошла непредвиденная ошибка при попытке подгрузить имена детей")
 	}
 
-	return ctx.Send(msg(g, actual, allKids), getKeyboard(g, actual), telebot.ModeMarkdown)
+	return ctx.Send(msgMissingKids(g, actual, allKids), getMissingKidsKeyboard(g, actual), telebot.ModeMarkdown)
 }
 
-func getKeyboard(g models.Group, actual models.ActualInformation) *telebot.ReplyMarkup {
+func getMissingKidsKeyboard(g models.Group, actual models.ActualInformation) *telebot.ReplyMarkup {
 	markup := telebot.ReplyMarkup{ResizeKeyboard: true}
 	markup.Inline(
 		markup.Row(markup.Data(config.CloseLessonBtn, fmt.Sprintf("close_lesson_%d_%d", g.GroupID, actual.LessonId)), markup.Data(config.OpenLessonBtn, fmt.Sprintf("open_lesson_%d_%d", g.GroupID, actual.LessonId))),
@@ -71,7 +71,7 @@ func getKeyboard(g models.Group, actual models.ActualInformation) *telebot.Reply
 	return &markup
 }
 
-func msg(g models.Group, actual models.ActualInformation, kids models.AllKids) string {
+func msgMissingKids(g models.Group, actual models.ActualInformation, kids models.AllKids) string {
 	sb := strings.Builder{}
 	sb.WriteString(fmt.Sprintf("%s%s", config.GroupName, g.Title))
 	sb.WriteString(fmt.Sprintf("\n%s%s\n", config.Lection, actual.LessonTitle))

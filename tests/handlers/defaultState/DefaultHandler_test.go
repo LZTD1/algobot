@@ -283,6 +283,74 @@ func TestDefaultHandler(t *testing.T) {
 				assertMessages(t, mockContext.SentMessages[0], "***Иван Иванов***\nВозраст: 22\nДень рождения: 1995-07-15\n\n***Данные от аккаунта:***\nЛогин: _ivanov123_\nПароль: _password123_\n\n***Родитель:***\nИмя: Мария Иванова\nТелефон: +78001234567 [🟩 Whatsapp](https://wa.me/78001234567)\nПочта: ivanov-maria@example.com\n\n***Группы***\n1 . [Математика 101 Основы математики](https://backoffice.algoritmika.org/group/view/987654)\n🟢 Учится (2023-06-01 - 2025-06-01)\n\n")
 			})
 		})
+		t.Run("Send get /abs", func(t *testing.T) {
+			t.Run("With payload", func(t *testing.T) {
+				gr := models.Group{
+					GroupID:    1,
+					Title:      "Title",
+					TimeLesson: getDayByTime(28, 10, 0),
+				}
+
+				ms := mocks.NewMockService(map[int64]bool{
+					12: true,
+				})
+				ms.Actual = models.ActualInformation{
+					LessonTitle: "LTitle",
+					LessonId:    0,
+					MissingKids: []int{1, 2},
+				}
+				ms.AllNames = models.AllKids{
+					1: models.KidData{
+						FullName: "vasya",
+					},
+					2: models.KidData{
+						FullName: "petya",
+					},
+					3: models.KidData{
+						FullName: "kirill",
+					},
+				}
+				ms.SetCurrentGroup(&gr)
+
+				mockContext := mocks.MockContext{}
+				mockState := mocks.MockStateMachine{}
+				mockState.SetStatement(12, stateMachine.Default)
+				messageHandler := contextHandlers.NewOnText(ms, &mockState)
+				mockContext.SetPayload("2025-02-01 9:32")
+				mockContext.SetUserMessageWithTime(12, "/abs", getUnixByDay(0, 0, 0))
+
+				messageHandler.Handle(&mockContext)
+				assertContextOptsLen(t, mockContext.SentMessages[0], 2)
+				assertMessages(t, mockContext.SentMessages[0], "Группа по курсу: Title\nЛекция: LTitle\n\nОбщее число детей: 3\nОтсутствуют: 2\n\n```Отсутствующие\nvasya\npetya\n```")
+
+				wantedMarkup := telebot.ReplyMarkup{ResizeKeyboard: true}
+				wantedMarkup.Inline(
+					wantedMarkup.Row(wantedMarkup.Data(config.CloseLessonBtn, "close_lesson_1_0"), wantedMarkup.Data(config.OpenLessonBtn, "open_lesson_1_0")),
+					wantedMarkup.Row(wantedMarkup.Data(config.GetCredsBtn, "get_creds_1")),
+				)
+				assertKeyboards(t, mockContext.SentMessages[0], &wantedMarkup)
+				if ms.TimeAbs != time.Date(2025, 2, 1, 9, 32, 0, 0, time.UTC) {
+					t.Errorf("Not mathces dates!")
+				}
+			})
+			t.Run("Without payload", func(t *testing.T) {
+				ms := mocks.NewMockService(map[int64]bool{
+					12: true,
+				})
+				ms.SetCurrentGroup(nil)
+
+				mockContext := mocks.MockContext{}
+				mockState := mocks.MockStateMachine{}
+				mockState.SetStatement(12, stateMachine.Default)
+				messageHandler := contextHandlers.NewOnText(ms, &mockState)
+				mockContext.SetPayload("")
+				mockContext.SetUserMessageWithTime(12, "/abs", getUnixByDay(0, 0, 0))
+
+				messageHandler.Handle(&mockContext)
+				assertContextOptsLen(t, mockContext.SentMessages[0], 0)
+				assertMessages(t, mockContext.SentMessages[0], "Формат сообщения - '/abs 2025-01-12 15:32'\nВыдаст статистику за 2025г. 12 Января, 15ч 32м")
+			})
+		})
 	})
 }
 
