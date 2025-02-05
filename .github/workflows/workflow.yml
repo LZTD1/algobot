@@ -1,0 +1,34 @@
+name: Build Windows Binary with Icon
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.3'
+
+      - name: Install rsrc
+        run: go install github.com/akavel/rsrc@latest
+
+      - name: Add icon and build binary
+        run: |
+          cd ./cmd
+          rsrc -ico ./icon.ico
+          GOOS=windows GOARCH=amd64 go build -o algobot.exe
+
+      - name: Upload Windows binary
+        uses: actions/upload-artifact@v4.0.0
+        with:
+          name: windows-binary
+          path: algobot.exe
