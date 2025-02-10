@@ -231,12 +231,14 @@ func parsedHtml(body io.ReadCloser) ([]AllGroupsUser, error) {
 		nextLessonTime := row.Find("td[data-col-seq='nextLessonTime']").First().Text()
 		nextLessonTime = strings.TrimSpace(nextLessonTime)
 
-		groups = append(groups, AllGroupsUser{
-			Title:       strings.ReplaceAll(groupTitle, "\u00A0", " "),
-			GroupId:     strings.ReplaceAll(groupId, "\u00A0", " "),
-			TimeLesson:  strings.ReplaceAll(nextLessonTime, "\u00A0", " "),
-			RegularTime: strings.ReplaceAll(groupTime, "\u00A0", " "),
-		})
+		if nextLessonTime != "" {
+			groups = append(groups, AllGroupsUser{
+				Title:       strings.ReplaceAll(groupTitle, "\u00A0", " "),
+				GroupId:     strings.ReplaceAll(groupId, "\u00A0", " "),
+				TimeLesson:  strings.ReplaceAll(nextLessonTime, "\u00A0", " "),
+				RegularTime: strings.ReplaceAll(groupTime, "\u00A0", " "),
+			})
+		}
 	})
 
 	return groups, nil
