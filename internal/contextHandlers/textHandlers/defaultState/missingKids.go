@@ -79,7 +79,11 @@ func msgMissingKids(g models.Group, actual models.ActualInformation, kids models
 	sb.WriteString(fmt.Sprintf("\n%s%d\n", config.MissingKids, len(actual.MissingKids)))
 	sb.WriteString("\n```Отсутствующие\n")
 	for _, kid := range actual.MissingKids {
-		sb.WriteString(fmt.Sprintf("%s\n", kids[kid].FullName))
+		sb.WriteString(fmt.Sprintf("%s", kids[kid.Id].FullName))
+		if kid.Count > 1 {
+			sb.WriteString(fmt.Sprintf(" (Уже %d занятие)", kid.Count))
+		}
+		sb.WriteString("\n")
 	}
 	sb.WriteString("```")
 

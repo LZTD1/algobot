@@ -304,13 +304,21 @@ func (d DefaultService) ActualInformation(uid int64, t time.Time, groupId int) (
 	actual := models.ActualInformation{}
 	for _, datum := range stats.Data {
 		studentID := datum.StudentID
+		count := 0
 		for _, attendance := range datum.Attendance {
+			count++
+			if attendance.Status != "absent" {
+				count = 0
+			}
 			if matchDates(attendance.StartTimeFormatted, t) {
 				actual.LessonTitle = attendance.LessonTitle
 				actual.LessonId = attendance.LessonID
 
 				if attendance.Status == "absent" {
-					actual.MissingKids = append(actual.MissingKids, studentID)
+					actual.MissingKids = append(actual.MissingKids, models.MissingKid{
+						Id:    studentID,
+						Count: count,
+					})
 					break
 				}
 			}

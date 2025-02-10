@@ -254,7 +254,7 @@ var kidsStats = clients.KidsStats{
 					LessonID:           2,
 					LessonTitle:        "less2",
 					StartTimeFormatted: "вс 29.09.24 14:00",
-					Status:             "present",
+					Status:             "absent",
 				},
 				{
 					LessonID:           3,

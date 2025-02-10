@@ -127,7 +127,18 @@ func TestDefaultHandler(t *testing.T) {
 				ms.Actual = models.ActualInformation{
 					LessonTitle: "LTitle",
 					LessonId:    0,
-					MissingKids: []int{1, 2},
+					MissingKids: []models.MissingKid{
+						{
+							Id:    1,
+							Count: 0,
+						}, {
+							Id:    2,
+							Count: 2,
+						}, {
+							Id:    3,
+							Count: 1,
+						},
+					},
 				}
 				ms.AllNames = models.AllKids{
 					1: models.KidData{
@@ -138,6 +149,9 @@ func TestDefaultHandler(t *testing.T) {
 					},
 					3: models.KidData{
 						FullName: "kirill",
+					},
+					4: models.KidData{
+						FullName: "olga",
 					},
 				}
 				ms.SetCurrentGroup(&gr)
@@ -152,7 +166,7 @@ func TestDefaultHandler(t *testing.T) {
 
 				messageHandler.Handle(&mockContext)
 				assertContextOptsLen(t, mockContext.SentMessages[0], 2)
-				assertMessages(t, mockContext.SentMessages[0], "Группа по курсу: Title\nЛекция: LTitle\n\nОбщее число детей: 3\nОтсутствуют: 2\n\n```Отсутствующие\nvasya\npetya\n```")
+				assertMessages(t, mockContext.SentMessages[0], "Группа по курсу: Title\nЛекция: LTitle\n\nОбщее число детей: 4\nОтсутствуют: 3\n\n```Отсутствующие\nvasya\npetya (Уже 2 занятие)\nkirill\n```")
 
 				wantedMarkup := telebot.ReplyMarkup{ResizeKeyboard: true}
 				wantedMarkup.Inline(
@@ -347,7 +361,15 @@ func TestDefaultHandler(t *testing.T) {
 				ms.Actual = models.ActualInformation{
 					LessonTitle: "LTitle",
 					LessonId:    0,
-					MissingKids: []int{1, 2},
+					MissingKids: []models.MissingKid{
+						{
+							Id:    1,
+							Count: 0,
+						}, {
+							Id:    2,
+							Count: 0,
+						},
+					},
 				}
 				ms.AllNames = models.AllKids{
 					1: models.KidData{

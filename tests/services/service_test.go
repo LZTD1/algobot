@@ -102,7 +102,12 @@ func TestDefaultService(t *testing.T) {
 		wanted := models.ActualInformation{
 			LessonTitle: "less3",
 			LessonId:    3,
-			MissingKids: []int{2},
+			MissingKids: []models.MissingKid{
+				{
+					Id:    2,
+					Count: 2,
+				},
+			},
 		}
 		if !reflect.DeepEqual(wanted, group) {
 			t.Fatalf("Wanted %v, got %v", wanted, group)

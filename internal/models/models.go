@@ -6,10 +6,15 @@ import (
 	"time"
 )
 
+type MissingKid struct {
+	Id    int
+	Count int
+}
+
 type ActualInformation struct {
 	LessonTitle string
 	LessonId    int
-	MissingKids []int
+	MissingKids []MissingKid
 }
 
 type KidData struct {
