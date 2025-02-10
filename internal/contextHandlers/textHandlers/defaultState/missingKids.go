@@ -72,20 +72,27 @@ func getMissingKidsKeyboard(g models.Group, actual models.ActualInformation) *te
 }
 
 func msgMissingKids(g models.Group, actual models.ActualInformation, kids models.AllKids) string {
+	miss := strings.Builder{}
+	miss.WriteString("\n```Отсутствующие\n")
+	missingCount := 0
+	for _, kid := range actual.MissingKids {
+		if v, ok := kids[kid.Id]; ok == true {
+			missingCount++
+			miss.WriteString(fmt.Sprintf("%s", v.FullName))
+			if kid.Count > 1 {
+				miss.WriteString(fmt.Sprintf(" (Уже %d занятие)", kid.Count))
+			}
+			miss.WriteString("\n")
+		}
+	}
+	miss.WriteString("```")
+
 	sb := strings.Builder{}
 	sb.WriteString(fmt.Sprintf("%s%s", config.GroupName, g.Title))
 	sb.WriteString(fmt.Sprintf("\n%s%s\n", config.Lection, actual.LessonTitle))
 	sb.WriteString(fmt.Sprintf("\n%s%d", config.TotalKids, len(kids)))
-	sb.WriteString(fmt.Sprintf("\n%s%d\n", config.MissingKids, len(actual.MissingKids)))
-	sb.WriteString("\n```Отсутствующие\n")
-	for _, kid := range actual.MissingKids {
-		sb.WriteString(fmt.Sprintf("%s", kids[kid.Id].FullName))
-		if kid.Count > 1 {
-			sb.WriteString(fmt.Sprintf(" (Уже %d занятие)", kid.Count))
-		}
-		sb.WriteString("\n")
-	}
-	sb.WriteString("```")
+	sb.WriteString(fmt.Sprintf("\n%s%d\n", config.MissingKids, missingCount))
+	sb.WriteString(miss.String())
 
 	return sb.String()
 }
