@@ -1,6 +1,7 @@
 package test
 
 import (
+	"errors"
 	"fmt"
 	"gopkg.in/telebot.v4"
 	"os"
@@ -9,8 +10,10 @@ import (
 	"testing"
 	"tgbot/internal/config"
 	"tgbot/internal/contextHandlers"
+	"tgbot/internal/contextHandlers/textHandlers/defaultState"
 	appError "tgbot/internal/error"
 	"tgbot/internal/models"
+	"tgbot/internal/serdes"
 	"tgbot/internal/stateMachine"
 	"tgbot/tests/mocks"
 	"time"
@@ -217,8 +220,8 @@ func TestDefaultHandler(t *testing.T) {
 				assertMessages(t, mockContext.SentMessages[0], fmt.Sprintf(
 					"%s4\n\n%s\n\n%s",
 					config.MyGroups,
-					"1. [Гр 4](t.me/test?start=eyJBY3Rpb24iOiJnZXRHcm91cEluZm8iLCJQYXlsb2FkIjpbIjQiXX0=) 🕐 сб 10:00\n2. [Гр 3](t.me/test?start=eyJBY3Rpb24iOiJnZXRHcm91cEluZm8iLCJQYXlsb2FkIjpbIjMiXX0=) 🕐 сб 14:00",
-					"1. [Гр 1](t.me/test?start=eyJBY3Rpb24iOiJnZXRHcm91cEluZm8iLCJQYXlsb2FkIjpbIjEiXX0=) 🕐 вс 10:00\n2. [Гр 2](t.me/test?start=eyJBY3Rpb24iOiJnZXRHcm91cEluZm8iLCJQYXlsb2FkIjpbIjIiXX0=) 🕐 вс 12:00",
+					"1. [Гр 4](t.me/test?start=00ybm5WSwV3bydEdldG) 🕐 сб 10:00\n2. [Гр 3](t.me/test?start=z0ybm5WSwV3bydEdldG) 🕐 сб 14:00",
+					"1. [Гр 1](t.me/test?start=x0ybm5WSwV3bydEdldG) 🕐 вс 10:00\n2. [Гр 2](t.me/test?start=y0ybm5WSwV3bydEdldG) 🕐 вс 12:00",
 				))
 				assertKeyboards(t, mockContext.SentMessages[0], config.MyGroupsKeyboard)
 			})
@@ -254,15 +257,52 @@ func TestDefaultHandler(t *testing.T) {
 				messageHandler := contextHandlers.NewOnText(ms, &mockState)
 
 				ms.SetMockCookie("Cookie")
-				payload := "eyJBY3Rpb24iOiJnZXRHcm91cEluZm8iLCJQYXlsb2FkIjpbIjk4NjE5OTEzIl19"
+				payload := serdes.Serialize(models.StartPayload{
+					Action:  models.GetGroupInfo,
+					Payload: []string{"1"},
+				})
 				mockContext.SetPayload(payload)
 				mockContext.SetUserMessage(12, "/start="+payload)
 
 				messageHandler.Handle(&mockContext)
+
+				if ms.Calls[0] != "121" {
+					t.Errorf("Wanted 121, got %s", ms.Calls[0])
+				}
 				assertContextOptsLen(t, mockContext.SentMessages[0], 2)
-				assertMessages(t, mockContext.SentMessages[0], "[Title Content](https://backoffice.algoritmika.org/group/view/1)\n\n***Следующая лекция***: 15.03.2025 16:00\n***Всего пройдено*** 10 лекций из 20\n\nАктивные дети: 2 | Выбыло: 2 | Всего: 4\n***Активные дети***:\n1. [Иван Иванов](t.me/test?start=eyJBY3Rpb24iOiJnZXRLaWRJbmZvIiwiUGF5bG9hZCI6WyIxIl19)\n2. [Мария Петрова](t.me/test?start=eyJBY3Rpb24iOiJnZXRLaWRJbmZvIiwiUGF5bG9hZCI6WyIyIl19)\n***Выбыли дети***:\n1. [Иван Иванов](t.me/test?start=eyJBY3Rpb24iOiJnZXRLaWRJbmZvIiwiUGF5bG9hZCI6WyIxIl19) (🟡 Переведен: 2025-01-15)\n2. [Мария Петрова](t.me/test?start=eyJBY3Rpb24iOiJnZXRLaWRJbmZvIiwiUGF5bG9hZCI6WyIyIl19) (🟡 Переведен: 2025-02-01)\n")
+				assertMessages(t, mockContext.SentMessages[0], defaultState.GetGroupInfoMessage(mocks.FullGrInfo))
 			})
 			t.Run("Get student", func(t *testing.T) {
+				t.Run("If student present", func(t *testing.T) {
+					mockContext := mocks.MockContext{}
+
+					ms := mocks.NewMockService(map[int64]bool{
+						12: true,
+					})
+
+					mockState := mocks.MockStateMachine{}
+					mockState.SetStatement(12, stateMachine.Default)
+					messageHandler := contextHandlers.NewOnText(ms, &mockState)
+
+					ms.SetMockCookie("Cookie")
+					payload := serdes.Serialize(models.StartPayload{
+						Action:  models.GetKidInfo,
+						Payload: []string{"1", "2"},
+					})
+					mockContext.SetPayload(payload)
+					mockContext.SetUserMessage(12, "/start="+payload)
+
+					messageHandler.Handle(&mockContext)
+					if ms.Calls[0] != "1212" {
+						t.Errorf("Wanted 1212, got %s", ms.Calls[0])
+					}
+					assertContextOptsLen(t, mockContext.SentMessages[0], 2)
+					assertMessages(t, mockContext.SentMessages[0], defaultState.GetKidInfoMessage(models.FullKidInfo{
+						Kid: mocks.KidFullInfo.Data,
+					}))
+				})
+			})
+			t.Run("If student absent", func(t *testing.T) {
 				mockContext := mocks.MockContext{}
 
 				ms := mocks.NewMockService(map[int64]bool{
@@ -274,13 +314,23 @@ func TestDefaultHandler(t *testing.T) {
 				messageHandler := contextHandlers.NewOnText(ms, &mockState)
 
 				ms.SetMockCookie("Cookie")
-				payload := "eyJBY3Rpb24iOiJnZXRLaWRJbmZvIiwiUGF5bG9hZCI6WyIzMTM0MzcyIl19"
+				payload := serdes.Serialize(models.StartPayload{
+					Action:  models.GetKidInfo,
+					Payload: []string{"1", "2"},
+				})
 				mockContext.SetPayload(payload)
 				mockContext.SetUserMessage(12, "/start="+payload)
+				ms.FullKidInfoErr = errors.New("")
 
 				messageHandler.Handle(&mockContext)
+				if ms.Calls[0] != "1212" {
+					t.Errorf("Wanted 1212, got %s", ms.Calls[0])
+				}
 				assertContextOptsLen(t, mockContext.SentMessages[0], 2)
-				assertMessages(t, mockContext.SentMessages[0], "***Иван Иванов***\nВозраст: 22\nДень рождения: 1995-07-15\n\n***Данные от аккаунта:***\nЛогин: _ivanov123_\nПароль: _password123_\n\n***Родитель:***\nИмя: Мария Иванова\nТелефон: +78001234567 [🟩 Whatsapp](https://wa.me/78001234567)\nПочта: ivanov-maria@example.com\n\n***Группы***\n1 . [Математика 101 Основы математики](https://backoffice.algoritmika.org/group/view/987654)\n🟢 Учится (2023-06-01 - 2025-06-01)\n\n")
+				assertMessages(t, mockContext.SentMessages[0], defaultState.GetKidInfoMessage(models.FullKidInfo{
+					Extra: models.NotAccessible,
+					Kid:   mocks.KidFullInfo.Data,
+				}))
 			})
 		})
 		t.Run("Send get /abs", func(t *testing.T) {

@@ -20,19 +20,13 @@ type MockService struct {
 	grErr            error
 	Calls            []string
 	TimeAbs          time.Time
+	FullKidInfoErr   error
 }
 
 func (n *MockService) FullGroupInfo(uid int64, groupId int) (models.FullGroupInfo, error) {
-	return models.FullGroupInfo{
-		GroupID:        1,
-		GroupTitle:     "Title",
-		GroupContent:   "Content",
-		NextLessonTime: "15.03.2025 16:00",
-		LessonsTotal:   20,
-		LessonsPassed:  10,
-		ActiveKids:     MockGroupResponse.Data.Items,
-		NotActiveKids:  MockGroupResponse.Data.Items,
-	}, nil
+	n.Calls = append(n.Calls, fmt.Sprintf("%d%d", uid, groupId))
+
+	return FullGrInfo, nil
 }
 
 func (n *MockService) AllCredentials(uid int64, groupId int) (map[string]string, error) {
@@ -54,9 +48,16 @@ func NewMockService(m map[int64]bool) *MockService {
 	return &MockService{m: m}
 }
 
-func (n *MockService) FullKidInfo(uid int64, kidID int) (models.FullKidInfo, error) {
+func (n *MockService) FullKidInfo(uid int64, kidID int, groupId int) (models.FullKidInfo, error) {
+	n.Calls = append(n.Calls, fmt.Sprintf("%d%d%d", uid, kidID, groupId))
+	if n.FullKidInfoErr != nil {
+		return models.FullKidInfo{
+			Extra: models.NotAccessible,
+			Kid:   KidFullInfo.Data,
+		}, nil
+	}
 	return models.FullKidInfo{
-		Kid: KidFullInfo,
+		Kid: KidFullInfo.Data,
 	}, nil
 }
 
@@ -160,4 +161,15 @@ func (n *MockService) RegisterUser(uid int64) error {
 
 func (n *MockService) SetGroupsErr(err error) {
 	n.grErr = err
+}
+
+var FullGrInfo = models.FullGroupInfo{
+	GroupID:        1,
+	GroupTitle:     "Title",
+	GroupContent:   "Content",
+	NextLessonTime: "15.03.2025 16:00",
+	LessonsTotal:   20,
+	LessonsPassed:  10,
+	ActiveKids:     MockGroupResponse.Data.Items,
+	NotActiveKids:  MockGroupResponse.Data.Items,
 }

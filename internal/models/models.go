@@ -66,6 +66,11 @@ type FullGroupInfo struct {
 	NotActiveKids  []clients.Student
 }
 
+type ExtraInfo string
+
+var NotAccessible ExtraInfo = "not_accessible"
+
 type FullKidInfo struct {
-	Kid clients.FullKidInfo
+	Extra ExtraInfo
+	Kid   clients.Student
 }

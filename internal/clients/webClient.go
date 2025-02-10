@@ -40,11 +40,9 @@ type GroupResponse struct {
 	Status string    `json:"status"`
 	Data   GroupData `json:"data"`
 }
-
 type GroupData struct {
 	Items []Student `json:"items"`
 }
-
 type Student struct {
 	ID              int         `json:"id"`
 	FirstName       string      `json:"firstName"`
@@ -62,11 +60,12 @@ type Student struct {
 	HasBranchAccess bool        `json:"hasBranchAccess"`
 	Username        string      `json:"username"`
 	Password        string      `json:"password"`
-	LastGroup       LastGroup   `json:"lastGroup"`
+	LastGroup       Group       `json:"lastGroup"`
+	Groups          []Group     `json:"groups"`
 	Links           Links       `json:"_links"`
 }
 
-type LastGroup struct {
+type Group struct {
 	ID             int         `json:"id"`
 	GroupStudentID int         `json:"groupStudentId"`
 	Title          string      `json:"title"`
@@ -318,27 +317,7 @@ type GroupKidInfo struct {
 	DeletedAt      any       `json:"deletedAt"`
 }
 
-type DataKidInfo struct {
-	ID              int            `json:"id"`
-	FirstName       string         `json:"firstName"`
-	LastName        string         `json:"lastName"`
-	FullName        string         `json:"fullName"`
-	ParentName      string         `json:"parentName"`
-	Email           string         `json:"email"`
-	HasLaptop       int            `json:"hasLaptop"`
-	Phone           string         `json:"phone"`
-	Age             int            `json:"age"`
-	BirthDate       time.Time      `json:"birthDate"`
-	CreatedAt       time.Time      `json:"createdAt"`
-	UpdatedAt       time.Time      `json:"updatedAt"`
-	DeletedAt       any            `json:"deletedAt"`
-	HasBranchAccess bool           `json:"hasBranchAccess"`
-	Username        string         `json:"username"`
-	Password        string         `json:"password"`
-	Groups          []GroupKidInfo `json:"groups"`
-	Links           LinksKidInfo   `json:"_links"`
-}
 type FullKidInfo struct {
-	Status string      `json:"status"`
-	Data   DataKidInfo `json:"data"`
+	Status string  `json:"status"`
+	Data   Student `json:"data"`
 }

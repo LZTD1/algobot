@@ -39,18 +39,32 @@ func NewDefaultService(domain domain.Domain, webClient clients.WebClient) *Defau
 	return &DefaultService{domain: domain, webClient: webClient}
 }
 
-func (d DefaultService) FullKidInfo(uid int64, kidID int) (models.FullKidInfo, error) {
+func (d DefaultService) FullKidInfo(uid int64, kidID int, groupId int) (models.FullKidInfo, error) {
 	cookie, err := d.Cookie(uid)
 	if err != nil {
 		return models.FullKidInfo{}, fmt.Errorf("DefaultService.FullKidInfo(%d, %d) : %w", uid, kidID, err)
 	}
 	kid, err := d.webClient.GetKidInfo(cookie, strconv.Itoa(kidID))
 	if err != nil {
+		if errors.Is(err, appError.ErrNotFound) {
+			info, err := d.webClient.GetKidsNamesByGroup(cookie, groupId)
+			if err != nil {
+				return models.FullKidInfo{}, fmt.Errorf("DefaultService.FullKidInfo(%d, %d) : %w", uid, kidID, err)
+			}
+			for _, item := range info.Data.Items {
+				if item.ID == kidID {
+					return models.FullKidInfo{
+						Extra: models.NotAccessible,
+						Kid:   item,
+					}, nil
+				}
+			}
+		}
 		return models.FullKidInfo{}, fmt.Errorf("DefaultService.FullKidInfo(%d, %d) : %w", uid, kidID, err)
 	}
 
 	return models.FullKidInfo{
-		Kid: *kid,
+		Kid: kid.Data,
 	}, nil
 }
 

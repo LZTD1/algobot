@@ -116,7 +116,7 @@ var MockGroupResponse = clients.GroupResponse{
 				HasBranchAccess: true,
 				Username:        "ivan_ivanov",
 				Password:        "secret_password_123",
-				LastGroup: clients.LastGroup{
+				LastGroup: clients.Group{
 					ID:             1,
 					GroupStudentID: 1,
 					Title:          "Группа 1",
@@ -153,7 +153,7 @@ var MockGroupResponse = clients.GroupResponse{
 				HasBranchAccess: false,
 				Username:        "maria_petrov",
 				Password:        "password_321",
-				LastGroup: clients.LastGroup{
+				LastGroup: clients.Group{
 					ID:             1,
 					GroupStudentID: 2,
 					Title:          "Группа 2",
@@ -179,7 +179,7 @@ var MockGroupResponse = clients.GroupResponse{
 
 var KidFullInfo = clients.FullKidInfo{
 	Status: "success",
-	Data: clients.DataKidInfo{
+	Data: clients.Student{
 		ID:              123456,
 		FirstName:       "Иван",
 		LastName:        "Иванов",
@@ -196,7 +196,7 @@ var KidFullInfo = clients.FullKidInfo{
 		HasBranchAccess: false,
 		Username:        "ivanov123",
 		Password:        "password123",
-		Groups: []clients.GroupKidInfo{
+		Groups: []clients.Group{
 			{
 				ID:             987654,
 				GroupStudentID: 123456,

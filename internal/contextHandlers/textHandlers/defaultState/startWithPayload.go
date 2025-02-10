@@ -1,8 +1,6 @@
 package defaultState
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"gopkg.in/telebot.v4"
 	"os"
@@ -11,6 +9,7 @@ import (
 	"strings"
 	"tgbot/internal/helpers"
 	"tgbot/internal/models"
+	"tgbot/internal/serdes"
 	"tgbot/internal/service"
 )
 
@@ -37,15 +36,9 @@ func (s StartWithPayload) CanHandle(ctx telebot.Context) bool {
 }
 
 func (s StartWithPayload) Process(ctx telebot.Context) error {
-	decodedBytes, err := base64.StdEncoding.DecodeString(ctx.Message().Payload)
+	payload, err := serdes.Deserialize(ctx.Message().Payload)
 	if err != nil {
-		return ctx.Send("Ошибка декодирования")
-	}
-	var payload models.StartPayload
-
-	err = json.Unmarshal(decodedBytes, &payload)
-	if err != nil {
-		return ctx.Send("(1) Ошибка декодирования")
+		return helpers.LogError(err, ctx, "Ошибка десериализации")
 	}
 
 	switch payload.Action {
@@ -65,70 +58,83 @@ func (s StartWithPayload) getGroupInfo(ctx telebot.Context, payload models.Start
 		return helpers.LogError(err, ctx, "Ошибка при получении данной группы!")
 	}
 
+	msg := GetGroupInfoMessage(full)
+	return ctx.Send(msg, telebot.ModeHTML, telebot.NoPreview)
+}
+
+func GetGroupInfoMessage(full models.FullGroupInfo) string {
 	msg := strings.Builder{}
-	msg.WriteString(fmt.Sprintf("[%s %s](https://backoffice.algoritmika.org/group/view/%d)\n", full.GroupTitle, full.GroupContent, full.GroupID))
-	msg.WriteString(fmt.Sprintf("\n***Следующая лекция***: %s\n", full.NextLessonTime))
-	msg.WriteString(fmt.Sprintf("***Всего пройдено*** %d лекций из %d\n", full.LessonsPassed, full.LessonsTotal))
+	msg.WriteString(fmt.Sprintf("<a href=\"https://backoffice.algoritmika.org/group/view/%d\">%s %s</a>\n", full.GroupID, full.GroupTitle, full.GroupContent))
+	msg.WriteString(fmt.Sprintf("\n<b>Следующая лекция</b>: %s\n", full.NextLessonTime))
+	msg.WriteString(fmt.Sprintf("<b>Всего пройдено</b> %d лекций из %d\n", full.LessonsPassed, full.LessonsTotal))
 	msg.WriteString(fmt.Sprintf("\nАктивные дети: %d | Выбыло: %d | Всего: %d\n", len(full.ActiveKids), len(full.NotActiveKids), len(full.ActiveKids)+len(full.NotActiveKids)))
-	msg.WriteString("***Активные дети***:\n")
+	msg.WriteString("<b>Активные дети</b>:\n")
 	for i, kid := range full.ActiveKids {
-		marshal, _ := json.Marshal(models.StartPayload{
+		ser := serdes.Serialize(models.StartPayload{
 			Action:  models.GetKidInfo,
-			Payload: []string{strconv.Itoa(kid.ID)},
+			Payload: []string{strconv.Itoa(kid.ID), strconv.Itoa(full.GroupID)},
 		})
-		encodedStr := base64.StdEncoding.EncodeToString(marshal)
 
-		msg.WriteString(fmt.Sprintf("%d. [%s](t.me/%s?start=%s)\n", i+1, kid.FullName, os.Getenv("TELEGRAM_NAME"), encodedStr))
+		msg.WriteString(fmt.Sprintf("%d. <a href=\"https://t.me/%s?start=%s\">%s</a>\n", i+1, os.Getenv("TELEGRAM_NAME"), ser, kid.FullName))
 	}
-	msg.WriteString("***Выбыли дети***:\n")
+	msg.WriteString("<b>Выбыли дети</b>:\n")
 	for i, kid := range full.NotActiveKids {
-		marshal, _ := json.Marshal(models.StartPayload{
+		ser := serdes.Serialize(models.StartPayload{
 			Action:  models.GetKidInfo,
-			Payload: []string{strconv.Itoa(kid.ID)},
+			Payload: []string{strconv.Itoa(kid.ID), strconv.Itoa(full.GroupID)},
 		})
-		encodedStr := base64.StdEncoding.EncodeToString(marshal)
 
-		if kid.LastGroup.ID == g {
-			msg.WriteString(fmt.Sprintf("%d. [%s](t.me/%s?start=%s) (🔴 Выбыл: %s)\n", i+1, kid.FullName, os.Getenv("TELEGRAM_NAME"), encodedStr, kid.LastGroup.EndTime.Format("2006-01-02")))
+		if kid.LastGroup.ID == full.GroupID {
+			msg.WriteString(fmt.Sprintf("%d. <a href=\"https://t.me/%s?start=%s\">%s</a> (🔴 Выбыл: %s)\n", i+1, os.Getenv("TELEGRAM_NAME"), ser, kid.FullName, kid.LastGroup.EndTime.Format("2006-01-02")))
 		} else {
-			msg.WriteString(fmt.Sprintf("%d. [%s](t.me/%s?start=%s) (🟡 Переведен: %s)\n", i+1, kid.FullName, os.Getenv("TELEGRAM_NAME"), encodedStr, kid.LastGroup.StartTime.Format("2006-01-02")))
+			msg.WriteString(fmt.Sprintf("%d. <a href=\"https://t.me/%s?start=%s\">%s</a> (🟡 Переведен: %s)\n", i+1, os.Getenv("TELEGRAM_NAME"), ser, kid.FullName, kid.LastGroup.StartTime.Format("2006-01-02")))
 		}
 	}
-	return ctx.Send(msg.String(), telebot.ModeMarkdown, telebot.NoPreview)
+	return msg.String()
 }
 
 func (s StartWithPayload) getKidInfo(ctx telebot.Context, payload models.StartPayload) error {
+
 	id, _ := strconv.Atoi(payload.Payload[0])
-	full, err := s.svc.FullKidInfo(ctx.Sender().ID, id)
+	groupId, _ := strconv.Atoi(payload.Payload[1])
+	full, err := s.svc.FullKidInfo(ctx.Sender().ID, id, groupId)
 	if err != nil {
 		return helpers.LogError(err, ctx, "Ошибка при получении данного ученика!")
 	}
 
-	parentPhone := regexp.MustCompile(`[^0-9+]`).ReplaceAllString(full.Kid.Data.Phone, "")
+	m := GetKidInfoMessage(full)
+	return ctx.Send(m, telebot.ModeHTML, telebot.NoPreview)
+}
+
+func GetKidInfoMessage(full models.FullKidInfo) string {
+	parentPhone := regexp.MustCompile(`[^0-9+]`).ReplaceAllString(full.Kid.Phone, "")
 
 	msg := strings.Builder{}
-	msg.WriteString(fmt.Sprintf("***%s***\n", full.Kid.Data.FullName))
-	msg.WriteString(fmt.Sprintf("Возраст: %d\n", full.Kid.Data.Age))
-	msg.WriteString(fmt.Sprintf("День рождения: %s\n", full.Kid.Data.BirthDate.Format("2006-01-02")))
-	msg.WriteString("\n***Данные от аккаунта:***\n")
-	msg.WriteString(fmt.Sprintf("Логин: _%s_\n", full.Kid.Data.Username))
-	msg.WriteString(fmt.Sprintf("Пароль: _%s_\n", full.Kid.Data.Password))
-	msg.WriteString("\n***Родитель:***\n")
-	msg.WriteString(fmt.Sprintf("Имя: %s\n", full.Kid.Data.ParentName))
+	if full.Extra == models.NotAccessible {
+		msg.WriteString(fmt.Sprintf("⚠️ У вас больше нету доступа к ребенку\n"))
+	}
+	msg.WriteString(fmt.Sprintf("<b>%s</b>\n", full.Kid.FullName))
+	msg.WriteString(fmt.Sprintf("Возраст: %d\n", full.Kid.Age))
+	msg.WriteString(fmt.Sprintf("День рождения: %s\n", full.Kid.BirthDate.Format("2006-01-02")))
+	msg.WriteString("\n<b>Данные от аккаунта:</b>\n")
+	msg.WriteString(fmt.Sprintf("Логин: <i>%s</i>\n", full.Kid.Username))
+	msg.WriteString(fmt.Sprintf("Пароль: <i>%s</i>\n", full.Kid.Password))
+	msg.WriteString("\n<b>Родитель:</b>\n")
+	msg.WriteString(fmt.Sprintf("Имя: %s\n", full.Kid.ParentName))
 
-	msg.WriteString(fmt.Sprintf("Телефон: %s [🟩 Whatsapp](https://wa.me/%s)\n", parentPhone, strings.TrimPrefix(parentPhone, "+")))
-	msg.WriteString(fmt.Sprintf("Почта: %s\n", full.Kid.Data.Email))
-	msg.WriteString("\n***Группы***\n")
+	msg.WriteString(fmt.Sprintf("Телефон: %s <a href=\"https://wa.me/%s\">🟩 Whatsapp</a>\n", parentPhone, strings.TrimPrefix(parentPhone, "+")))
+	msg.WriteString(fmt.Sprintf("Почта: %s\n", full.Kid.Email))
+	msg.WriteString("\n<b>Группы</b>\n")
 
-	groups := full.Kid.Data.Groups
+	groups := full.Kid.Groups
 	for i := len(groups) - 1; i >= 0; i-- {
-		msg.WriteString(fmt.Sprintf("%d . [%s %s](https://backoffice.algoritmika.org/group/view/%d)\n", len(groups)-i, groups[i].Title, groups[i].Content, groups[i].ID))
+		msg.WriteString(fmt.Sprintf("%d . <a href=\"https://backoffice.algoritmika.org/group/view/%d\">%s %s</a>\n", len(groups)-i, groups[i].ID, groups[i].Title, groups[i].Content))
 		v, ok := statuses[groups[i].Status]
 		if !ok {
 			v = fmt.Sprintf("Статус [%d]", groups[i].Status)
 		}
 		msg.WriteString(fmt.Sprintf("%s (%s - %s)\n\n", v, groups[i].StartTime.Format("2006-01-02"), groups[i].EndTime.Format("2006-01-02")))
 	}
-
-	return ctx.Send(msg.String(), telebot.ModeMarkdown, telebot.NoPreview)
+	m := msg.String()
+	return m
 }

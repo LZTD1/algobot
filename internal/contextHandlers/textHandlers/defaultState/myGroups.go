@@ -1,12 +1,9 @@
 package defaultState
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"gopkg.in/telebot.v4"
-	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -14,6 +11,7 @@ import (
 	appError "tgbot/internal/error"
 	"tgbot/internal/helpers"
 	"tgbot/internal/models"
+	"tgbot/internal/serdes"
 	"tgbot/internal/service"
 	"time"
 )
@@ -77,17 +75,12 @@ func GetMyGroupsMessage(g []models.Group) string {
 }
 
 func getGroupTitle(group models.Group) string {
-	marshal, err := json.Marshal(models.StartPayload{
+	ser := serdes.Serialize(models.StartPayload{
 		Action:  models.GetGroupInfo,
 		Payload: []string{strconv.Itoa(group.GroupID)},
 	})
-	encodedStr := base64.StdEncoding.EncodeToString(marshal)
 
-	if err != nil {
-		log.Println(err)
-		return group.Title
-	}
-	return fmt.Sprintf("[%s](t.me/%s?start=%s)", group.Title, os.Getenv("TELEGRAM_NAME"), encodedStr)
+	return fmt.Sprintf("[%s](t.me/%s?start=%s)", group.Title, os.Getenv("TELEGRAM_NAME"), ser)
 }
 
 func getLocale(t time.Time) string {

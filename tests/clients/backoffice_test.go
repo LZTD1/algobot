@@ -33,7 +33,7 @@ func TestBackoffice(t *testing.T) {
 			bo := clients.NewBackoffice(ts.URL, boSettings)
 			_, err := bo.GetKidsNamesByGroup("", 1)
 			fmt.Fprintf(os.Stdout, "%+v\n", err)
-			assertError(t, err, "Backoffice.GetKidsNamesByGroup(, %!s(int=1)) : Backoffice.doReq() : 401 Unauthorized []")
+			assertError(t, err, "Backoffice.GetKidsNamesByGroup(, %!s(int=1)) : Backoffice.doReq() : not found : 401 Unauthorized []")
 		})
 		t.Run("GENERAL | 500 | Servers returns error", func(t *testing.T) {
 			var calls []string
@@ -70,7 +70,7 @@ func TestBackoffice(t *testing.T) {
 
 			ts := getBOServer(t, map[string]string{
 				"groupId": groupId,
-				"expand":  "lastGroup",
+				"expand":  "lastGroup, groups",
 			}, "GET", cookie, "", GetKidsNamesByGroupResponse)
 			defer ts.Close()
 

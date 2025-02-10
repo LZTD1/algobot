@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	appError "tgbot/internal/error"
 	"time"
 )
 
@@ -36,12 +37,13 @@ func (b Backoffice) GetKidInfo(cookie string, kidID string) (*FullKidInfo, error
 	req, err := b.createReq("GET", "/api/v2/student/default/view/"+kidID, cookie, map[string]string{
 		"expand": "groups",
 	}, nil)
+
 	if err != nil {
 		return nil, fmt.Errorf("Backoffice.GetKidInfo(%s, %s) : %w", cookie, kidID, err)
 	}
-	data, reqErr := b.doReq(req)
-	if reqErr != nil {
-		return nil, fmt.Errorf("Backoffice.GetKidInfo(%s, %s) : %w", cookie, kidID, reqErr)
+	data, err := b.doReq(req)
+	if err != nil {
+		return nil, fmt.Errorf("Backoffice.GetKidInfo(%s, %s) : %w", cookie, kidID, err)
 	}
 
 	var response FullKidInfo
@@ -60,9 +62,9 @@ func (b Backoffice) GetGroupInfo(cookie string, group string) (*FullGroupInfo, e
 	if err != nil {
 		return nil, fmt.Errorf("Backoffice.GetGroupInfo(%s, %s) : %w", cookie, group, err)
 	}
-	data, reqErr := b.doReq(req)
-	if reqErr != nil {
-		return nil, fmt.Errorf("Backoffice.GetGroupInfo(%s, %s) : %w", cookie, group, reqErr)
+	data, err := b.doReq(req)
+	if err != nil {
+		return nil, fmt.Errorf("Backoffice.GetGroupInfo(%s, %s) : %w", cookie, group, err)
 	}
 
 	var response FullGroupInfo
@@ -78,7 +80,7 @@ func (b Backoffice) GetKidsNamesByGroup(cookie string, group int) (*GroupRespons
 
 	req, err := b.createReq("GET", "/api/v2/group/student/index", cookie, map[string]string{
 		"groupId": strconv.Itoa(group),
-		"expand":  "lastGroup",
+		"expand":  "lastGroup, groups",
 	}, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Backoffice.GetKidsNamesByGroup(%s, %s) : %w", cookie, group, err)
@@ -259,7 +261,7 @@ func (b Backoffice) doReq(req *http.Request) (*http.Response, error) {
 			continue
 		}
 		if resp.StatusCode >= 400 && resp.StatusCode < 500 {
-			return nil, fmt.Errorf("Backoffice.doReq() : %w", getErrorByCode(resp.Status, resp.Body))
+			return nil, fmt.Errorf("Backoffice.doReq() : %w : %w", appError.ErrNotFound, getErrorByCode(resp.Status, resp.Body))
 		}
 		if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 			return resp, nil

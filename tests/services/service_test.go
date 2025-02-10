@@ -250,12 +250,12 @@ func TestDefaultService(t *testing.T) {
 		webClient := mocks.MockWebClient{}
 		defaultService := service.NewDefaultService(&d, webClient)
 
-		got, err := defaultService.FullKidInfo(1, 1)
+		got, err := defaultService.FullKidInfo(1, 1, 1)
 		if err != nil {
 			t.Fatalf("Got error: %v", err)
 		}
 
-		if !reflect.DeepEqual(got.Kid, mocks.KidFullInfo) {
+		if !reflect.DeepEqual(got.Kid, mocks.KidFullInfo.Data) {
 			t.Fatalf("Wanted %#v, got %#v", mocks.KidFullInfo, got)
 		}
 	})
