@@ -55,9 +55,9 @@ func getMsg(msg models.Message) string {
 }
 
 type RecipientUser struct {
-	recipient string
+	ID string
 }
 
 func (r RecipientUser) Recipient() string {
-	return r.recipient
+	return r.ID
 }

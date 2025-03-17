@@ -5,6 +5,7 @@ type Statement string
 const (
 	Default       Statement = "default"
 	SendingCookie Statement = "sendingCookie"
+	ChattingAI    Statement = "chattingAI"
 )
 
 func (s Statement) String() string {

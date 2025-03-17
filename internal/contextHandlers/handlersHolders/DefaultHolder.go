@@ -28,5 +28,6 @@ func (d DefaultHolders) GetHandlers() []defaultHandler.ContextHandler {
 		defaultState.NewMyGroups(d.service),
 		defaultState.NewAbsentKids(d.service),
 		defaultState.NewStartWithPayload(d.service),
+		defaultState.NewAIChat(d.service, d.state),
 	}
 }

@@ -12,16 +12,18 @@ import (
 type OnText struct {
 	holders []handlersHolders.HandlersHolder
 	state   stateMachine.StateMachine
+	ai      service.AIService
 }
 
-func NewOnText(service service.Service, state stateMachine.StateMachine) *OnText {
+func NewOnText(service service.Service, state stateMachine.StateMachine, ai service.AIService) *OnText {
 
 	h := []handlersHolders.HandlersHolder{
 		handlersHolders.NewDefaultHolders(service, state),
 		handlersHolders.NewSendingCookie(service, state),
+		handlersHolders.NewChattingAi(service, state, ai),
 	}
 
-	return &OnText{holders: h, state: state}
+	return &OnText{holders: h, state: state, ai: ai}
 }
 
 func (m *OnText) Handle(ctx telebot.Context) error {
@@ -37,6 +39,8 @@ func (m *OnText) Handle(ctx telebot.Context) error {
 		m.state.SetStatement(ctx.Sender().ID, stateMachine.Default)
 		return ctx.Send(config.Incorrect, config.StartKeyboard)
 	}
+
+	m.state.SetStatement(ctx.Sender().ID, stateMachine.Default)
 	return fmt.Errorf("не найден холдер для данного state")
 }
 

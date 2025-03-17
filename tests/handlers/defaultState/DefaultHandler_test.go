@@ -3,6 +3,7 @@ package test
 import (
 	"errors"
 	"fmt"
+	"github.com/golang/mock/gomock"
 	"gopkg.in/telebot.v4"
 	"os"
 	"reflect"
@@ -21,6 +22,9 @@ import (
 
 func TestDefaultHandler(t *testing.T) {
 	os.Setenv("TELEGRAM_NAME", "test")
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockAI := mocks.NewMockAIService(ctrl)
 
 	t.Run("If user is not register", func(t *testing.T) {
 		ms := mocks.NewMockService(make(map[int64]bool))
@@ -30,7 +34,7 @@ func TestDefaultHandler(t *testing.T) {
 		mockState := mocks.MockStateMachine{}
 		mockState.SetStatement(12, stateMachine.Default)
 
-		messageHandler := contextHandlers.NewOnText(ms, &mockState)
+		messageHandler := contextHandlers.NewOnText(ms, &mockState, mockAI)
 
 		mockContext.SetUserMessage(12, "hello world!")
 
@@ -50,7 +54,7 @@ func TestDefaultHandler(t *testing.T) {
 
 			mockState := mocks.MockStateMachine{}
 			mockState.SetStatement(12, stateMachine.Default)
-			messageHandler := contextHandlers.NewOnText(ms, &mockState)
+			messageHandler := contextHandlers.NewOnText(ms, &mockState, mockAI)
 
 			mockContext.SetUserMessage(12, "aezakmi")
 
@@ -70,7 +74,7 @@ func TestDefaultHandler(t *testing.T) {
 
 				mockState := mocks.MockStateMachine{}
 				mockState.SetStatement(12, stateMachine.Default)
-				messageHandler := contextHandlers.NewOnText(ms, &mockState)
+				messageHandler := contextHandlers.NewOnText(ms, &mockState, mockAI)
 
 				ms.SetMockCookie("Cookie")
 				mockContext.SetUserMessage(12, "Настройки")
@@ -96,7 +100,7 @@ func TestDefaultHandler(t *testing.T) {
 
 				mockState := mocks.MockStateMachine{}
 				mockState.SetStatement(12, stateMachine.Default)
-				messageHandler := contextHandlers.NewOnText(ms, &mockState)
+				messageHandler := contextHandlers.NewOnText(ms, &mockState, mockAI)
 
 				ms.SetMockCookie("")
 				mockContext.SetUserMessage(12, "Настройки")
@@ -160,7 +164,7 @@ func TestDefaultHandler(t *testing.T) {
 
 				mockState := mocks.MockStateMachine{}
 				mockState.SetStatement(12, stateMachine.Default)
-				messageHandler := contextHandlers.NewOnText(ms, &mockState)
+				messageHandler := contextHandlers.NewOnText(ms, &mockState, mockAI)
 
 				mockContext.SetUserMessageWithTime(12, "Получить отсутсвующих", getUnixByDay(28, 9, 40))
 
@@ -184,7 +188,7 @@ func TestDefaultHandler(t *testing.T) {
 				mockContext := mocks.MockContext{}
 				mockState := mocks.MockStateMachine{}
 				mockState.SetStatement(12, stateMachine.Default)
-				messageHandler := contextHandlers.NewOnText(ms, &mockState)
+				messageHandler := contextHandlers.NewOnText(ms, &mockState, mockAI)
 				mockContext.SetUserMessageWithTime(12, "Получить отсутсвующих", getUnixByDay(28, 22, 40))
 
 				messageHandler.Handle(&mockContext)
@@ -224,7 +228,7 @@ func TestDefaultHandler(t *testing.T) {
 				mockContext := mocks.MockContext{}
 				mockState := mocks.MockStateMachine{}
 				mockState.SetStatement(12, stateMachine.Default)
-				messageHandler := contextHandlers.NewOnText(ms, &mockState)
+				messageHandler := contextHandlers.NewOnText(ms, &mockState, mockAI)
 
 				mockContext.SetUserMessage(12, "Мои группы")
 
@@ -249,7 +253,7 @@ func TestDefaultHandler(t *testing.T) {
 
 				mockState := mocks.MockStateMachine{}
 				mockState.SetStatement(12, stateMachine.Default)
-				messageHandler := contextHandlers.NewOnText(ms, &mockState)
+				messageHandler := contextHandlers.NewOnText(ms, &mockState, mockAI)
 				mockContext.SetUserMessage(12, "Мои группы")
 
 				messageHandler.Handle(&mockContext)
@@ -268,7 +272,7 @@ func TestDefaultHandler(t *testing.T) {
 
 				mockState := mocks.MockStateMachine{}
 				mockState.SetStatement(12, stateMachine.Default)
-				messageHandler := contextHandlers.NewOnText(ms, &mockState)
+				messageHandler := contextHandlers.NewOnText(ms, &mockState, mockAI)
 
 				ms.SetMockCookie("Cookie")
 				payload := serdes.Serialize(models.StartPayload{
@@ -296,7 +300,7 @@ func TestDefaultHandler(t *testing.T) {
 
 					mockState := mocks.MockStateMachine{}
 					mockState.SetStatement(12, stateMachine.Default)
-					messageHandler := contextHandlers.NewOnText(ms, &mockState)
+					messageHandler := contextHandlers.NewOnText(ms, &mockState, mockAI)
 
 					ms.SetMockCookie("Cookie")
 					payload := serdes.Serialize(models.StartPayload{
@@ -325,7 +329,7 @@ func TestDefaultHandler(t *testing.T) {
 
 				mockState := mocks.MockStateMachine{}
 				mockState.SetStatement(12, stateMachine.Default)
-				messageHandler := contextHandlers.NewOnText(ms, &mockState)
+				messageHandler := contextHandlers.NewOnText(ms, &mockState, mockAI)
 
 				ms.SetMockCookie("Cookie")
 				payload := serdes.Serialize(models.StartPayload{
@@ -387,7 +391,7 @@ func TestDefaultHandler(t *testing.T) {
 				mockContext := mocks.MockContext{}
 				mockState := mocks.MockStateMachine{}
 				mockState.SetStatement(12, stateMachine.Default)
-				messageHandler := contextHandlers.NewOnText(ms, &mockState)
+				messageHandler := contextHandlers.NewOnText(ms, &mockState, mockAI)
 				mockContext.SetPayload("2025-02-01 9:32")
 				mockContext.SetUserMessageWithTime(12, "/abs", getUnixByDay(0, 0, 0))
 
@@ -414,7 +418,7 @@ func TestDefaultHandler(t *testing.T) {
 				mockContext := mocks.MockContext{}
 				mockState := mocks.MockStateMachine{}
 				mockState.SetStatement(12, stateMachine.Default)
-				messageHandler := contextHandlers.NewOnText(ms, &mockState)
+				messageHandler := contextHandlers.NewOnText(ms, &mockState, mockAI)
 				mockContext.SetPayload("")
 				mockContext.SetUserMessageWithTime(12, "/abs", getUnixByDay(0, 0, 0))
 
@@ -422,6 +426,27 @@ func TestDefaultHandler(t *testing.T) {
 				assertContextOptsLen(t, mockContext.SentMessages[0], 0)
 				assertMessages(t, mockContext.SentMessages[0], "Формат сообщения - '/abs 2025-01-12 15:32'\nВыдаст статистику за 2025г. 12 Января, 15ч 32м")
 			})
+		})
+		t.Run("Send AI", func(t *testing.T) {
+			mockContext := mocks.MockContext{}
+
+			ms := mocks.NewMockService(map[int64]bool{
+				12: true,
+			})
+
+			mockState := mocks.MockStateMachine{}
+			mockState.SetStatement(12, stateMachine.Default)
+			messageHandler := contextHandlers.NewOnText(ms, &mockState, mockAI)
+
+			ms.SetMockCookie("Cookie")
+			mockContext.SetUserMessage(12, config.AIBtn.Text)
+
+			messageHandler.Handle(&mockContext)
+			if mockState.Current != stateMachine.ChattingAI {
+				t.Errorf("wanted %v, got %v", stateMachine.ChattingAI, mockState.Current)
+			}
+			assertMessages(t, mockContext.SentMessages[0], "Привет! Используй чат и клавиатуру для общения со мной!")
+			assertKeyboards(t, mockContext.SentMessages[0], config.AIKeyboard)
 		})
 	})
 }

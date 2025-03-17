@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"embed"
+	"github.com/joho/godotenv"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
 	tele "gopkg.in/telebot.v4"
@@ -19,13 +20,15 @@ import (
 	"time"
 )
 
-var TOKEN = os.Getenv("TELEGRAM_TOKEN")
-
 //go:embed migrations/*.sql
 var migrationsFS embed.FS
 
 func main() {
 	// TODO зарефачить main
+	godotenv.Load()
+
+	TOKEN := os.Getenv("TELEGRAM_TOKEN")
+	PORT := os.Getenv("GRPC_PORT")
 
 	db, closeDb := getSqliteBase("base.db")
 	defer closeDb()
@@ -56,8 +59,9 @@ func main() {
 	state := stateMachine.NewMemory()
 
 	regMid := middleware.NewRegister(svc)
+	aiService := service.NewAiService(PORT)
 
-	msgHandler := contextHandlers.NewOnText(svc, state)
+	msgHandler := contextHandlers.NewOnText(svc, state, aiService)
 	callbackHandler := contextHandlers.NewOnCallback(svc, state)
 
 	tickerStop := goSchedule(b, svc)

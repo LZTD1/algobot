@@ -1,6 +1,7 @@
 package test
 
 import (
+	"github.com/golang/mock/gomock"
 	"gopkg.in/telebot.v4"
 	"reflect"
 	"testing"
@@ -11,6 +12,10 @@ import (
 )
 
 func TestSending(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockAI := mocks.NewMockAIService(ctrl)
+
 	t.Run("Send reject action", func(t *testing.T) {
 		ms := mocks.NewMockService(make(map[int64]bool))
 
@@ -19,7 +24,7 @@ func TestSending(t *testing.T) {
 		mockState := mocks.MockStateMachine{}
 		mockState.SetStatement(12, stateMachine.SendingCookie)
 
-		messageHandler := contextHandlers.NewOnText(ms, &mockState)
+		messageHandler := contextHandlers.NewOnText(ms, &mockState, mockAI)
 
 		mockContext.SetUserMessage(12, "Отменить действие")
 
@@ -40,7 +45,7 @@ func TestSending(t *testing.T) {
 		mockState := mocks.MockStateMachine{}
 		mockState.SetStatement(12, stateMachine.SendingCookie)
 
-		messageHandler := contextHandlers.NewOnText(ms, &mockState)
+		messageHandler := contextHandlers.NewOnText(ms, &mockState, mockAI)
 
 		mockContext.SetUserMessage(12, "aezakmi")
 

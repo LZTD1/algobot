@@ -7,6 +7,7 @@ var (
 	MissingBtn    = StartKeyboard.Text("Получить отсутсвующих")
 	MyGroupsBtn   = StartKeyboard.Text("Мои группы")
 	SettingsBtn   = StartKeyboard.Text("Настройки")
+	AIBtn         = StartKeyboard.Text("AI 🔹")
 
 	MyGroupsKeyboard = &tele.ReplyMarkup{ResizeKeyboard: true}
 	refreshGroupsBtn = MyGroupsKeyboard.Data("Обновить группы", "refresh_groups")
@@ -17,12 +18,17 @@ var (
 
 	RejectKeyboard  = &tele.ReplyMarkup{ResizeKeyboard: true}
 	RejectActionBtn = RejectKeyboard.Text("Отменить действие")
+
+	AIKeyboard      = &tele.ReplyMarkup{ResizeKeyboard: true}
+	BackBtn         = StartKeyboard.Text("⬅️ Назад")
+	ClearHistoryBtn = StartKeyboard.Text("Отчистить чат")
 )
 
 func init() {
 	StartKeyboard.Reply(
 		StartKeyboard.Row(MissingBtn),
 		StartKeyboard.Row(MyGroupsBtn, SettingsBtn),
+		StartKeyboard.Row(AIBtn),
 	)
 
 	MyGroupsKeyboard.Inline(
@@ -36,5 +42,9 @@ func init() {
 
 	RejectKeyboard.Reply(
 		RejectKeyboard.Row(RejectActionBtn),
+	)
+
+	AIKeyboard.Reply(
+		RejectKeyboard.Row(BackBtn, ClearHistoryBtn),
 	)
 }
