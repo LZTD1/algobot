@@ -1,11 +1,13 @@
 package contextHandlers
 
 import (
+	"errors"
 	"fmt"
 	"gopkg.in/telebot.v4"
 	"strings"
 	"tgbot/internal/config"
 	"tgbot/internal/contextHandlers/handlersHolders"
+	"tgbot/internal/helpers"
 	"tgbot/internal/service"
 	"tgbot/internal/stateMachine"
 )
@@ -42,7 +44,8 @@ func (h *OnCallback) Handle(ctx telebot.Context) error {
 		return ctx.Send(config.Incorrect, config.StartKeyboard)
 	}
 
-	return fmt.Errorf("не найден холдер для данного state")
+	h.state.SetStatement(ctx.Sender().ID, stateMachine.Default)
+	return helpers.LogError(errors.New(fmt.Sprintf("HolderNotFound(%v,%v)", st, ctx)), ctx, "Ошибка обработки запроса!\nНажмите - /start , для возвращения в меню")
 }
 
 func (h *OnCallback) getHolder(st stateMachine.Statement) handlersHolders.HandlersHolder {
