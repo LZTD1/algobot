@@ -1,9 +1,9 @@
 package scheduler_test
 
 import (
+	"algobot/internal_old/schedulers"
+	"algobot/tests/mocks"
 	"testing"
-	"tgbot/internal/schedulers"
-	"tgbot/tests/mocks"
 )
 
 func TestScheduler(t *testing.T) {

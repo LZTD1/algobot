@@ -1,0 +1,8 @@
+env: local # or prod
+storage_path: "./storage/base.db"
+# telegram token set in env variables - TELEGRAM_TOKEN
+migrations_path: "./migrations"
+grpc:
+  host: "localhost"
+  port: 50051
+  timeout: 999s

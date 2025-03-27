@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"algobot/internal_old/domain"
+	appError "algobot/internal_old/error"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -10,8 +12,6 @@ import (
 	"os"
 	"reflect"
 	"testing"
-	"tgbot/internal/domain"
-	appError "tgbot/internal/error"
 	"time"
 )
 

@@ -1,6 +1,14 @@
 package test
 
 import (
+	"algobot/internal_old/config"
+	"algobot/internal_old/contextHandlers"
+	"algobot/internal_old/contextHandlers/textHandlers/defaultState"
+	appError "algobot/internal_old/error"
+	"algobot/internal_old/models"
+	"algobot/internal_old/serdes"
+	"algobot/internal_old/stateMachine"
+	"algobot/tests/mocks"
 	"errors"
 	"fmt"
 	"github.com/golang/mock/gomock"
@@ -9,14 +17,6 @@ import (
 	"reflect"
 	"strings"
 	"testing"
-	"tgbot/internal/config"
-	"tgbot/internal/contextHandlers"
-	"tgbot/internal/contextHandlers/textHandlers/defaultState"
-	appError "tgbot/internal/error"
-	"tgbot/internal/models"
-	"tgbot/internal/serdes"
-	"tgbot/internal/stateMachine"
-	"tgbot/tests/mocks"
 	"time"
 )
 

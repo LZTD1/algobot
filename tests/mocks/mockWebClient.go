@@ -1,7 +1,7 @@
 package mocks
 
 import (
-	"tgbot/internal/clients"
+	"algobot/internal_old/clients"
 	"time"
 )
 

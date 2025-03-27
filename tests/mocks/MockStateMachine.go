@@ -1,8 +1,8 @@
 package mocks
 
 import (
+	"algobot/internal_old/stateMachine"
 	"strconv"
-	"tgbot/internal/stateMachine"
 )
 
 type MockStateMachine struct {

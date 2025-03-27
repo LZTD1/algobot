@@ -5,3 +5,7 @@ gen:
 	       --go-grpc_out=. \
 	       --go-grpc_opt=paths=source_relative \
 	       ./protos/*.proto
+
+.PHONY: dev
+dev:
+	go run ./cmd/algobot/main.go -config=./config/local.yaml

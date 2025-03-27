@@ -1,6 +1,13 @@
 package main
 
 import (
+	"algobot/internal_old/clients"
+	"algobot/internal_old/contextHandlers"
+	"algobot/internal_old/domain"
+	"algobot/internal_old/middleware"
+	"algobot/internal_old/schedulers"
+	"algobot/internal_old/service"
+	"algobot/internal_old/stateMachine"
 	"database/sql"
 	"embed"
 	"github.com/joho/godotenv"
@@ -10,13 +17,6 @@ import (
 	middleware2 "gopkg.in/telebot.v4/middleware"
 	"log"
 	"os"
-	"tgbot/internal/clients"
-	"tgbot/internal/contextHandlers"
-	"tgbot/internal/domain"
-	"tgbot/internal/middleware"
-	"tgbot/internal/schedulers"
-	"tgbot/internal/service"
-	"tgbot/internal/stateMachine"
 	"time"
 )
 

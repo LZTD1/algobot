@@ -1,14 +1,14 @@
 package test
 
 import (
+	"algobot/internal_old/config"
+	"algobot/internal_old/contextHandlers"
+	"algobot/internal_old/stateMachine"
+	"algobot/tests/mocks"
 	"github.com/golang/mock/gomock"
 	"gopkg.in/telebot.v4"
 	"reflect"
 	"testing"
-	"tgbot/internal/config"
-	"tgbot/internal/contextHandlers"
-	"tgbot/internal/stateMachine"
-	"tgbot/tests/mocks"
 )
 
 func TestSending(t *testing.T) {

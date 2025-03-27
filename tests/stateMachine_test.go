@@ -1,8 +1,8 @@
 package tests_test
 
 import (
+	stateMachine2 "algobot/internal_old/stateMachine"
 	"testing"
-	stateMachine2 "tgbot/internal/stateMachine"
 )
 
 func TestState(t *testing.T) {

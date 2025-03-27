@@ -1,13 +1,13 @@
 package services
 
 import (
+	"algobot/internal_old/domain"
+	appError "algobot/internal_old/error"
+	"algobot/internal_old/models"
+	"algobot/internal_old/service"
+	"algobot/tests/mocks"
 	"reflect"
 	"testing"
-	"tgbot/internal/domain"
-	appError "tgbot/internal/error"
-	"tgbot/internal/models"
-	"tgbot/internal/service"
-	"tgbot/tests/mocks"
 	"time"
 )
 

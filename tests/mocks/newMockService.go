@@ -1,10 +1,10 @@
 package mocks
 
 import (
+	"algobot/internal_old/models"
 	"errors"
 	"fmt"
 	"strconv"
-	"tgbot/internal/models"
 	"time"
 )
 

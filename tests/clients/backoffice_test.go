@@ -1,6 +1,7 @@
 package test
 
 import (
+	"algobot/internal_old/clients"
 	"context"
 	"encoding/json"
 	"errors"
@@ -12,7 +13,6 @@ import (
 	"os"
 	"reflect"
 	"testing"
-	"tgbot/internal/clients"
 	"time"
 )
 
