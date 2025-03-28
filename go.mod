@@ -10,6 +10,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/jxskiss/base62 v1.1.0
 	github.com/ncruces/go-sqlite3 v0.22.0
+	github.com/stretchr/testify v1.10.0
 	google.golang.org/grpc v1.71.0
 	google.golang.org/protobuf v1.36.5
 	gopkg.in/telebot.v4 v4.0.0-beta.4
@@ -18,7 +19,9 @@ require (
 require (
 	github.com/BurntSushi/toml v1.5.0 // indirect
 	github.com/andybalholm/cascadia v1.3.3 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/ncruces/julianday v1.0.0 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/tetratelabs/wazero v1.8.2 // indirect
 	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
