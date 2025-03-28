@@ -1,7 +1,9 @@
 package telegram
 
 import (
+	"algobot/internal/lib/fsm/memory"
 	"algobot/internal/lib/logger/sl"
+	dispatcher2 "algobot/internal/telegram/dispatcher/text"
 	"algobot/internal/telegram/middleware/logger"
 	"algobot/internal/telegram/middleware/trace"
 	tele "gopkg.in/telebot.v4"
@@ -41,10 +43,18 @@ func New(log *slog.Logger, token string) *App {
 	b.Use(middleware.Recover())
 	b.Use(logger.New(log))
 
-	b.
-		b.Handle(tele.OnText, func(c tele.Context) error {
-		return c.Reply(c.Get("trace_id").(string))
+	dispatcher := dispatcher2.NewDispatcher(log)
+
+	state := memory.New()
+
+	b.Handle(tele.OnText, func(c tele.Context) error {
+		userState := state.State(c.Sender().ID)
+
+		handler := dispatcher.GetHandlers(userState)
+
+		return handler.Handle(c)
 	})
+
 	return &App{log: log, bot: b}
 }
 
