@@ -1,11 +1,14 @@
 package telegram
 
 import (
+	"algobot/internal/lib/fsm"
 	"algobot/internal/lib/fsm/memory"
 	"algobot/internal/lib/logger/sl"
-	dispatcher2 "algobot/internal/telegram/dispatcher/text"
+	"algobot/internal/telegram/handlers/text"
 	"algobot/internal/telegram/middleware/logger"
+	"algobot/internal/telegram/middleware/stater"
 	"algobot/internal/telegram/middleware/trace"
+	router "github.com/LZTD1/telebot-router"
 	tele "gopkg.in/telebot.v4"
 	"gopkg.in/telebot.v4/middleware"
 	"log/slog"
@@ -37,23 +40,23 @@ func New(log *slog.Logger, token string) *App {
 		os.Exit(1)
 	}
 
+	stateMachine := memory.New()
+
 	// initialize routes
 	b.Use(trace.New(log))
 	b.Use(middleware.AutoRespond())
 	b.Use(middleware.Recover())
 	b.Use(logger.New(log))
 
-	dispatcher := dispatcher2.NewDispatcher(log)
+	r := router.NewRouter()
 
-	state := memory.New()
+	r.Group(func(r router.Router) {
+		r.Use(stater.New(stateMachine, fsm.Default))
 
-	b.Handle(tele.OnText, func(c tele.Context) error {
-		userState := state.State(c.Sender().ID)
-
-		handler := dispatcher.GetHandlers(userState)
-
-		return handler.Handle(c)
+		r.HandleFuncText("/start", text.NewStart(stateMachine))
 	})
+
+	b.Handle(tele.OnText, r.ServeContext)
 
 	return &App{log: log, bot: b}
 }
