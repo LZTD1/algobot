@@ -4,10 +4,13 @@ import (
 	"algobot/internal/lib/fsm"
 	"algobot/internal/lib/fsm/memory"
 	"algobot/internal/lib/logger/sl"
+	"algobot/internal/telegram/handlers/callback"
 	"algobot/internal/telegram/handlers/text"
 	"algobot/internal/telegram/middleware/logger"
 	"algobot/internal/telegram/middleware/stater"
 	"algobot/internal/telegram/middleware/trace"
+	"errors"
+	"fmt"
 	router "github.com/LZTD1/telebot-router"
 	tele "gopkg.in/telebot.v4"
 	"gopkg.in/telebot.v4/middleware"
@@ -33,6 +36,11 @@ func New(log *slog.Logger, token string) *App {
 		Poller: &tele.LongPoller{
 			Timeout: 10 * time.Second,
 		},
+		OnError: func(e error, c tele.Context) { // TODO : refactor into handler
+			traceID := c.Get("trace_id") // TODO : maybe send warnings to admin ?
+			c.Send(fmt.Sprintf("<b>[%s]</b>\n\nУпс! Произошла какая-то непредвиденная ошибка!\nОбратитесь к администратору", traceID), tele.ModeHTML)
+			log.Warn("can`t handle error", sl.Err(e), slog.Any("trace_id", traceID))
+		},
 	}
 	b, err := tele.NewBot(pref)
 	if err != nil {
@@ -47,16 +55,29 @@ func New(log *slog.Logger, token string) *App {
 	b.Use(middleware.AutoRespond())
 	b.Use(middleware.Recover())
 	b.Use(logger.New(log))
-
 	r := router.NewRouter()
 
-	r.Group(func(r router.Router) {
+	r.Group(func(r router.Router) { // Routes for default state
 		r.Use(stater.New(stateMachine, fsm.Default))
 
+		// message
 		r.HandleFuncText("/start", text.NewStart(stateMachine))
+		r.HandleFuncText("Настройки", text.NewSettings(nil, nil))
+
+		// callbacks
+		r.HandleFuncCallback("set_cookie", callback.NewChangeCookie(nil))
+		r.HandleFuncCallback("change_notification", nil)
 	})
 
-	b.Handle(tele.OnText, r.ServeContext)
+	r.Group(func(r router.Router) { // Routes for default state
+		r.Use(stater.New(stateMachine, fsm.SendingCookie))
+
+		r.HandleFuncText("Отменить действие", text.NewStart(stateMachine))
+	})
+
+	b.Handle(tele.OnText, func(context tele.Context) error {
+		return errors.New("error")
+	})
 
 	return &App{log: log, bot: b}
 }

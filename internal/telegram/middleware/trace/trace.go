@@ -1,7 +1,6 @@
 package trace
 
 import (
-	"fmt"
 	"github.com/google/uuid"
 	tele "gopkg.in/telebot.v4"
 	"log/slog"
@@ -22,9 +21,8 @@ func New(log *slog.Logger) tele.MiddlewareFunc {
 			if err != nil {
 				log.Warn("failed to generate UUID")
 			}
-			traceID := fmt.Sprintf("%d/%s/%s", c.Sender().ID, c.Sender().Username, newUUID.String())
 
-			c.Set("trace_id", traceID)
+			c.Set("trace_id", newUUID.String())
 
 			return next(c)
 		}

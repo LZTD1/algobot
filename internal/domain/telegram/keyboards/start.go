@@ -3,18 +3,18 @@ package keyboards
 import tele "gopkg.in/telebot.v4"
 
 func Start() *tele.ReplyMarkup {
-	StartKeyboard := &tele.ReplyMarkup{ResizeKeyboard: true}
+	startKb := &tele.ReplyMarkup{ResizeKeyboard: true}
 
-	MissingBtn := StartKeyboard.Text("Получить отсутсвующих")
-	MyGroupsBtn := StartKeyboard.Text("Мои группы")
-	SettingsBtn := StartKeyboard.Text("Настройки")
-	AIBtn := StartKeyboard.Text("AI 🔹")
+	missing := startKb.Text("Получить отсутсвующих")
+	myGroups := startKb.Text("Мои группы")
+	settings := startKb.Text("Настройки")
+	ai := startKb.Text("AI 🔹")
 
-	StartKeyboard.Reply(
-		StartKeyboard.Row(MissingBtn),
-		StartKeyboard.Row(MyGroupsBtn, SettingsBtn),
-		StartKeyboard.Row(AIBtn),
+	startKb.Reply(
+		startKb.Row(missing),
+		startKb.Row(myGroups, settings),
+		startKb.Row(ai),
 	)
 
-	return StartKeyboard
+	return startKb
 }

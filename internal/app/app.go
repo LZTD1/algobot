@@ -14,7 +14,7 @@ type App struct {
 
 func New(log *slog.Logger, cfg *config.Config) *App {
 
-	botApplicaton := telegram.New(log, cfg.TelegramToken)
+	botApplication := telegram.New(log, cfg.TelegramToken)
 
-	return &App{log: log, cfg: cfg, TelegramBot: botApplicaton}
+	return &App{log: log, cfg: cfg, TelegramBot: botApplication}
 }
