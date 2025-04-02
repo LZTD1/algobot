@@ -14,3 +14,7 @@ dev:
 .PHONY: mock-gen
 mock-gen:
 	cd test && go generate ./...
+
+.PHONY: migrate
+migrate:
+	go run ./cmd/migrator/main.go -migrations-path=./migrations -storage-path=./storage/storage.db
