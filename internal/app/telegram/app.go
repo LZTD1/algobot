@@ -55,6 +55,7 @@ func New(log *slog.Logger, token string) *App {
 	b.Use(middleware.AutoRespond())
 	b.Use(middleware.Recover())
 	b.Use(logger.New(log))
+
 	r := router.NewRouter()
 
 	r.Group(func(r router.Router) { // Routes for default state
@@ -69,7 +70,7 @@ func New(log *slog.Logger, token string) *App {
 		r.HandleFuncCallback("change_notification", nil)
 	})
 
-	r.Group(func(r router.Router) { // Routes for default state
+	r.Group(func(r router.Router) { // Routes for SendingCookie state
 		r.Use(stater.New(stateMachine, fsm.SendingCookie))
 
 		r.HandleFuncText("Отменить действие", text.NewStart(stateMachine))

@@ -9,3 +9,8 @@ gen:
 .PHONY: dev
 dev:
 	go run ./cmd/algobot/main.go -config=./config/local.yaml
+
+
+.PHONY: mock-gen
+mock-gen:
+	cd test && go generate ./...

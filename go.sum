@@ -62,6 +62,8 @@ github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
 github.com/LZTD1/telebot-router v1.0.0 h1:Fskz8zTCfFKrrOg4LTiBgQYZXKj4nxjfVmlZRmfZzGQ=
 github.com/LZTD1/telebot-router v1.0.0/go.mod h1:k9h+Glmg+h36Wguq7+ycs7saP1cu3tdANde5pRWI2/A=
+github.com/LZTD1/telebot-router v1.1.1 h1:YNIs70tnMSjpZNFQxYhS6GcUfPBugR5FSUlJ1S3mvrc=
+github.com/LZTD1/telebot-router v1.1.1/go.mod h1:k9h+Glmg+h36Wguq7+ycs7saP1cu3tdANde5pRWI2/A=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
