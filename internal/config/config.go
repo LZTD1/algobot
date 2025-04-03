@@ -10,6 +10,7 @@ type Config struct {
 	Env            string `yaml:"env" env-default:"prod"`
 	TelegramToken  string `yaml:"telegram_token" env:"TELEGRAM_TOKEN" env-required:"true"`
 	MigrationsPath string `yaml:"migrations_path" env-default:"./migrations"`
+	StoragePath    string `yaml:"storage_path" env-default:"./storage/storage.db"`
 	GRPC           GRPC   `yaml:"grpc"`
 }
 

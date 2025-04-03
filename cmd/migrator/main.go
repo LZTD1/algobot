@@ -24,7 +24,10 @@ func main() {
 		panic("storage-path is required")
 	}
 
-	db, _ := sql.Open("sqlite3", fmt.Sprintf("file:%s", storagePath))
+	db, err := sql.Open("sqlite3", fmt.Sprintf("file:%s", storagePath))
+	if err != nil {
+		panic(err)
+	}
 
 	if err := goose.SetDialect("sqlite3"); err != nil {
 		panic(err)

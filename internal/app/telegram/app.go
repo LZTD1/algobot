@@ -6,6 +6,7 @@ import (
 	"algobot/internal/lib/logger/sl"
 	"algobot/internal/telegram/handlers/callback"
 	"algobot/internal/telegram/handlers/text"
+	"algobot/internal/telegram/middleware/auth"
 	"algobot/internal/telegram/middleware/logger"
 	"algobot/internal/telegram/middleware/stater"
 	"algobot/internal/telegram/middleware/trace"
@@ -55,6 +56,7 @@ func New(log *slog.Logger, token string) *App {
 	b.Use(middleware.AutoRespond())
 	b.Use(middleware.Recover())
 	b.Use(logger.New(log))
+	b.Use(auth.New(nil, log))
 
 	r := router.NewRouter()
 
