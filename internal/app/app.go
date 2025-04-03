@@ -19,7 +19,7 @@ func New(log *slog.Logger, cfg *config.Config) *App {
 	if err != nil {
 		panic(err)
 	}
-	botApplication := telegram.New(log, cfg.TelegramToken, storage)
+	botApplication := telegram.New(log, cfg.TelegramToken, storage, storage)
 
 	return &App{log: log, cfg: cfg, TelegramBot: botApplication}
 }

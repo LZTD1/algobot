@@ -40,6 +40,7 @@ func TestSqlite(t *testing.T) {
 		StoragePath: testDBPath,
 	})
 	defer sqlite.MustClose()
+
 	t.Run("IsRegistered", func(t *testing.T) {
 		t.Run("user have reg", func(t *testing.T) {
 			registered, err := sqlite.IsRegistered(1001)
@@ -65,5 +66,22 @@ func TestSqlite(t *testing.T) {
 			err := sqlite.Register(1001)
 			assert.Error(t, err)
 		})
+	})
+	t.Run("Cookie", func(t *testing.T) {
+		t.Run("Cookie set", func(t *testing.T) {
+			cookie, err := sqlite.Cookies(1000)
+			assert.NoError(t, err)
+			assert.Equal(t, "", cookie)
+		})
+		t.Run("Cookie null", func(t *testing.T) {
+			cookie, err := sqlite.Cookies(1001)
+			assert.NoError(t, err)
+			assert.Equal(t, "cookie", cookie)
+		})
+	})
+	t.Run("Notification", func(t *testing.T) {
+		notfication, err := sqlite.Notification(1000)
+		assert.NoError(t, err)
+		assert.Equal(t, false, notfication)
 	})
 }

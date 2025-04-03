@@ -8,9 +8,7 @@ import (
 	"algobot/internal/telegram/handlers/text"
 	"algobot/internal/telegram/middleware/auth"
 	"algobot/internal/telegram/middleware/logger"
-	"algobot/internal/telegram/middleware/stater"
 	"algobot/internal/telegram/middleware/trace"
-	"errors"
 	"fmt"
 	router "github.com/LZTD1/telebot-router"
 	tele "gopkg.in/telebot.v4"
@@ -25,7 +23,7 @@ type App struct {
 	bot *tele.Bot
 }
 
-func New(log *slog.Logger, token string, auther auth.Auther) *App {
+func New(log *slog.Logger, token string, auther auth.Auther, set text.UserInformer) *App {
 	const op = "telegram.New"
 
 	nlog := log.With(
@@ -59,29 +57,59 @@ func New(log *slog.Logger, token string, auther auth.Auther) *App {
 	b.Use(auth.New(auther, log))
 
 	r := router.NewRouter()
-
+	//st := stater.New(stateMachine, fsm.Default)
 	r.Group(func(r router.Router) { // Routes for default state
-		r.Use(stater.New(stateMachine, fsm.Default))
+		r.Use(func(handler router.RouteHandler) router.RouteHandler {
+			return router.HandlerFunc(func(ctx tele.Context) error {
+				fmt.Printf("1) ")
+				fmt.Printf("username: %s ", ctx.Sender().Username)
+				fmt.Printf("message: %s ", ctx.Message().Text)
+				fmt.Printf("onState: %d ", fsm.Default)
+				fmt.Printf("stater.State: %d \n", stateMachine.State(ctx.Sender().ID))
+				if stateMachine.State(ctx.Sender().ID) == fsm.Default {
+					return handler.ServeContext(ctx)
+				}
+
+				return nil
+			})
+		})
 
 		// message
 		r.HandleFuncText("/start", text.NewStart(stateMachine))
-		r.HandleFuncText("Настройки", text.NewSettings(nil, nil))
+		r.HandleFuncText("Настройки", text.NewSettings(set, log))
+		//r.HandleFuncText(".", text.NewStart(stateMachine))
 
 		// callbacks
-		r.HandleFuncCallback("set_cookie", callback.NewChangeCookie(nil))
+		r.HandleFuncCallback("set_cookie", callback.NewChangeCookie(stateMachine))
 		r.HandleFuncCallback("change_notification", nil)
 	})
 
 	r.Group(func(r router.Router) { // Routes for SendingCookie state
-		r.Use(stater.New(stateMachine, fsm.SendingCookie))
+		r.Use(func(handler router.RouteHandler) router.RouteHandler {
+			return router.HandlerFunc(func(ctx tele.Context) error {
+				fmt.Printf("2) ")
+				fmt.Printf("username: %s ", ctx.Sender().Username)
+				fmt.Printf("message: %s ", ctx.Message().Text)
+				fmt.Printf("onState: %d ", fsm.Default)
+				fmt.Printf("stater.State: %d \n", stateMachine.State(ctx.Sender().ID))
 
-		// text
-		r.HandleFuncText("Отменить действие", text.NewStart(stateMachine))
+				if stateMachine.State(ctx.Sender().ID) == fsm.SendingCookie {
+					return handler.ServeContext(ctx)
+				}
+
+				return nil
+			})
+		})
+
+		// message
+		r.HandleFuncText("⬅️ Назад", text.NewStart(stateMachine))
+		r.HandleFuncText(".", func(c tele.Context) error {
+			return c.Reply("accepted")
+		})
 	})
 
-	b.Handle(tele.OnText, func(context tele.Context) error {
-		return errors.New("error")
-	})
+	b.Handle(tele.OnText, r.ServeContext)
+	b.Handle(tele.OnCallback, r.ServeContext)
 
 	return &App{log: log, bot: b}
 }
