@@ -35,7 +35,7 @@ func New(auth Auther, log *slog.Logger) telebot.MiddlewareFunc {
 					return fmt.Errorf("error while register user: %w", err)
 				}
 
-				log.Info("user is registered", slog.Int64("uid", uid))
+				log.Info("new registration", slog.Int64("uid", uid))
 			}
 
 			return next(ctx)

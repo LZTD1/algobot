@@ -25,7 +25,7 @@ type App struct {
 	bot *tele.Bot
 }
 
-func New(log *slog.Logger, token string) *App {
+func New(log *slog.Logger, token string, auther auth.Auther) *App {
 	const op = "telegram.New"
 
 	nlog := log.With(
@@ -40,7 +40,7 @@ func New(log *slog.Logger, token string) *App {
 		OnError: func(e error, c tele.Context) { // TODO : refactor into handler
 			traceID := c.Get("trace_id") // TODO : maybe send warnings to admin ?
 			c.Send(fmt.Sprintf("<b>[%s]</b>\n\nУпс! Произошла какая-то непредвиденная ошибка!\nОбратитесь к администратору", traceID), tele.ModeHTML)
-			log.Warn("can`t handle error", sl.Err(e), slog.Any("trace_id", traceID))
+			log.Warn("cant handle error", sl.Err(e), slog.Any("trace_id", traceID))
 		},
 	}
 	b, err := tele.NewBot(pref)
@@ -56,7 +56,7 @@ func New(log *slog.Logger, token string) *App {
 	b.Use(middleware.AutoRespond())
 	b.Use(middleware.Recover())
 	b.Use(logger.New(log))
-	b.Use(auth.New(nil, log))
+	b.Use(auth.New(auther, log))
 
 	r := router.NewRouter()
 
@@ -75,6 +75,7 @@ func New(log *slog.Logger, token string) *App {
 	r.Group(func(r router.Router) { // Routes for SendingCookie state
 		r.Use(stater.New(stateMachine, fsm.SendingCookie))
 
+		// text
 		r.HandleFuncText("Отменить действие", text.NewStart(stateMachine))
 	})
 

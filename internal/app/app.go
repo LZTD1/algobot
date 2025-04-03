@@ -3,6 +3,7 @@ package app
 import (
 	"algobot/internal/app/telegram"
 	"algobot/internal/config"
+	"algobot/internal/storage/sqlite"
 	"log/slog"
 )
 
@@ -14,7 +15,11 @@ type App struct {
 
 func New(log *slog.Logger, cfg *config.Config) *App {
 
-	botApplication := telegram.New(log, cfg.TelegramToken)
+	storage, err := sqlite.NewDB(cfg)
+	if err != nil {
+		panic(err)
+	}
+	botApplication := telegram.New(log, cfg.TelegramToken, storage)
 
 	return &App{log: log, cfg: cfg, TelegramBot: botApplication}
 }

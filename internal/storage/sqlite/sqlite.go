@@ -27,3 +27,13 @@ func NewDB(cfg *config.Config) (*Sqlite, error) {
 
 	return &Sqlite{db: db}, nil
 }
+
+func (s *Sqlite) MustClose() {
+	if err := s.Close(); err != nil {
+		panic(err)
+	}
+}
+
+func (s *Sqlite) Close() error {
+	return s.db.Close()
+}
