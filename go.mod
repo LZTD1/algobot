@@ -3,7 +3,6 @@ module algobot
 go 1.23.3
 
 require (
-	github.com/LZTD1/telebot-router v1.1.1
 	github.com/google/uuid v1.6.0
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/ncruces/go-sqlite3 v0.25.0
@@ -15,6 +14,7 @@ require (
 
 require (
 	github.com/BurntSushi/toml v1.5.0 // indirect
+	github.com/LZTD1/telebot-context-router v1.0.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/mfridman/interpolate v0.0.2 // indirect

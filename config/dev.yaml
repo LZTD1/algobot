@@ -1,5 +1,5 @@
 env: local # or prod
-storage_path: "./storage/base.db"
+storage_path: "./storage/storage.db"
 # telegram token set in env variables - TELEGRAM_TOKEN
 migrations_path: "./migrations"
 grpc:

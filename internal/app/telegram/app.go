@@ -8,9 +8,10 @@ import (
 	"algobot/internal/telegram/handlers/text"
 	"algobot/internal/telegram/middleware/auth"
 	"algobot/internal/telegram/middleware/logger"
+	"algobot/internal/telegram/middleware/stater"
 	"algobot/internal/telegram/middleware/trace"
 	"fmt"
-	router "github.com/LZTD1/telebot-router"
+	router "github.com/LZTD1/telebot-context-router"
 	tele "gopkg.in/telebot.v4"
 	"gopkg.in/telebot.v4/middleware"
 	"log/slog"
@@ -59,54 +60,25 @@ func New(log *slog.Logger, token string, auther auth.Auther, set text.UserInform
 	r := router.NewRouter()
 	//st := stater.New(stateMachine, fsm.Default)
 	r.Group(func(r router.Router) { // Routes for default state
-		r.Use(func(handler router.RouteHandler) router.RouteHandler {
-			return router.HandlerFunc(func(ctx tele.Context) error {
-				fmt.Printf("1) ")
-				fmt.Printf("username: %s ", ctx.Sender().Username)
-				fmt.Printf("message: %s ", ctx.Message().Text)
-				fmt.Printf("onState: %d ", fsm.Default)
-				fmt.Printf("stater.State: %d \n", stateMachine.State(ctx.Sender().ID))
-				if stateMachine.State(ctx.Sender().ID) == fsm.Default {
-					return handler.ServeContext(ctx)
-				}
-
-				return nil
-			})
-		})
+		r.Use(stater.New(stateMachine, fsm.Default))
 
 		// message
 		r.HandleFuncText("/start", text.NewStart(stateMachine))
 		r.HandleFuncText("Настройки", text.NewSettings(set, log))
-		//r.HandleFuncText(".", text.NewStart(stateMachine))
 
 		// callbacks
-		r.HandleFuncCallback("set_cookie", callback.NewChangeCookie(stateMachine))
-		r.HandleFuncCallback("change_notification", nil)
+		r.HandleFuncCallback("\fset_cookie", callback.NewChangeCookie(stateMachine))
+		r.HandleFuncCallback("\fchange_notification", nil)
 	})
 
 	r.Group(func(r router.Router) { // Routes for SendingCookie state
-		r.Use(func(handler router.RouteHandler) router.RouteHandler {
-			return router.HandlerFunc(func(ctx tele.Context) error {
-				fmt.Printf("2) ")
-				fmt.Printf("username: %s ", ctx.Sender().Username)
-				fmt.Printf("message: %s ", ctx.Message().Text)
-				fmt.Printf("onState: %d ", fsm.Default)
-				fmt.Printf("stater.State: %d \n", stateMachine.State(ctx.Sender().ID))
-
-				if stateMachine.State(ctx.Sender().ID) == fsm.SendingCookie {
-					return handler.ServeContext(ctx)
-				}
-
-				return nil
-			})
-		})
+		r.Use(stater.New(stateMachine, fsm.SendingCookie))
 
 		// message
 		r.HandleFuncText("⬅️ Назад", text.NewStart(stateMachine))
-		r.HandleFuncText(".", func(c tele.Context) error {
-			return c.Reply("accepted")
-		})
 	})
+
+	r.NotFound(text.NewStart(stateMachine))
 
 	b.Handle(tele.OnText, r.ServeContext)
 	b.Handle(tele.OnCallback, r.ServeContext)
