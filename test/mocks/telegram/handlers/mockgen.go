@@ -9,3 +9,6 @@ package mocks
 
 //go:generate mockgen -destination=./cookieSetter_mock.go -package=mocks algobot/internal/telegram/handlers/text CookieSetter
 //go:generate mockgen -destination=./cookieStater_mock.go -package=mocks algobot/internal/telegram/handlers/text CookieStater
+
+//go:generate mockgen -destination=./grouper_mock.go -package=mocks algobot/internal/telegram/handlers/text Grouper
+//go:generate mockgen -destination=./groupSerializer_mock.go -package=mocks algobot/internal/telegram/handlers/text GroupSerializer
