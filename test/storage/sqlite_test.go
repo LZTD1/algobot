@@ -84,4 +84,16 @@ func TestSqlite(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, false, notfication)
 	})
+	t.Run("SetCookie", func(t *testing.T) {
+		cookie, err := sqlite.Cookies(999)
+		assert.NoError(t, err)
+		assert.Equal(t, "", cookie)
+
+		err = sqlite.SetCookie(999, "a@a")
+		assert.NoError(t, err)
+
+		cookie, err = sqlite.Cookies(999)
+		assert.NoError(t, err)
+		assert.Equal(t, "a@a", cookie)
+	})
 }

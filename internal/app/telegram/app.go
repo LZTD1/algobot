@@ -16,6 +16,7 @@ import (
 	"gopkg.in/telebot.v4/middleware"
 	"log/slog"
 	"os"
+	"regexp"
 	"time"
 )
 
@@ -24,7 +25,7 @@ type App struct {
 	bot *tele.Bot
 }
 
-func New(log *slog.Logger, token string, auther auth.Auther, set text.UserInformer) *App {
+func New(log *slog.Logger, token string, auther auth.Auther, set text.UserInformer, cookieSetter text.CookieSetter) *App {
 	const op = "telegram.New"
 
 	nlog := log.With(
@@ -76,6 +77,7 @@ func New(log *slog.Logger, token string, auther auth.Auther, set text.UserInform
 
 		// message
 		r.HandleFuncText("⬅️ Назад", text.NewStart(stateMachine))
+		r.HandleFuncRegexpText(regexp.MustCompile(".+"), text.NewSendingCookie(log, cookieSetter, stateMachine))
 	})
 
 	r.NotFound(text.NewStart(stateMachine))

@@ -6,3 +6,6 @@ package mocks
 //go:generate mockgen -destination=./notificationChanger_mock.go -package=mocks algobot/internal/telegram/handlers/callback NotificationChanger
 //go:generate mockgen -destination=./aiInformer_mock.go -package=mocks algobot/internal/telegram/handlers/text AIInformer
 //go:generate mockgen -destination=./aiStater_mock.go -package=mocks algobot/internal/telegram/handlers/text AIStater
+
+//go:generate mockgen -destination=./cookieSetter_mock.go -package=mocks algobot/internal/telegram/handlers/text CookieSetter
+//go:generate mockgen -destination=./cookieStater_mock.go -package=mocks algobot/internal/telegram/handlers/text CookieStater
