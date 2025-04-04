@@ -36,7 +36,8 @@ func TestRate(t *testing.T) {
 		return nil
 	}
 	for i := 0; i < expected+1; i++ {
-		rate(hfunc)(mctx)
+		err := rate(hfunc)(mctx)
+		assert.NoError(t, err)
 	}
 	assert.Equal(t, expected, actual)
 }
