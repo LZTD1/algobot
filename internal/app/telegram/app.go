@@ -25,7 +25,7 @@ type App struct {
 	bot *tele.Bot
 }
 
-func New(log *slog.Logger, token string, auther auth.Auther, set text.UserInformer, cookieSetter text.CookieSetter) *App {
+func New(log *slog.Logger, token string, auther auth.Auther, set text.UserInformer, cookieSetter text.CookieSetter, notifChanger callback.NotificationChanger) *App {
 	const op = "telegram.New"
 
 	nlog := log.With(
@@ -69,7 +69,7 @@ func New(log *slog.Logger, token string, auther auth.Auther, set text.UserInform
 
 		// callbacks
 		r.HandleFuncCallback("\fset_cookie", callback.NewChangeCookie(stateMachine))
-		r.HandleFuncCallback("\fchange_notification", nil)
+		r.HandleFuncCallback("\fchange_notification", callback.NewChangeNotification(notifChanger, log))
 	})
 
 	r.Group(func(r router.Router) { // Routes for SendingCookie state

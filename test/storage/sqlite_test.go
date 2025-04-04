@@ -96,4 +96,23 @@ func TestSqlite(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "a@a", cookie)
 	})
+	t.Run("SetNotification", func(t *testing.T) {
+		notif, err := sqlite.Notification(999)
+		assert.NoError(t, err)
+		assert.False(t, notif)
+
+		err = sqlite.SetNotification(999, true)
+		assert.NoError(t, err)
+
+		notif, err = sqlite.Notification(999)
+		assert.NoError(t, err)
+		assert.True(t, notif)
+
+		err = sqlite.SetNotification(999, false)
+		assert.NoError(t, err)
+
+		notif, err = sqlite.Notification(999)
+		assert.NoError(t, err)
+		assert.False(t, notif)
+	})
 }
