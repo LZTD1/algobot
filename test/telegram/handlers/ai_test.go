@@ -1,6 +1,7 @@
 package test
 
 import (
+	"algobot/internal/domain/models"
 	"algobot/internal/domain/telegram/keyboards"
 	"algobot/internal/lib/fsm"
 	"algobot/internal/telegram/handlers/text"
@@ -27,14 +28,14 @@ func TestAI(t *testing.T) {
 	mctx.EXPECT().Get("trace_id").Return("a-1").AnyTimes()
 
 	t.Run("happy path", func(t *testing.T) {
-		aiRet := text.AIInfo{
+		aiRet := models.AIInfo{
 			TextModel:  "1",
 			ImageModel: "1",
 		}
 
 		gomock.InOrder(
 			mctx.EXPECT().Sender().Return(&tele.User{ID: 1}).Times(1),
-			ai.EXPECT().GetAIInfo().Return(aiRet, nil).Times(1),
+			ai.EXPECT().GetAIInfo("a-1").Return(aiRet, nil).Times(1),
 			stater.EXPECT().SetState(int64(1), fsm.ChattingAI).Times(1),
 			mctx.EXPECT().Send(text.GetAIMessage(aiRet), keyboards.RejectKeyboard()).Times(1),
 		)
@@ -42,12 +43,12 @@ func TestAI(t *testing.T) {
 		assert.NoError(t, err)
 	})
 	t.Run("GetAIInfo return err", func(t *testing.T) {
-		aiRet := text.AIInfo{}
+		aiRet := models.AIInfo{}
 		aiErr := errors.New("GetAIInfo error")
 
 		gomock.InOrder(
 			mctx.EXPECT().Sender().Return(&tele.User{ID: 1}).Times(1),
-			ai.EXPECT().GetAIInfo().Return(aiRet, aiErr).Times(1),
+			ai.EXPECT().GetAIInfo("a-1").Return(aiRet, aiErr).Times(1),
 			mctx.EXPECT().Send("Упс, AI сейчас не работает!").Times(1),
 		)
 		err := h(mctx)

@@ -5,7 +5,7 @@ migrations_path: "./migrations"
 grpc:
   host: "localhost"
   port: 50051
-  timeout: 999s
+  timeout: 300s
 rate_limit:
   fill_period: 800ms
   bucket_limit: 6

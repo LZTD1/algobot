@@ -1,6 +1,7 @@
 package text
 
 import (
+	"algobot/internal/domain/models"
 	"algobot/internal/domain/telegram/keyboards"
 	"algobot/internal/lib/fsm"
 	"algobot/internal/lib/logger/sl"
@@ -9,13 +10,8 @@ import (
 	"strings"
 )
 
-type AIInfo struct {
-	TextModel  string
-	ImageModel string
-}
-
 type AIInformer interface {
-	GetAIInfo() (AIInfo, error)
+	GetAIInfo(traceID interface{}) (models.AIInfo, error)
 }
 
 type AIStater interface {
@@ -32,7 +28,7 @@ func NewAI(ai AIInformer, log *slog.Logger, stater AIStater) telebot.HandlerFunc
 		)
 		uid := ctx.Sender().ID
 
-		info, err := ai.GetAIInfo()
+		info, err := ai.GetAIInfo(ctx.Get("trace_id"))
 		if err != nil {
 			log.Warn("error while GetAIInfo", sl.Err(err))
 			return ctx.Send("Упс, AI сейчас не работает!")
@@ -43,7 +39,7 @@ func NewAI(ai AIInformer, log *slog.Logger, stater AIStater) telebot.HandlerFunc
 	}
 }
 
-func GetAIMessage(info AIInfo) string {
+func GetAIMessage(info models.AIInfo) string {
 	sb := strings.Builder{}
 	sb.WriteString("Информация о включенных моделях:\n\n")
 	sb.WriteString("Текст: ")

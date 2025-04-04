@@ -28,6 +28,7 @@ func New(log *slog.Logger, cfg *config.Config) *App {
 		storage,
 		storage,
 		cfg.RateLimit,
+		cfg.GRPC,
 	)
 
 	return &App{log: log, cfg: cfg, TelegramBot: botApplication}

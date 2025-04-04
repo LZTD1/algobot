@@ -7,6 +7,7 @@ import (
 	"algobot/internal/lib/logger/sl"
 	"algobot/internal/lib/serdes/base62"
 	"algobot/internal/services"
+	grpc2 "algobot/internal/services/grpc"
 	"algobot/internal/telegram/handlers/callback"
 	"algobot/internal/telegram/handlers/text"
 	"algobot/internal/telegram/middleware/auth"
@@ -38,6 +39,8 @@ func New(
 	cookieSetter text.CookieSetter,
 	notifChanger callback.NotificationChanger,
 	rateCfg config.RateLimit,
+	grpcCfg config.GRPC,
+
 ) *App {
 	const op = "telegram.New"
 
@@ -66,6 +69,7 @@ func New(
 	groupServ := services.NewGroup(log, grGetter)
 	stateMachine := memory.New()
 	serdes := base62.NewSerdes(log)
+	grpc := grpc2.NewAIService(grpcCfg, log)
 
 	// initialize routes
 	b.Use(trace.New(log))
@@ -83,6 +87,7 @@ func New(
 		// message
 		r.HandleFuncText("/start", text.NewStart(stateMachine))
 		r.HandleFuncText("Настройки", text.NewSettings(set, log))
+		r.HandleFuncText("AI 🔹", text.NewAI(grpc, log, stateMachine))
 		r.HandleText("Мои группы", text.NewMyGroup(log, groupServ, serdes, b.Me.Username))
 
 		// callbacks
