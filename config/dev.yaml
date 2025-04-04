@@ -6,3 +6,6 @@ grpc:
   host: "localhost"
   port: 50051
   timeout: 999s
+rate_limit:
+  fill_period: 800ms
+  bucket_limit: 6

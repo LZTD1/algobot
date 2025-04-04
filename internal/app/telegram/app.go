@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"algobot/internal/config"
 	"algobot/internal/lib/fsm"
 	"algobot/internal/lib/fsm/memory"
 	"algobot/internal/lib/logger/sl"
@@ -10,6 +11,7 @@ import (
 	"algobot/internal/telegram/handlers/text"
 	"algobot/internal/telegram/middleware/auth"
 	"algobot/internal/telegram/middleware/logger"
+	"algobot/internal/telegram/middleware/rate"
 	"algobot/internal/telegram/middleware/stater"
 	"algobot/internal/telegram/middleware/trace"
 	"fmt"
@@ -27,7 +29,16 @@ type App struct {
 	bot *tele.Bot
 }
 
-func New(log *slog.Logger, token string, grGetter services.GroupGetter, auther auth.Auther, set text.UserInformer, cookieSetter text.CookieSetter, notifChanger callback.NotificationChanger) *App {
+func New(
+	log *slog.Logger,
+	token string,
+	grGetter services.GroupGetter,
+	auther auth.Auther,
+	set text.UserInformer,
+	cookieSetter text.CookieSetter,
+	notifChanger callback.NotificationChanger,
+	rateCfg config.RateLimit,
+) *App {
 	const op = "telegram.New"
 
 	nlog := log.With(
@@ -62,6 +73,7 @@ func New(log *slog.Logger, token string, grGetter services.GroupGetter, auther a
 	b.Use(middleware.Recover())
 	b.Use(logger.New(log))
 	b.Use(auth.New(auther, log))
+	b.Use(rate.New(log, rateCfg))
 
 	// create routing
 	r := router.NewRouter()
