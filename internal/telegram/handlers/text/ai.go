@@ -35,20 +35,22 @@ func NewAI(ai AIInformer, log *slog.Logger, stater AIStater) telebot.HandlerFunc
 		}
 
 		stater.SetState(uid, fsm.ChattingAI)
-		return ctx.Send(GetAIMessage(info), keyboards.RejectKeyboard())
+		return ctx.Send(GetAIMessage(info), keyboards.RejectKeyboard(), telebot.ModeMarkdown)
 	}
 }
 
 func GetAIMessage(info models.AIInfo) string {
 	sb := strings.Builder{}
 	sb.WriteString("Информация о включенных моделях:\n\n")
-	sb.WriteString("Текст: ")
+	sb.WriteString("***Текст:*** ")
 	sb.WriteString(info.TextModel)
-	sb.WriteString("\nИзображение: ")
+	sb.WriteString(" 🗒\n***Изображение:*** ")
 	sb.WriteString(info.ImageModel)
-	sb.WriteString("\n\n")
+	sb.WriteString(" 🖼\n\n")
+	sb.WriteString("```guide\n")
 	sb.WriteString("/reset - отчистить память модели")
 	sb.WriteString("\n/image promt - сгенерировать изображение")
+	sb.WriteString("\n```")
 	sb.WriteString("\nДля текстового запроса - просто напиши в чат")
 	return sb.String()
 }

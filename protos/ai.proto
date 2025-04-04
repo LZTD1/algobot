@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package pkg;
+package pypkg;
 option go_package = "algobot.ai.v1;aiv1";
 
 service Ai {

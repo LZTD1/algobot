@@ -37,7 +37,7 @@ func TestAI(t *testing.T) {
 			mctx.EXPECT().Sender().Return(&tele.User{ID: 1}).Times(1),
 			ai.EXPECT().GetAIInfo("a-1").Return(aiRet, nil).Times(1),
 			stater.EXPECT().SetState(int64(1), fsm.ChattingAI).Times(1),
-			mctx.EXPECT().Send(text.GetAIMessage(aiRet), keyboards.RejectKeyboard()).Times(1),
+			mctx.EXPECT().Send(text.GetAIMessage(aiRet), keyboards.RejectKeyboard(), tele.ModeMarkdown).Times(1),
 		)
 		err := h(mctx)
 		assert.NoError(t, err)
