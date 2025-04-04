@@ -4,6 +4,8 @@ import (
 	"algobot/internal/lib/fsm"
 	"algobot/internal/lib/fsm/memory"
 	"algobot/internal/lib/logger/sl"
+	"algobot/internal/lib/serdes/base62"
+	"algobot/internal/services"
 	"algobot/internal/telegram/handlers/callback"
 	"algobot/internal/telegram/handlers/text"
 	"algobot/internal/telegram/middleware/auth"
@@ -25,7 +27,7 @@ type App struct {
 	bot *tele.Bot
 }
 
-func New(log *slog.Logger, token string, auther auth.Auther, set text.UserInformer, cookieSetter text.CookieSetter, notifChanger callback.NotificationChanger) *App {
+func New(log *slog.Logger, token string, grGetter services.GroupGetter, auther auth.Auther, set text.UserInformer, cookieSetter text.CookieSetter, notifChanger callback.NotificationChanger) *App {
 	const op = "telegram.New"
 
 	nlog := log.With(
@@ -49,7 +51,10 @@ func New(log *slog.Logger, token string, auther auth.Auther, set text.UserInform
 		os.Exit(1)
 	}
 
+	// dependencies
+	groupServ := services.NewGroup(log, grGetter)
 	stateMachine := memory.New()
+	serdes := base62.NewSerdes(log)
 
 	// initialize routes
 	b.Use(trace.New(log))
@@ -58,14 +63,15 @@ func New(log *slog.Logger, token string, auther auth.Auther, set text.UserInform
 	b.Use(logger.New(log))
 	b.Use(auth.New(auther, log))
 
+	// create routing
 	r := router.NewRouter()
-	//st := stater.New(stateMachine, fsm.Default)
 	r.Group(func(r router.Router) { // Routes for default state
 		r.Use(stater.New(stateMachine, fsm.Default))
 
 		// message
 		r.HandleFuncText("/start", text.NewStart(stateMachine))
 		r.HandleFuncText("Настройки", text.NewSettings(set, log))
+		r.HandleText("Мои группы", text.NewMyGroup(log, groupServ, serdes, b.Me.Username))
 
 		// callbacks
 		r.HandleFuncCallback("\fset_cookie", callback.NewChangeCookie(stateMachine))

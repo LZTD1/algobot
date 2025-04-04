@@ -2,6 +2,7 @@ package test
 
 import (
 	"algobot/internal/domain/models"
+	"algobot/internal/domain/telegram/keyboards"
 	"algobot/internal/telegram/handlers/text"
 	"algobot/test/mocks"
 	mocks3 "algobot/test/mocks/telegram"
@@ -14,7 +15,7 @@ import (
 	"time"
 )
 
-func TestMyGropus(t *testing.T) {
+func TestMyGroups(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -31,11 +32,11 @@ func TestMyGropus(t *testing.T) {
 
 		gomock.InOrder(
 			mctx.EXPECT().Sender().Return(&tele.User{ID: 1}).Times(1),
-			grouper.EXPECT().Groups(int64(1)).Return(mockGroups, nil).Times(1),
-			ser.EXPECT().Serialize(mockGroups[0]).Return("ser-g1", nil).Times(1),
-			ser.EXPECT().Serialize(mockGroups[1]).Return("ser-g2", nil).Times(1),
-			ser.EXPECT().Serialize(mockGroups[2]).Return("", errors.New("ser")).Times(1),
-			mctx.EXPECT().Send(mockStringRet, tele.ModeHTML).Return(nil).Times(1),
+			grouper.EXPECT().Groups(int64(1), "trace_id").Return(mockGroups, nil).Times(1),
+			ser.EXPECT().Serialize(mockGroups[0], "trace_id").Return("ser-g1", nil).Times(1),
+			ser.EXPECT().Serialize(mockGroups[1], "trace_id").Return("ser-g2", nil).Times(1),
+			ser.EXPECT().Serialize(mockGroups[2], "trace_id").Return("", errors.New("ser")).Times(1),
+			mctx.EXPECT().Send(mockStringRet, tele.ModeHTML, keyboards.RefreshGroups()).Return(nil).Times(1),
 		)
 
 		err := handler.ServeContext(mctx)
@@ -44,8 +45,8 @@ func TestMyGropus(t *testing.T) {
 	t.Run("no one group", func(t *testing.T) {
 		gomock.InOrder(
 			mctx.EXPECT().Sender().Return(&tele.User{ID: 1}).Times(1),
-			grouper.EXPECT().Groups(int64(1)).Return([]models.Group{}, nil).Times(1),
-			mctx.EXPECT().Send("Всего групп: 0\nПопробуйте обновить группы!", tele.ModeHTML).Return(nil).Times(1),
+			grouper.EXPECT().Groups(int64(1), "trace_id").Return([]models.Group{}, nil).Times(1),
+			mctx.EXPECT().Send("Всего групп: 0\nПопробуйте обновить группы!", tele.ModeHTML, keyboards.RefreshGroups()).Return(nil).Times(1),
 		)
 
 		err := handler.ServeContext(mctx)
@@ -56,7 +57,7 @@ func TestMyGropus(t *testing.T) {
 
 		gomock.InOrder(
 			mctx.EXPECT().Sender().Return(&tele.User{ID: 1}).Times(1),
-			grouper.EXPECT().Groups(int64(1)).Return(nil, err).Times(1),
+			grouper.EXPECT().Groups(int64(1), "trace_id").Return(nil, err).Times(1),
 			mctx.EXPECT().Send("<b>[trace_id]</b> Ошибка при получении групп!", tele.ModeHTML).Return(nil).Times(1),
 		)
 

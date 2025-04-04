@@ -2,6 +2,7 @@ package test
 
 import (
 	"algobot/internal/config"
+	"algobot/internal/domain/models"
 	sqlite2 "algobot/internal/storage/sqlite"
 	"database/sql"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+	"time"
 )
 
 const (
@@ -114,5 +116,34 @@ func TestSqlite(t *testing.T) {
 		notif, err = sqlite.Notification(999)
 		assert.NoError(t, err)
 		assert.False(t, notif)
+	})
+	t.Run("Groups", func(t *testing.T) {
+		t.Run("happy path", func(t *testing.T) {
+			groups, err := sqlite.Groups(999)
+			assert.NoError(t, err)
+			assert.Len(t, groups, 3)
+			assert.Equal(t, []models.Group{
+				{
+					GroupID:    1001,
+					Title:      "group 1",
+					TimeLesson: time.Date(2025, time.March, 23, 14, 0, 0, 0, time.UTC),
+				},
+				{
+					GroupID:    1000,
+					Title:      "group 2",
+					TimeLesson: time.Date(2025, time.March, 23, 16, 0, 0, 0, time.UTC),
+				},
+				{
+					GroupID:    999,
+					Title:      "group 3",
+					TimeLesson: time.Date(2025, time.March, 22, 14, 0, 0, 0, time.UTC),
+				},
+			}, groups)
+		})
+		t.Run("no one group", func(t *testing.T) {
+			groups, err := sqlite.Groups(1000)
+			assert.NoError(t, err)
+			assert.Len(t, groups, 0)
+		})
 	})
 }
