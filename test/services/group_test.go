@@ -2,7 +2,7 @@ package test
 
 import (
 	"algobot/internal/domain/models"
-	"algobot/internal/services"
+	"algobot/internal/services/groups"
 	"algobot/test/mocks"
 	mocks2 "algobot/test/mocks/services"
 	"errors"
@@ -19,7 +19,7 @@ func TestGroup(t *testing.T) {
 	log := mocks.NewMockLogger()
 	gGetter := mocks2.NewMockGroupGetter(ctrl)
 
-	service := services.NewGroup(log, gGetter)
+	service := groups.NewGroup(log, gGetter)
 
 	t.Run("happy path", func(t *testing.T) {
 		gGetter.EXPECT().Groups(int64(1)).Return(assets, nil).Times(1)

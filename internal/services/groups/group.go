@@ -1,11 +1,16 @@
-package services
+package groups
 
 import (
 	"algobot/internal/domain/models"
 	"algobot/internal/lib/logger/sl"
 	"algobot/internal/lib/sort"
+	"errors"
 	"fmt"
 	"log/slog"
+)
+
+var (
+	ErrNotValidCookie = errors.New("not a valid cookie")
 )
 
 type GroupGetter interface {
@@ -13,12 +18,14 @@ type GroupGetter interface {
 }
 
 type Group struct {
-	log    *slog.Logger
-	getter GroupGetter
+	log          *slog.Logger
+	getter       GroupGetter
+	groupFetcher GroupFetcher
+	domainSetter DomainSetter
 }
 
-func NewGroup(log *slog.Logger, getter GroupGetter) *Group {
-	return &Group{log: log, getter: getter}
+func NewGroup(log *slog.Logger, getter GroupGetter, setter DomainSetter, groupFetcher GroupFetcher) *Group {
+	return &Group{log: log, getter: getter, domainSetter: setter, groupFetcher: groupFetcher}
 }
 
 func (g *Group) Groups(uid int64, traceID interface{}) ([]models.Group, error) {

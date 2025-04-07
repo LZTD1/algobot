@@ -6,7 +6,7 @@ import (
 	"algobot/internal/lib/fsm/memory"
 	"algobot/internal/lib/logger/sl"
 	"algobot/internal/lib/serdes/base62"
-	"algobot/internal/services"
+	"algobot/internal/services/groups"
 	grpc2 "algobot/internal/services/grpc"
 	"algobot/internal/telegram/handlers/callback"
 	"algobot/internal/telegram/handlers/text"
@@ -33,7 +33,7 @@ type App struct {
 func New(
 	log *slog.Logger,
 	token string,
-	grGetter services.GroupGetter,
+	grGetter groups.GroupGetter,
 	auther auth.Auther,
 	set text.UserInformer,
 	cookieSetter text.CookieSetter,
@@ -66,7 +66,7 @@ func New(
 	}
 
 	// dependencies
-	groupServ := services.NewGroup(log, grGetter)
+	groupServ := groups.NewGroup(log, grGetter)
 	stateMachine := memory.New()
 	serdes := base62.NewSerdes(log)
 	grpc := grpc2.NewAIService(

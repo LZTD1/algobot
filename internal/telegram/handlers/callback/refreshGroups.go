@@ -1,0 +1,32 @@
+package callback
+
+import (
+	"algobot/internal/lib/logger/sl"
+	"fmt"
+	"gopkg.in/telebot.v4"
+	"log/slog"
+)
+
+type GroupRefresher interface {
+	RefreshGroup(uid int64, traceID interface{}) error
+}
+
+func RefreshGroup(refresher GroupRefresher, log *slog.Logger) telebot.HandlerFunc {
+	return func(ctx telebot.Context) error {
+		const op = "text.NewChangeNotification"
+
+		traceID := ctx.Get("trace_id")
+		log := log.With(
+			slog.String("op", op),
+			slog.Any("trace_id", traceID),
+		)
+		uid := ctx.Sender().ID
+
+		if err := refresher.RefreshGroup(uid, traceID); err != nil {
+			log.Warn("error while refreshing group", sl.Err(err))
+			return fmt.Errorf("%s error while refreshing group: %w", op, err)
+		}
+
+		return ctx.Edit("Успешно обновлено!")
+	}
+}
