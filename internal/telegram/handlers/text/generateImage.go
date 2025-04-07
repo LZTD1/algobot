@@ -23,7 +23,7 @@ func GenerateImage(generator GeneratorImage, log *slog.Logger) telebot.HandlerFu
 			slog.Any("trace_id", traceID),
 		)
 
-		msg, err := ctx.Bot().Send(telebot.ChatID(uid), "⚙️ Генерирую изображение ...")
+		msg, err := ctx.Bot().Reply(ctx.Message(), "⚙️ Генерирую изображение ...")
 		if err != nil {
 			log.Warn("failed to send prepare msg", sl.Err(err))
 			return fmt.Errorf("%s failed to send prepare msg: %w", op, err)

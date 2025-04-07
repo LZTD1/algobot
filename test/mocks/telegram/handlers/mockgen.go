@@ -16,3 +16,5 @@ package mocks
 //go:generate mockgen -destination=./reseter_mock.go -package=mocks algobot/internal/telegram/handlers/text Reseter
 
 //go:generate mockgen -destination=./generatorImage_mock.go -package=mocks algobot/internal/telegram/handlers/text GeneratorImage
+
+//go:generate mockgen -destination=./chatter_mock.go -package=mocks algobot/internal/telegram/handlers/text Chatter

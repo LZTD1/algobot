@@ -108,5 +108,48 @@ func TestGRPCAI(t *testing.T) {
 			assert.ErrorIs(t, err, errExp)
 		})
 	})
+	t.Run("GetSuggest", func(t *testing.T) {
+		t.Run("happy path", func(t *testing.T) {
+			aiClient.EXPECT().GetSuggest(gomock.Any(), &aiv1.SuggestRequest{
+				Uid:     int64(1),
+				Suggest: "Suggest",
+			}).Return(&aiv1.SuggestResponse{
+				Ok:      true,
+				Request: "Request",
+			}, nil).Times(1)
+
+			msg, err := svc.ChatAI(int64(1), "Suggest", "")
+			assert.NoError(t, err)
+			assert.Equal(t, "Request", msg)
+		})
+		t.Run("GetSuggest return err", func(t *testing.T) {
+			errExp := errors.New("GetSuggest err")
+
+			aiClient.EXPECT().GetSuggest(gomock.Any(), &aiv1.SuggestRequest{
+				Uid:     int64(1),
+				Suggest: "Suggest",
+			}).Return(&aiv1.SuggestResponse{
+				Ok:      false,
+				Request: "",
+			}, errExp).Times(1)
+
+			_, err := svc.ChatAI(int64(1), "Suggest", "")
+			assert.Error(t, err)
+			assert.ErrorIs(t, err, errExp)
+		})
+		t.Run("ClearHistory return false", func(t *testing.T) {
+			aiClient.EXPECT().GetSuggest(gomock.Any(), &aiv1.SuggestRequest{
+				Uid:     int64(1),
+				Suggest: "Suggest",
+			}).Return(&aiv1.SuggestResponse{
+				Ok:      false,
+				Request: "",
+			}, nil).Times(1)
+
+			_, err := svc.ChatAI(int64(1), "Suggest", "")
+			assert.Error(t, err)
+			assert.ErrorIs(t, err, grpc.ErrNotValidResponse)
+		})
+	})
 
 }

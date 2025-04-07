@@ -112,7 +112,8 @@ func New(
 		// message
 		r.HandleFuncText("⬅️ Назад", text.NewStart(stateMachine))
 		r.HandleFuncText("/reset", text.NewReset(grpc, log))
-		r.HandleFuncRegexpText(regexp.MustCompile(`(?m)\/image\s(.+)$`), text.GenerateImage(grpc, log))
+		r.HandleFuncRegexpText(regexp.MustCompile(`^(?m)\/image\s(.+)$`), text.GenerateImage(grpc, log))
+		r.HandleFuncRegexpText(regexp.MustCompile(`^[^/].*$`), text.ChatAI(grpc, log))
 
 	})
 
