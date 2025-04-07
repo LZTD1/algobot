@@ -69,7 +69,10 @@ func New(
 	groupServ := services.NewGroup(log, grGetter)
 	stateMachine := memory.New()
 	serdes := base62.NewSerdes(log)
-	grpc := grpc2.NewAIService(grpcCfg, log)
+	grpc := grpc2.NewAIService(
+		grpcCfg,
+		grpc2.WithLogger(log),
+	)
 
 	// initialize routes
 	b.Use(trace.New(log))
@@ -101,6 +104,16 @@ func New(
 		// message
 		r.HandleFuncText("⬅️ Назад", text.NewStart(stateMachine))
 		r.HandleFuncRegexpText(regexp.MustCompile(".+"), text.NewSendingCookie(log, cookieSetter, stateMachine))
+	})
+
+	r.Group(func(r router.Router) { // Routes for ChattingAI state
+		r.Use(stater.New(stateMachine, fsm.ChattingAI))
+
+		// message
+		r.HandleFuncText("⬅️ Назад", text.NewStart(stateMachine))
+		r.HandleFuncText("/reset", text.NewReset(grpc, log))
+		r.HandleFuncRegexpText(regexp.MustCompile(`(?m)\/image\s(.+)$`), text.GenerateImage(grpc, log))
+
 	})
 
 	r.NotFound(text.NewStart(stateMachine))

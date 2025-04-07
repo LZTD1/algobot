@@ -12,3 +12,7 @@ package mocks
 
 //go:generate mockgen -destination=./grouper_mock.go -package=mocks algobot/internal/telegram/handlers/text Grouper
 //go:generate mockgen -destination=./groupSerializer_mock.go -package=mocks algobot/internal/telegram/handlers/text GroupSerializer
+
+//go:generate mockgen -destination=./reseter_mock.go -package=mocks algobot/internal/telegram/handlers/text Reseter
+
+//go:generate mockgen -destination=./generatorImage_mock.go -package=mocks algobot/internal/telegram/handlers/text GeneratorImage
