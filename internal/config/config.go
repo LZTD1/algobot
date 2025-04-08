@@ -8,12 +8,19 @@ import (
 )
 
 type Config struct {
-	Env            string    `yaml:"env" env-default:"prod"`
-	TelegramToken  string    `yaml:"telegram_token" env:"TELEGRAM_TOKEN" env-required:"true"`
-	MigrationsPath string    `yaml:"migrations_path" env-default:"./migrations"`
-	StoragePath    string    `yaml:"storage_path" env-default:"./storage/storage.db"`
-	GRPC           GRPC      `yaml:"grpc"`
-	RateLimit      RateLimit `yaml:"rate_limit"`
+	Env            string     `yaml:"env" env-default:"prod"`
+	TelegramToken  string     `yaml:"telegram_token" env:"TELEGRAM_TOKEN" env-required:"true"`
+	MigrationsPath string     `yaml:"migrations_path" env-default:"./migrations"`
+	StoragePath    string     `yaml:"storage_path" env-default:"./storage/storage.db"`
+	GRPC           GRPC       `yaml:"grpc"`
+	RateLimit      RateLimit  `yaml:"rate_limit"`
+	Backoffice     Backoffice `yaml:"backoffice"`
+}
+
+type Backoffice struct {
+	Retries         int           `yaml:"retries" env-default:"3"`
+	RetriesTimeout  time.Duration `yaml:"retries_timeout" env-default:"5s"`
+	ResponseTimeout time.Duration `yaml:"response_timeout" env-default:"15s"`
 }
 
 type RateLimit struct {

@@ -82,6 +82,15 @@ func TestGroup(t *testing.T) {
 			err := service.RefreshGroup(1, "trace_id")
 			assert.NoError(t, err)
 		})
+		t.Run("return empty group", func(t *testing.T) {
+			gomock.InOrder(
+				setter.EXPECT().Cookies(int64(1)).Return("cookie", nil).Times(1),
+				fetcher.EXPECT().Group("cookie").Return([]models.Group{}, nil).Times(1),
+			)
+
+			err := service.RefreshGroup(1, "trace_id")
+			assert.ErrorIs(t, err, groups.ErrNoGroups)
+		})
 		t.Run("Cookies return err", func(t *testing.T) {
 			errExp := errors.New("some error")
 

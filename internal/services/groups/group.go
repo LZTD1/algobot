@@ -11,6 +11,7 @@ import (
 
 var (
 	ErrNotValidCookie = errors.New("not a valid cookie")
+	ErrNoGroups       = errors.New("groups not found")
 )
 
 type GroupGetter interface {

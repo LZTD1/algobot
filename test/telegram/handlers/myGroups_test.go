@@ -36,7 +36,7 @@ func TestMyGroups(t *testing.T) {
 			ser.EXPECT().Serialize(mockGroups[0], "trace_id").Return("ser-g1", nil).Times(1),
 			ser.EXPECT().Serialize(mockGroups[1], "trace_id").Return("ser-g2", nil).Times(1),
 			ser.EXPECT().Serialize(mockGroups[2], "trace_id").Return("", errors.New("ser")).Times(1),
-			mctx.EXPECT().Send(mockStringRet, tele.ModeHTML, keyboards.RefreshGroups()).Return(nil).Times(1),
+			mctx.EXPECT().Send(mockStringRet, tele.ModeMarkdown, keyboards.RefreshGroups()).Return(nil).Times(1),
 		)
 
 		err := handler.ServeContext(mctx)
@@ -46,7 +46,7 @@ func TestMyGroups(t *testing.T) {
 		gomock.InOrder(
 			mctx.EXPECT().Sender().Return(&tele.User{ID: 1}).Times(1),
 			grouper.EXPECT().Groups(int64(1), "trace_id").Return([]models.Group{}, nil).Times(1),
-			mctx.EXPECT().Send("Всего групп: 0\nПопробуйте обновить группы!", tele.ModeHTML, keyboards.RefreshGroups()).Return(nil).Times(1),
+			mctx.EXPECT().Send("Всего групп: 0\nПопробуйте обновить группы!", tele.ModeMarkdown, keyboards.RefreshGroups()).Return(nil).Times(1),
 		)
 
 		err := handler.ServeContext(mctx)

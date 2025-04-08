@@ -9,3 +9,7 @@ grpc:
 rate_limit:
   fill_period: 800ms
   bucket_limit: 6
+backoffice:
+  retries: 3
+  retries_timeout: 5s
+  response_timeout: 15s

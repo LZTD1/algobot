@@ -40,6 +40,8 @@ func New(
 	notifChanger callback.NotificationChanger,
 	rateCfg config.RateLimit,
 	grpcCfg config.GRPC,
+	dSetter groups.DomainSetter,
+	gFetcher groups.GroupFetcher,
 
 ) *App {
 	const op = "telegram.New"
@@ -66,7 +68,7 @@ func New(
 	}
 
 	// dependencies
-	groupServ := groups.NewGroup(log, grGetter)
+	groupServ := groups.NewGroup(log, grGetter, dSetter, gFetcher)
 	stateMachine := memory.New()
 	serdes := base62.NewSerdes(log)
 	grpc := grpc2.NewAIService(
@@ -96,6 +98,7 @@ func New(
 		// callbacks
 		r.HandleFuncCallback("\fset_cookie", callback.NewChangeCookie(stateMachine))
 		r.HandleFuncCallback("\fchange_notification", callback.NewChangeNotification(notifChanger, log))
+		r.HandleFuncCallback("\frefresh_groups", callback.RefreshGroup(groupServ, log))
 	})
 
 	r.Group(func(r router.Router) { // Routes for SendingCookie state

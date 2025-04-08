@@ -39,6 +39,10 @@ func (g *Group) RefreshGroup(uid int64, traceID interface{}) error {
 		return fmt.Errorf("%s failed to fetch groups: %w", op, err)
 	}
 
+	if len(groups) == 0 {
+		return fmt.Errorf("%s no groups found: %w", op, ErrNoGroups)
+	}
+
 	if err := g.domainSetter.SetGroups(uid, groups); err != nil {
 		log.Warn("failed to set groups", sl.Err(err))
 		return fmt.Errorf("%s failed to set groups: %w", op, err)

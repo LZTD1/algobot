@@ -146,4 +146,25 @@ func TestSqlite(t *testing.T) {
 			assert.Len(t, groups, 0)
 		})
 	})
+	t.Run("SetGroups", func(t *testing.T) {
+		gr := []models.Group{
+			{
+				GroupID:    1,
+				Title:      "title",
+				TimeLesson: time.Date(2025, time.March, 23, 14, 0, 0, 0, time.UTC),
+			},
+		}
+
+		groups, err := sqlite.Groups(999)
+		assert.NoError(t, err)
+		assert.Len(t, groups, 3)
+
+		err = sqlite.SetGroups(999, gr)
+		assert.NoError(t, err)
+
+		groups, err = sqlite.Groups(999)
+		assert.NoError(t, err)
+		assert.Len(t, groups, 1)
+		assert.Equal(t, gr, groups)
+	})
 }

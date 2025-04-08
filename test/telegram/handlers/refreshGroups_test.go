@@ -1,6 +1,7 @@
 package test
 
 import (
+	"algobot/internal/services/groups"
 	"algobot/internal/telegram/handlers/callback"
 	mocks2 "algobot/test/mocks"
 	mocks3 "algobot/test/mocks/telegram"
@@ -28,6 +29,14 @@ func TestRefreshGroups(t *testing.T) {
 		gomock.InOrder(
 			refresher.EXPECT().RefreshGroup(int64(1), "").Return(nil),
 			mctx.EXPECT().Edit("Успешно обновлено!"),
+		)
+		err := handler(mctx)
+		assert.NoError(t, err)
+	})
+	t.Run("nop groups found", func(t *testing.T) {
+		gomock.InOrder(
+			refresher.EXPECT().RefreshGroup(int64(1), "").Return(groups.ErrNoGroups),
+			mctx.EXPECT().Edit("У вас не нашлось ни 1 группы!\nПроверьте ваши cookie"),
 		)
 		err := handler(mctx)
 		assert.NoError(t, err)
