@@ -95,6 +95,8 @@ func New(
 		r.HandleFuncText("AI 🔹", text.NewAI(grpc, log, stateMachine))
 		r.HandleText("Мои группы", text.NewMyGroup(log, groupServ, serdes, b.Me.Username))
 
+		r.HandleFuncRegexpText(regexp.MustCompile(`^(?m)\/start\s(.+)$`), text.NewSettings(set, log))
+
 		// callbacks
 		r.HandleFuncCallback("\fset_cookie", callback.NewChangeCookie(stateMachine))
 		r.HandleFuncCallback("\fchange_notification", callback.NewChangeNotification(notifChanger, log))
