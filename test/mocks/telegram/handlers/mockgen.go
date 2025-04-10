@@ -23,3 +23,5 @@ package mocks
 
 //go:generate mockgen -destination=./viewFetcher_mock.go -package=mocks algobot/internal/telegram/handlers/text ViewFetcher
 //go:generate mockgen -destination=./serializator_mock.go -package=mocks algobot/internal/telegram/handlers/text Serializator
+
+//go:generate mockgen -destination=./actualGroup_mock.go -package=mocks algobot/internal/telegram/handlers/text ActualGroup

@@ -22,11 +22,11 @@ type Group struct {
 	log          *slog.Logger
 	getter       GroupGetter
 	groupFetcher GroupFetcher
-	domainSetter DomainSetter
+	domain       DomainSetter
 }
 
 func NewGroup(log *slog.Logger, getter GroupGetter, setter DomainSetter, groupFetcher GroupFetcher) *Group {
-	return &Group{log: log, getter: getter, domainSetter: setter, groupFetcher: groupFetcher}
+	return &Group{log: log, getter: getter, domain: setter, groupFetcher: groupFetcher}
 }
 
 func (g *Group) Groups(uid int64, traceID interface{}) ([]models.Group, error) {

@@ -24,7 +24,7 @@ func (g *Group) RefreshGroup(uid int64, traceID interface{}) error {
 		slog.Any("trace_id", traceID),
 	)
 
-	cookie, err := g.domainSetter.Cookies(uid)
+	cookie, err := g.domain.Cookies(uid)
 	if err != nil {
 		log.Warn("failed to get cookies", sl.Err(err))
 		return fmt.Errorf("%s failed to get cookies: %w", op, err)
@@ -43,7 +43,7 @@ func (g *Group) RefreshGroup(uid int64, traceID interface{}) error {
 		return fmt.Errorf("%s no groups found: %w", op, ErrNoGroups)
 	}
 
-	if err := g.domainSetter.SetGroups(uid, groups); err != nil {
+	if err := g.domain.SetGroups(uid, groups); err != nil {
 		log.Warn("failed to set groups", sl.Err(err))
 		return fmt.Errorf("%s failed to set groups: %w", op, err)
 	}
