@@ -61,7 +61,7 @@ func TestViewInformer(t *testing.T) {
 					Type: domain.UserType,
 					Data: []string{"789", "321"},
 				}, nil),
-				viewFetcher.EXPECT().KidView(int64(1), "789", "321").Return(models.KidView{
+				viewFetcher.EXPECT().KidView(int64(1), "789", "321", "").Return(models.KidView{
 					Extra: "",
 					Kid: models.Kid{
 						FullName:   "Алексей Смирнов",
@@ -111,7 +111,7 @@ func TestViewInformer(t *testing.T) {
 					Type: domain.UserType,
 					Data: []string{"789", "321"},
 				}, nil),
-				viewFetcher.EXPECT().KidView(int64(1), "789", "321").Return(models.KidView{
+				viewFetcher.EXPECT().KidView(int64(1), "789", "321", "").Return(models.KidView{
 					Extra: models.NotAccessible,
 					Kid: models.Kid{
 						FullName:   "Алексей Смирнов",
@@ -175,7 +175,7 @@ func TestViewInformer(t *testing.T) {
 						Type: domain.UserType,
 						Data: []string{"789", "123"},
 					}, nil),
-					viewFetcher.EXPECT().KidView(int64(1), "789", "123").Return(models.KidView{}, errExp).Times(1),
+					viewFetcher.EXPECT().KidView(int64(1), "789", "123", "").Return(models.KidView{}, errExp).Times(1),
 					mctx.EXPECT().Send("⚠️ Невозможно получить данного ученика!").Return(nil).Times(1),
 				)
 				err := handler.ServeContext(mctx)
@@ -190,7 +190,7 @@ func TestViewInformer(t *testing.T) {
 					Type: domain.GroupType,
 					Data: []string{"123"},
 				}, nil),
-				viewFetcher.EXPECT().GroupView(int64(1), "123").Return(models.GroupView{
+				viewFetcher.EXPECT().GroupView(int64(1), "123", "").Return(models.GroupView{
 					GroupID:        1,
 					GroupTitle:     "Математика для детей",
 					GroupContent:   "Основы арифметики и геометрии",
@@ -269,7 +269,7 @@ func TestViewInformer(t *testing.T) {
 						Type: domain.GroupType,
 						Data: []string{"123"},
 					}, nil),
-					viewFetcher.EXPECT().GroupView(int64(1), "123").Return(models.GroupView{}, errExp).Times(1),
+					viewFetcher.EXPECT().GroupView(int64(1), "123", "").Return(models.GroupView{}, errExp).Times(1),
 					mctx.EXPECT().Send("⚠️ Невозможно получить данную группу!").Return(nil).Times(1),
 				)
 				err := handler.ServeContext(mctx)
@@ -277,5 +277,4 @@ func TestViewInformer(t *testing.T) {
 			})
 		})
 	})
-
 }

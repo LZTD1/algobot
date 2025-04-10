@@ -19,8 +19,8 @@ var statuses = map[int]string{
 }
 
 type ViewFetcher interface {
-	GroupView(uid int64, groupID string) (models.GroupView, error)
-	KidView(uid int64, kidID string, groupId string) (models.KidView, error)
+	GroupView(uid int64, groupID string, traceID interface{}) (models.GroupView, error)
+	KidView(uid int64, kidID string, groupId string, traceID interface{}) (models.KidView, error)
 }
 
 type Serializator interface {
@@ -59,14 +59,14 @@ func (v *ViewInformer) ServeContext(ctx telebot.Context) error {
 
 	switch encodedMsg.Type {
 	case domain.UserType:
-		view, err := v.userInfo(encodedMsg, uid)
+		view, err := v.userInfo(encodedMsg, uid, traceID)
 		if err != nil {
 			log.Warn("can't get group info", sl.Err(err))
 			return ctx.Send("⚠️ Невозможно получить данного ученика!")
 		}
 		return ctx.Send(view, telebot.ModeHTML, telebot.NoPreview)
 	case domain.GroupType:
-		view, err := v.groupInfo(encodedMsg, uid)
+		view, err := v.groupInfo(encodedMsg, uid, traceID)
 		if err != nil {
 			log.Warn("can't get group info", sl.Err(err))
 			return ctx.Send("⚠️ Невозможно получить данную группу!")
@@ -77,14 +77,14 @@ func (v *ViewInformer) ServeContext(ctx telebot.Context) error {
 	}
 }
 
-func (v *ViewInformer) userInfo(data *domain.SerializeMessage, uid int64) (string, error) {
+func (v *ViewInformer) userInfo(data *domain.SerializeMessage, uid int64, traceID interface{}) (string, error) {
 	const op = "viewInformer.groupInfo"
 
 	if len(data.Data) != 2 {
 		return "", fmt.Errorf("%s: kid view required 2 fields", op)
 	}
 
-	full, err := v.viewFetcher.KidView(uid, data.Data[0], data.Data[1])
+	full, err := v.viewFetcher.KidView(uid, data.Data[0], data.Data[1], traceID)
 	if err != nil {
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
@@ -125,10 +125,10 @@ func (v *ViewInformer) GetKidInfoMessage(full models.KidView) string {
 	return m
 }
 
-func (v *ViewInformer) groupInfo(data *domain.SerializeMessage, uid int64) (string, error) {
+func (v *ViewInformer) groupInfo(data *domain.SerializeMessage, uid int64, traceID interface{}) (string, error) {
 	const op = "viewInformer.groupInfo"
 
-	full, err := v.viewFetcher.GroupView(uid, data.Data[0])
+	full, err := v.viewFetcher.GroupView(uid, data.Data[0], traceID)
 	if err != nil {
 		return "", fmt.Errorf("%s: %w", op, err)
 	}

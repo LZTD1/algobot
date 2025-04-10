@@ -14,7 +14,8 @@ import (
 )
 
 var (
-	ErrBadCode = errors.New("bad code")
+	ErrBadCode  = errors.New("bad code")
+	ErrNotFound = errors.New("not found")
 )
 
 type Option func(*Backoffice)
