@@ -1,0 +1,40 @@
+{
+    "status": "success",
+    "data": {
+        "items": [
+            {
+                "id": 70245813,
+                "firstName": "Иван",
+                "lastName": "Петров",
+                "fullName": "Иван Петров",
+                "parentName": "Ольга",
+                "email": "petrov_ivan@mail.ru",
+                "hasLaptop": -1,
+                "phone": "+7 (915) 123-45-67",
+                "age": 10,
+                "birthDate": "2014-12-16T00:00:00+03:00",
+                "deletedAt": null,
+                "hasBranchAccess": true,
+                "username": "petrov_i",
+                "password": "7605",
+                "lastGroup": {
+                    "id": 98637162,
+                    "groupStudentId": 6553709,
+                    "title": "Библиотека 7 вс 14.00",
+                    "content": "Группа по курсу КГ",
+                    "track": 2,
+                    "status": 0,
+                    "startTime": "2024-11-25T10:54:55+03:00",
+                    "endTime": "9999-12-31T00:00:00+03:00",
+                    "courseId": 729,
+                    "deletedAt": null
+                },
+                "_links": {
+                    "self": {
+                        "href": "/student/update/70245813"
+                    }
+                }
+            }
+        ]
+    }
+}

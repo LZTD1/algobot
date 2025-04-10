@@ -1,0 +1,991 @@
+{
+    "status": "success",
+    "data": {
+        "id": 12345678,
+        "title": "Занятие в библиотеке 5 в 14.00",
+        "content": "Группа по курсу Python",
+        "type": {
+            "value": "regular",
+            "label": "Группа",
+            "tag": "default"
+        },
+        "status": {
+            "value": 10,
+            "label": "Активная",
+            "tag": "success"
+        },
+        "status_changed_at": "20.09.2024 12:04",
+        "start_time": "22.09.2024 14:00",
+        "next_lesson_time": "13.04.2025 14:00",
+        "lessons_total": 35,
+        "lessons_passed": 28,
+        "hardware_needed": 0,
+        "branch": {
+            "id": 987,
+            "title": "Город Х",
+            "code": "city_x",
+            "description": "",
+            "phone": "+7 (491) 555-22-33",
+            "email": "cityx@algoritmika.org",
+            "site_url": "https://cityx.algoritmika.org",
+            "templateVersion": 2,
+            "use_amo": true,
+            "amoConfigId": 321,
+            "show_finance_info": true,
+            "lms_display_student_credentials": true,
+            "show_online_room_url_field": 0,
+            "use_sms": false,
+            "language_id": 2,
+            "order_name": 1,
+            "use_fully_paid_label": 0,
+            "brandName": "",
+            "max_count_students_for_show_online": 10,
+            "isFillPaymentSystem": false,
+            "firstLessonNoRoyalty": 0,
+            "root_branch_id": 123
+        },
+        "venue": {
+            "id": 4321,
+            "title": "Библиотека №5",
+            "address": "390000, Город Х, ул Ленина, д 10",
+            "contact_name": "",
+            "contact_email": "",
+            "contact_phone": "",
+            "_links": {
+                "self": "/venue/view/4321",
+                "update": "/venue/update/4321",
+                "index": "/venue"
+            }
+        },
+        "curator": {
+            "id": 1234,
+            "username": "random_user",
+            "phone": "+7 (900) 555-12-34",
+            "email": "example123@mail.com",
+            "name": "Иван Иванов",
+            "profile": {
+                "photo_url": "/uploads/avatar/avatar/avatar_1234_1603094230-96x96.jpg",
+                "promo": ""
+            },
+            "allowedUserCourses": [],
+            "status": 10,
+            "_links": {
+                "self": "/user/update/1234"
+            }
+        },
+        "teacher": {
+            "id": 5678,
+            "username": "random_user2",
+            "phone": "+7 (922) 555-00-11",
+            "email": "randomuser2@mail.com",
+            "name": "Алексей Смирнов",
+            "profile": {
+                "photo_url": "",
+                "promo": null
+            },
+            "allowedUserCourses": [
+                {
+                    "userId": 42407,
+                    "courseId": 84,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 305,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 389,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 405,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 406,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 407,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 408,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 416,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 417,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 448,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 465,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 606,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 640,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 641,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 661,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 662,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 665,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 666,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 686,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 706,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 707,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 716,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 727,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 729,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 734,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 735,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 777,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 783,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 797,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 799,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 809,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 810,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 823,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 831,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 852,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 853,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 857,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 858,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 859,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 860,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 861,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 862,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 864,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 1338,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 1339,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 1346,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 1347,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 1387,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 1459,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 1484,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 1543,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 1554,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 1613,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 1614,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 1615,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 1616,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 1653,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 1654,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 1664,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 1665,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 1668,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 1686,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 1688,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 1692,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 1710,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 1748,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 1767,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 1810,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 1904,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 2007,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 2033,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 2125,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 2126,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 2231,
+                    "isAllowed": 1
+                },
+                {
+                    "userId": 42407,
+                    "courseId": 2259,
+                    "isAllowed": 1
+                }
+            ],
+            "status": 10,
+            "_links": {
+                "self": "/user/update/42407"
+            }
+        },
+        "teachers": [
+            {
+                "id": 5678,
+                "username": "random_user2",
+                "phone": "+7 (922) 555-00-11",
+                "email": "randomuser2@mail.com",
+                "name": "Алексей Смирнов",
+                "profile": {
+                    "photo_url": "",
+                    "promo": null
+                },
+                "allowedUserCourses": [
+                    {
+                        "userId": 42407,
+                        "courseId": 84,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 305,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 389,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 405,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 406,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 407,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 408,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 416,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 417,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 448,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 465,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 606,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 640,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 641,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 661,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 662,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 665,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 666,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 686,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 706,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 707,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 716,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 727,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 729,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 734,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 735,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 777,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 783,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 797,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 799,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 809,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 810,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 823,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 831,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 852,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 853,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 857,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 858,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 859,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 860,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 861,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 862,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 864,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 1338,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 1339,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 1346,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 1347,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 1387,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 1459,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 1484,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 1543,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 1554,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 1613,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 1614,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 1615,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 1616,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 1653,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 1654,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 1664,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 1665,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 1668,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 1686,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 1688,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 1692,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 1710,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 1748,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 1767,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 1810,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 1904,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 2007,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 2033,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 2125,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 2126,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 2231,
+                        "isAllowed": 1
+                    },
+                    {
+                        "userId": 42407,
+                        "courseId": 2259,
+                        "isAllowed": 1
+                    }
+                ],
+                "status": 10,
+                "_links": {
+                    "self": "/user/update/42407"
+                }
+            }
+        ],
+        "client_manager": null,
+        "course": {
+            "id": 729,
+            "name": "Компьютерная грамотность",
+            "guid": "a131029b-cde5-11eb-a724-6cb31107bf10",
+            "description": "Курс для внеурочных занятий (дополнительное образование) с детьми в возрасте 7-9 лет, на русском языке, версия 2021/2022",
+            "contentType": "course",
+            "courseType": {
+                "id": 19,
+                "title": "компьютерная грамотность",
+                "code": "comp"
+            },
+            "lessons_count": 0,
+            "group_lessons_amount": 0,
+            "lessons_count_formatted": "нет модулей",
+            "group_lessons_amount_formatted": "нет уроков",
+            "is_deleted": 0,
+            "_links": {
+                "self": "/course/view/a131029b-cde5-11eb-a724-6cb31107bf10"
+            }
+        },
+        "language_id": null,
+        "journal": true,
+        "show_journal": true,
+        "showOnlineRoom": true,
+        "isOnline": false,
+        "active_student_count": 8,
+        "online_room_url": "",
+        "use_client_manager": 0,
+        "display_lesson_duration_in_minutes": 60,
+        "deleted_at": null,
+        "deleted_by": null,
+        "priority_level": {
+            "value": "normal",
+            "label": "Обычный приоритет",
+            "tag": "default"
+        },
+        "is_full": false,
+        "created_at": "17.09.2024 10:41",
+        "created_by": {
+            "id": 1234,
+           "username": "random_user",
+           "phone": "+7 (900) 555-12-34",
+           "email": "example123@mail.com",
+           "name": "Иван Иванов",
+           "profile": {
+               "photo_url": "/uploads/avatar/avatar/avatar_1234_1603094230-96x96.jpg",
+               "promo": ""
+           },
+           "allowedUserCourses": [],
+           "status": 10,
+           "_links": {
+               "self": "/user/update/1234"
+           }
+        },
+        "_related": {
+            "statuses": [
+                {
+                    "value": 10,
+                    "label": "Активная",
+                    "tag": "success"
+                },
+                {
+                    "value": 1,
+                    "label": "Не стартовала",
+                    "tag": "warning"
+                },
+                {
+                    "value": 20,
+                    "label": "Идет набор",
+                    "tag": "warning"
+                },
+                {
+                    "value": 30,
+                    "label": "Приостановлена",
+                    "tag": "warning"
+                },
+                {
+                    "value": 0,
+                    "label": "Окончена",
+                    "tag": "default"
+                },
+                {
+                    "value": 2,
+                    "label": "Развалилась",
+                    "tag": "default"
+                }
+            ],
+            "types": [
+                {
+                    "value": "regular",
+                    "label": "Группа",
+                    "tag": "default"
+                },
+                {
+                    "value": "masterclass",
+                    "label": "Мастер-класс",
+                    "tag": "info"
+                },
+                {
+                    "value": "intensive",
+                    "label": "Интенсив",
+                    "tag": "warning"
+                },
+                {
+                    "value": "demo",
+                    "label": "Обучение сотрудников",
+                    "tag": "inactive"
+                },
+                {
+                    "value": "individual",
+                    "label": "Индивидуальная",
+                    "tag": "default"
+                }
+            ],
+            "priority_levels": [
+                {
+                    "value": "normal",
+                    "label": "Обычный",
+                    "tag": "default"
+                },
+                {
+                    "value": "high",
+                    "label": "Высокий",
+                    "tag": "warning"
+                }
+            ]
+        }
+    }
+}
