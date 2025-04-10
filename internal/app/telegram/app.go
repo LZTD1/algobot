@@ -2,12 +2,15 @@ package telegram
 
 import (
 	"algobot/internal/config"
+	backoffice3 "algobot/internal/lib/backoffice"
 	"algobot/internal/lib/fsm"
 	"algobot/internal/lib/fsm/memory"
 	"algobot/internal/lib/logger/sl"
 	"algobot/internal/lib/serdes/base62"
+	"algobot/internal/services/backoffice"
 	"algobot/internal/services/groups"
 	grpc2 "algobot/internal/services/grpc"
+	"algobot/internal/storage/sqlite"
 	"algobot/internal/telegram/handlers/callback"
 	"algobot/internal/telegram/handlers/text"
 	"algobot/internal/telegram/middleware/auth"
@@ -32,17 +35,9 @@ type App struct {
 
 func New(
 	log *slog.Logger,
-	token string,
-	grGetter groups.GroupGetter,
-	auther auth.Auther,
-	set text.UserInformer,
-	cookieSetter text.CookieSetter,
-	notifChanger callback.NotificationChanger,
-	rateCfg config.RateLimit,
-	grpcCfg config.GRPC,
-	dSetter groups.DomainSetter,
-	gFetcher groups.GroupFetcher,
-
+	cfg *config.Config,
+	storage *sqlite.Sqlite,
+	bo *backoffice3.Backoffice,
 ) *App {
 	const op = "telegram.New"
 
@@ -51,7 +46,7 @@ func New(
 	)
 
 	pref := tele.Settings{
-		Token: token,
+		Token: cfg.TelegramToken,
 		Poller: &tele.LongPoller{
 			Timeout: 10 * time.Second,
 		},
@@ -68,21 +63,22 @@ func New(
 	}
 
 	// dependencies
-	groupServ := groups.NewGroup(log, grGetter, dSetter, gFetcher)
+	groupServ := groups.NewGroup(log, storage, storage, bo)
 	stateMachine := memory.New()
 	serdes := base62.NewSerdes(log)
 	grpc := grpc2.NewAIService(
-		grpcCfg,
+		cfg.GRPC,
 		grpc2.WithLogger(log),
 	)
+	boSvc := backoffice.NewBackoffice(log, storage, bo, bo)
 
 	// initialize routes
 	b.Use(trace.New(log))
 	b.Use(middleware.AutoRespond())
 	b.Use(middleware.Recover())
 	b.Use(logger.New(log))
-	b.Use(auth.New(auther, log))
-	b.Use(rate.New(log, rateCfg))
+	b.Use(auth.New(storage, log))
+	b.Use(rate.New(log, cfg.RateLimit))
 
 	// create routing
 	r := router.NewRouter()
@@ -91,15 +87,15 @@ func New(
 
 		// message
 		r.HandleFuncText("/start", text.NewStart(stateMachine))
-		r.HandleFuncText("Настройки", text.NewSettings(set, log))
+		r.HandleFuncText("Настройки", text.NewSettings(storage, log))
 		r.HandleFuncText("AI 🔹", text.NewAI(grpc, log, stateMachine))
 		r.HandleText("Мои группы", text.NewMyGroup(log, groupServ, serdes, b.Me.Username))
 
-		r.HandleFuncRegexpText(regexp.MustCompile(`^(?m)\/start\s(.+)$`), text.NewSettings(set, log))
+		r.HandleRegexpText(regexp.MustCompile(`^(?m)\/start\s(.+)$`), text.NewViewInformer(serdes, boSvc, log, b.Me.Username))
 
 		// callbacks
 		r.HandleFuncCallback("\fset_cookie", callback.NewChangeCookie(stateMachine))
-		r.HandleFuncCallback("\fchange_notification", callback.NewChangeNotification(notifChanger, log))
+		r.HandleFuncCallback("\fchange_notification", callback.NewChangeNotification(storage, log))
 		r.HandleFuncCallback("\frefresh_groups", callback.RefreshGroup(groupServ, log))
 	})
 
@@ -108,7 +104,7 @@ func New(
 
 		// message
 		r.HandleFuncText("⬅️ Назад", text.NewStart(stateMachine))
-		r.HandleFuncRegexpText(regexp.MustCompile(".+"), text.NewSendingCookie(log, cookieSetter, stateMachine))
+		r.HandleFuncRegexpText(regexp.MustCompile(".+"), text.NewSendingCookie(log, storage, stateMachine))
 	})
 
 	r.Group(func(r router.Router) { // Routes for ChattingAI state

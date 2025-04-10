@@ -82,6 +82,24 @@ func TestBackoffice(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, backofficeKidsByGroupExpected, group)
 	})
+	t.Run("KidView", func(t *testing.T) {
+		responseHTML := readFile("KidView_example")
+		server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+			rw.Write([]byte(responseHTML))
+			rw.WriteHeader(http.StatusOK)
+		}))
+		defer server.Close()
+
+		bo := backoffice.NewBackoffice(&config.Backoffice{
+			Retries:         5,
+			RetriesTimeout:  time.Second,
+			ResponseTimeout: time.Second,
+		}, backoffice.WithURL(server.URL))
+
+		group, err := bo.KidView("", "")
+		assert.NoError(t, err)
+		assert.Equal(t, backofficeKidViewExpected, group)
+	})
 }
 
 func readFile(fileName string) string {
@@ -190,4 +208,48 @@ var backofficeKidsByGroupExpected = backoffice2.NamesByGroup{
 		Groups: []backoffice2.Group(nil),
 		Links:  backoffice2.Links{Self: backoffice2.SelfLink{Href: "/student/update/70245813"}},
 	}}},
+}
+var backofficeKidViewExpected = backoffice2.KidView{
+	Status: "success",
+	Data: backoffice2.Student{
+		ID:              70245813,
+		FirstName:       "Иван",
+		LastName:        "Петров",
+		FullName:        "Иван Петров",
+		ParentName:      "Ольга",
+		Email:           "student123@example.com",
+		HasLaptop:       -1,
+		Phone:           "+7 (900) 123-45-67",
+		Age:             10,
+		BirthDate:       time.Date(2014, time.December, 16, 0, 0, 0, 0, time.Local),
+		DeletedAt:       interface{}(nil),
+		HasBranchAccess: true,
+		Username:        "student_01",
+		Password:        "7605",
+		LastGroup: backoffice2.Group{
+			ID:             0,
+			GroupStudentID: 0,
+			Title:          "",
+			Content:        "",
+			Track:          0,
+			Status:         0,
+			StartTime:      time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+			EndTime:        time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+			CourseID:       0,
+			DeletedAt:      interface{}(nil),
+		},
+		Groups: []backoffice2.Group{{
+			ID:             98637162,
+			GroupStudentID: 6543284,
+			Title:          "Библиотека 7 вс 14.00",
+			Content:        "Группа по курсу КГ",
+			Track:          1,
+			Status:         20,
+			StartTime:      time.Date(2024, time.November, 18, 11, 18, 45, 0, time.Local),
+			EndTime:        time.Date(2024, time.November, 23, 16, 56, 45, 0, time.Local),
+			CourseID:       729,
+			DeletedAt:      interface{}(nil),
+		}, {ID: 98637162, GroupStudentID: 6553709, Title: "Библиотека 7 вс 14.00", Content: "Группа по курсу КГ", Track: 2, Status: 0, StartTime: time.Date(2024, time.November, 25, 10, 54, 55, 0, time.Local), EndTime: time.Date(9999, time.December, 31, 0, 0, 0, 0, time.Local), CourseID: 729, CreatedAt: time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC), UpdatedAt: time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC), DeletedAt: interface{}(nil)}},
+		Links: backoffice2.Links{Self: backoffice2.SelfLink{Href: "/student/update/70245813"}},
+	},
 }

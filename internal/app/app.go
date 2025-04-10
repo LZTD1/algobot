@@ -24,14 +24,7 @@ func New(log *slog.Logger, cfg *config.Config) *App {
 
 	botApplication := telegram.New(
 		log,
-		cfg.TelegramToken,
-		storage,
-		storage,
-		storage,
-		storage,
-		storage,
-		cfg.RateLimit,
-		cfg.GRPC,
+		cfg,
 		storage,
 		bo,
 	)
