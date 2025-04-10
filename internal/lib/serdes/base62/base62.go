@@ -1,11 +1,11 @@
 package base62
 
 import (
-	"algobot/internal/domain/models"
-	"algobot/internal/lib/serdes"
+	"algobot/internal/domain"
 	"fmt"
 	"github.com/jxskiss/base62"
 	"log/slog"
+	"strconv"
 	"strings"
 )
 
@@ -17,17 +17,17 @@ func NewSerdes(log *slog.Logger) *Serdes {
 	return &Serdes{log: log}
 }
 
-func (s *Serdes) Serialize(group models.Group, traceID interface{}) (string, error) {
+func (s *Serdes) Serialize(msg domain.SerializeMessage) (string, error) {
 	encoded := base62.EncodeToString([]byte(fmt.Sprintf(
-		"%d-%d",
-		serdes.GroupType,
-		group.GroupID,
+		"%d-%s",
+		msg.Type,
+		strings.Join(msg.Data, ","),
 	)))
 	return encoded, nil
 }
 
-func (s *Serdes) GetType(decoded string) (serdes.SerType, error) {
-	const op = "serdes.GetType"
+func (s *Serdes) Deserialize(decoded string) (*domain.SerializeMessage, error) {
+	const op = "serdes.Deserialize"
 	log := s.log.With(
 		slog.String("op", op),
 	)
@@ -35,17 +35,22 @@ func (s *Serdes) GetType(decoded string) (serdes.SerType, error) {
 	encoded, err := base62.DecodeString(decoded)
 	if err != nil {
 		log.Warn("Failed to decode serdes")
-		return 0, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	encodedType := strings.Split(string(encoded), "-")[0]
+	encodedMsg := strings.Split(string(encoded), "-")
+	encodedType := encodedMsg[0]
+	encodedData := strings.Split(encodedMsg[1], ",")
 
-	switch encodedType {
-	case "0":
-		return serdes.GroupType, nil
-	case "1":
-		return serdes.UserType, nil
-	default:
-		return 0, fmt.Errorf("%s is not a recognized serdes : %w", op, serdes.ErrUnrecognized)
+	encodedID, err := strconv.Atoi(encodedType)
+	if err != nil {
+		log.Warn("Failed to decode serdes")
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
+	serType := domain.SerType(encodedID)
+
+	return &domain.SerializeMessage{
+		Type: serType,
+		Data: encodedData,
+	}, nil
 }

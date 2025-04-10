@@ -19,4 +19,7 @@ package mocks
 
 //go:generate mockgen -destination=./chatter_mock.go -package=mocks algobot/internal/telegram/handlers/text Chatter
 
-//go:generate mockgen -destination=./groupRefresher.go -package=mocks algobot/internal/telegram/handlers/callback GroupRefresher
+//go:generate mockgen -destination=./groupRefresher_mock.go -package=mocks algobot/internal/telegram/handlers/callback GroupRefresher
+
+//go:generate mockgen -destination=./viewFetcher_mock.go -package=mocks algobot/internal/telegram/handlers/text ViewFetcher
+//go:generate mockgen -destination=./serializator_mock.go -package=mocks algobot/internal/telegram/handlers/text Serializator
