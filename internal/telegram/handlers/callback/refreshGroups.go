@@ -24,6 +24,11 @@ func RefreshGroup(refresher GroupRefresher, log *slog.Logger) telebot.HandlerFun
 		)
 		uid := ctx.Sender().ID
 
+		if err := ctx.Edit("⚙️ Обновляю группы..."); err != nil {
+			log.Warn("error while editing message", sl.Err(err))
+			return fmt.Errorf("%s error while editing message: %w", op, err)
+		}
+
 		if err := refresher.RefreshGroup(uid, traceID); err != nil {
 			if errors.Is(err, groups.ErrNoGroups) {
 				return ctx.Edit("У вас не нашлось ни 1 группы!\nПроверьте ваши cookie")

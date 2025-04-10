@@ -27,6 +27,7 @@ func TestRefreshGroups(t *testing.T) {
 	mctx.EXPECT().Sender().Return(&tele.User{ID: 1}).AnyTimes()
 	t.Run("happy path", func(t *testing.T) {
 		gomock.InOrder(
+			mctx.EXPECT().Edit("⚙️ Обновляю группы..."),
 			refresher.EXPECT().RefreshGroup(int64(1), "").Return(nil),
 			mctx.EXPECT().Edit("Успешно обновлено!"),
 		)
@@ -35,6 +36,7 @@ func TestRefreshGroups(t *testing.T) {
 	})
 	t.Run("nop groups found", func(t *testing.T) {
 		gomock.InOrder(
+			mctx.EXPECT().Edit("⚙️ Обновляю группы..."),
 			refresher.EXPECT().RefreshGroup(int64(1), "").Return(groups.ErrNoGroups),
 			mctx.EXPECT().Edit("У вас не нашлось ни 1 группы!\nПроверьте ваши cookie"),
 		)
@@ -45,6 +47,7 @@ func TestRefreshGroups(t *testing.T) {
 		errExp := errors.New("exp")
 
 		gomock.InOrder(
+			mctx.EXPECT().Edit("⚙️ Обновляю группы..."),
 			refresher.EXPECT().RefreshGroup(int64(1), "").Return(errExp),
 		)
 		err := handler(mctx)
