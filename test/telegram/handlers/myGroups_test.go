@@ -1,6 +1,7 @@
 package test
 
 import (
+	"algobot/internal/domain"
 	"algobot/internal/domain/models"
 	"algobot/internal/domain/telegram/keyboards"
 	"algobot/internal/telegram/handlers/text"
@@ -11,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 	tele "gopkg.in/telebot.v4"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -33,9 +35,18 @@ func TestMyGroups(t *testing.T) {
 		gomock.InOrder(
 			mctx.EXPECT().Sender().Return(&tele.User{ID: 1}).Times(1),
 			grouper.EXPECT().Groups(int64(1), "trace_id").Return(mockGroups, nil).Times(1),
-			ser.EXPECT().Serialize(mockGroups[0], "trace_id").Return("ser-g1", nil).Times(1),
-			ser.EXPECT().Serialize(mockGroups[1], "trace_id").Return("ser-g2", nil).Times(1),
-			ser.EXPECT().Serialize(mockGroups[2], "trace_id").Return("", errors.New("ser")).Times(1),
+			ser.EXPECT().Serialize(domain.SerializeMessage{
+				Type: domain.GroupType,
+				Data: []string{strconv.Itoa(mockGroups[0].GroupID)},
+			}).Return("ser-g1", nil).Times(1),
+			ser.EXPECT().Serialize(domain.SerializeMessage{
+				Type: domain.GroupType,
+				Data: []string{strconv.Itoa(mockGroups[1].GroupID)},
+			}).Return("ser-g2", nil).Times(1),
+			ser.EXPECT().Serialize(domain.SerializeMessage{
+				Type: domain.GroupType,
+				Data: []string{strconv.Itoa(mockGroups[2].GroupID)},
+			}).Return("", errors.New("ser")).Times(1),
 			mctx.EXPECT().Send(mockStringRet, tele.ModeMarkdown, keyboards.RefreshGroups()).Return(nil).Times(1),
 		)
 

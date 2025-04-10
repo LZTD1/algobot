@@ -1,12 +1,14 @@
 package text
 
 import (
+	"algobot/internal/domain"
 	"algobot/internal/domain/models"
 	"algobot/internal/domain/telegram/keyboards"
 	"algobot/internal/lib/logger/sl"
 	"fmt"
 	"gopkg.in/telebot.v4"
 	"log/slog"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -26,7 +28,7 @@ type Grouper interface {
 }
 
 type GroupSerializer interface {
-	Serialize(group models.Group, traceID interface{}) (string, error)
+	Serialize(msg domain.SerializeMessage) (string, error)
 }
 type MyGroup struct {
 	log        *slog.Logger
@@ -99,7 +101,10 @@ func (g *MyGroup) getFormattedTitle(group models.Group, ctx telebot.Context) str
 		slog.Any("trace_id", ctx.Get("trace_id")),
 	)
 
-	serialized, err := g.serializer.Serialize(group, ctx.Get("trace_id"))
+	serialized, err := g.serializer.Serialize(domain.SerializeMessage{
+		Type: domain.GroupType,
+		Data: []string{strconv.Itoa(group.GroupID)},
+	})
 	if err != nil {
 		log.Warn("error while serializing group", sl.Err(err))
 		return group.Title
