@@ -58,7 +58,6 @@ func TestMissingKids(t *testing.T) {
 		err := handler(mctx)
 		assert.ErrorIs(t, err, errExp)
 	})
-
 }
 
 var acGroupasset = models.CurrentGroup{

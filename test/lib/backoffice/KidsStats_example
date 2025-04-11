@@ -1,0 +1,51 @@
+{
+  "status": "success",
+  "data": [
+    {
+      "student_id": 12345678,
+      "attendance": [
+        {
+          "lesson_id": 1001,
+          "lesson_title": "Знакомство с компьютером и цифровым миром",
+          "start_time_formatted": "пн 15.01.24 10:00",
+          "status": "inactive"
+        },
+        {
+          "lesson_id": 1002,
+          "lesson_title": "Файлы, папки и как ими пользоваться",
+          "start_time_formatted": "пн 22.01.24 10:00",
+          "status": "inactive"
+        },
+        {
+          "lesson_id": 1003,
+          "lesson_title": "Интернет и как искать информацию",
+          "start_time_formatted": "пн 29.01.24 10:00",
+          "status": "inactive"
+        }
+      ]
+    },
+    {
+      "student_id": 87654321,
+      "attendance": [
+        {
+          "lesson_id": 1001,
+          "lesson_title": "Знакомство с компьютером и цифровым миром",
+          "start_time_formatted": "пн 15.01.24 10:00",
+          "status": "present"
+        },
+        {
+          "lesson_id": 1002,
+          "lesson_title": "Файлы, папки и как ими пользоваться",
+          "start_time_formatted": "пн 22.01.24 10:00",
+          "status": "present"
+        },
+        {
+          "lesson_id": 1003,
+          "lesson_title": "Интернет и как искать информацию",
+          "start_time_formatted": "пн 29.01.24 10:00",
+          "status": "present"
+        }
+      ]
+    }
+  ]
+}

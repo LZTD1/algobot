@@ -9,3 +9,5 @@ package mocks
 //go:generate mockgen -destination=./groupView_mock.go -package=mocks algobot/internal/services/backoffice GroupView
 //go:generate mockgen -destination=./kidViewer_mock.go -package=mocks algobot/internal/services/backoffice KidViewer
 //go:generate mockgen -destination=./cookieGetter_mock.go -package=mocks algobot/internal/services/backoffice CookieGetter
+
+//go:generate mockgen -destination=./kidStats_mock.go -package=mocks algobot/internal/services/groups KidStats

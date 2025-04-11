@@ -63,7 +63,7 @@ func New(
 	}
 
 	// dependencies
-	groupServ := groups.NewGroup(log, storage, storage, bo)
+	groupServ := groups.NewGroup(log, storage, bo, storage, bo)
 	stateMachine := memory.New()
 	serdes := base62.NewSerdes(log)
 	grpc := grpc2.NewAIService(
@@ -90,6 +90,7 @@ func New(
 		r.HandleFuncText("Настройки", text.NewSettings(storage, log))
 		r.HandleFuncText("AI 🔹", text.NewAI(grpc, log, stateMachine))
 		r.HandleText("Мои группы", text.NewMyGroup(log, groupServ, serdes, b.Me.Username))
+		r.HandleFuncText("Получить отсутсвующих", text.NewMissingKids(log, groupServ))
 
 		r.HandleRegexpText(regexp.MustCompile(`^(?m)\/start\s(.+)$`), text.NewViewInformer(serdes, boSvc, log, b.Me.Username))
 

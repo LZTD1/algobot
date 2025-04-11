@@ -100,6 +100,24 @@ func TestBackoffice(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, backofficeKidViewExpected, group)
 	})
+	t.Run("KidsStats", func(t *testing.T) {
+		responseHTML := readFile("KidsStats_example")
+		server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+			rw.Write([]byte(responseHTML))
+			rw.WriteHeader(http.StatusOK)
+		}))
+		defer server.Close()
+
+		bo := backoffice.NewBackoffice(&config.Backoffice{
+			Retries:         5,
+			RetriesTimeout:  time.Second,
+			ResponseTimeout: time.Second,
+		}, backoffice.WithURL(server.URL))
+
+		group, err := bo.KidsStats("", 123)
+		assert.NoError(t, err)
+		assert.Equal(t, backofficeKidsStats, group)
+	})
 }
 
 func readFile(fileName string) string {
@@ -115,6 +133,13 @@ func readFile(fileName string) string {
 	return responseHTML
 }
 
+var backofficeKidsStats = backoffice2.KidsStats{
+	Status: "success",
+	Data: []backoffice2.KidStat{{
+		StudentID:  12345678,
+		Attendance: []backoffice2.Attendance{{LessonID: 1001, LessonTitle: "Знакомство с компьютером и цифровым миром", StartTimeFormatted: "пн 15.01.24 10:00", Status: "inactive"}, {LessonID: 1002, LessonTitle: "Файлы, папки и как ими пользоваться", StartTimeFormatted: "пн 22.01.24 10:00", Status: "inactive"}, {LessonID: 1003, LessonTitle: "Интернет и как искать информацию", StartTimeFormatted: "пн 29.01.24 10:00", Status: "inactive"}},
+	}, {StudentID: 87654321, Attendance: []backoffice2.Attendance{{LessonID: 1001, LessonTitle: "Знакомство с компьютером и цифровым миром", StartTimeFormatted: "пн 15.01.24 10:00", Status: "present"}, {LessonID: 1002, LessonTitle: "Файлы, папки и как ими пользоваться", StartTimeFormatted: "пн 22.01.24 10:00", Status: "present"}, {LessonID: 1003, LessonTitle: "Интернет и как искать информацию", StartTimeFormatted: "пн 29.01.24 10:00", Status: "present"}}}},
+}
 var backofficeGroupViewExpected = backoffice2.GroupInfo{
 	Status: "success",
 	Data: backoffice2.GroupDataFull{ID: 12345678, Title: "Занятие в библиотеке 5 в 14.00", Content: "Группа по курсу Python", Type: backoffice2.TypeFull{Value: "regular", Label: "Группа", Tag: "default"}, Status: backoffice2.StatusFull{Value: 10, Label: "Активная", Tag: "success"}, StatusChangedAt: "20.09.2024 12:04", StartTime: "22.09.2024 14:00", NextLessonTime: "13.04.2025 14:00", LessonsTotal: 35, LessonsPassed: 28, HardwareNeeded: 0, Branch: backoffice2.BranchFull{

@@ -10,5 +10,6 @@ type CurrentGroup struct {
 }
 type MissingKid struct {
 	Fullname string
+	KidID    int
 	Count    int
 }

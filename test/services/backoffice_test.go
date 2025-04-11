@@ -133,6 +133,7 @@ func TestBackoffice(t *testing.T) {
 			assert.ErrorIs(t, err, errExp)
 		})
 	})
+
 }
 
 var KidViewBackoffice = backoffice2.KidView{
