@@ -118,6 +118,38 @@ func TestBackoffice(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, backofficeKidsStats, group)
 	})
+	t.Run("Lesson", func(t *testing.T) {
+		t.Run("OpenLesson", func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+				rw.WriteHeader(http.StatusOK)
+			}))
+			defer server.Close()
+
+			bo := backoffice.NewBackoffice(&config.Backoffice{
+				Retries:         5,
+				RetriesTimeout:  time.Second,
+				ResponseTimeout: time.Second,
+			}, backoffice.WithURL(server.URL))
+
+			err := bo.OpenLesson("", "", "")
+			assert.NoError(t, err)
+		})
+		t.Run("CloseLesson", func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+				rw.WriteHeader(http.StatusOK)
+			}))
+			defer server.Close()
+
+			bo := backoffice.NewBackoffice(&config.Backoffice{
+				Retries:         5,
+				RetriesTimeout:  time.Second,
+				ResponseTimeout: time.Second,
+			}, backoffice.WithURL(server.URL))
+
+			err := bo.CloseLesson("", "", "")
+			assert.NoError(t, err)
+		})
+	})
 }
 
 func readFile(fileName string) string {

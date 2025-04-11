@@ -7,12 +7,13 @@ type CookieGetter interface {
 }
 
 type Backoffice struct {
-	log          *slog.Logger
-	cookieGetter CookieGetter
-	groupView    GroupView
-	kidViewer    KidViewer
+	log            *slog.Logger
+	cookieGetter   CookieGetter
+	groupView      GroupView
+	kidViewer      KidViewer
+	lessonStatuser LessonStatuser
 }
 
-func NewBackoffice(log *slog.Logger, cookieGetter CookieGetter, groupView GroupView, kidViewer KidViewer) *Backoffice {
-	return &Backoffice{log: log, cookieGetter: cookieGetter, groupView: groupView, kidViewer: kidViewer}
+func NewBackoffice(log *slog.Logger, cookieGetter CookieGetter, groupView GroupView, kidViewer KidViewer, lessonStatus LessonStatuser) *Backoffice {
+	return &Backoffice{log: log, cookieGetter: cookieGetter, groupView: groupView, kidViewer: kidViewer, lessonStatuser: lessonStatus}
 }

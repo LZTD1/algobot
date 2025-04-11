@@ -10,6 +10,7 @@ import (
 	"errors"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -22,8 +23,9 @@ func TestBackoffice(t *testing.T) {
 	cookieGetter := mocks2.NewMockCookieGetter(ctrl)
 	groupView := mocks2.NewMockGroupView(ctrl)
 	kidViewer := mocks2.NewMockKidViewer(ctrl)
+	lessonStatuser := mocks2.NewMockLessonStatuser(ctrl)
 
-	sbo := backoffice.NewBackoffice(log, cookieGetter, groupView, kidViewer)
+	sbo := backoffice.NewBackoffice(log, cookieGetter, groupView, kidViewer, lessonStatuser)
 	t.Run("KidView", func(t *testing.T) {
 		uid := int64(1)
 		kidID := "1"
@@ -133,7 +135,65 @@ func TestBackoffice(t *testing.T) {
 			assert.ErrorIs(t, err, errExp)
 		})
 	})
+	t.Run("SetLessonStatus", func(t *testing.T) {
+		uid := int64(1)
+		groupID := 1
+		lessonID := 1
+		traceID := ""
+		cookie := ""
 
+		t.Run("happy path close ", func(t *testing.T) {
+			gomock.InOrder(
+				cookieGetter.EXPECT().Cookies(uid).Return(cookie, nil).Times(1),
+				lessonStatuser.EXPECT().CloseLesson(cookie, strconv.Itoa(groupID), strconv.Itoa(lessonID)).Return(nil).Times(1),
+			)
+
+			err := sbo.SetLessonStatus(uid, strconv.Itoa(groupID), strconv.Itoa(lessonID), backoffice.CloseLesson, traceID)
+			assert.NoError(t, err)
+		})
+		t.Run("happy path open", func(t *testing.T) {
+			gomock.InOrder(
+				cookieGetter.EXPECT().Cookies(uid).Return(cookie, nil).Times(1),
+				lessonStatuser.EXPECT().OpenLesson(cookie, strconv.Itoa(groupID), strconv.Itoa(lessonID)).Return(nil).Times(1),
+			)
+
+			err := sbo.SetLessonStatus(uid, strconv.Itoa(groupID), strconv.Itoa(lessonID), backoffice.OpenLesson, traceID)
+			assert.NoError(t, err)
+		})
+		t.Run("err cookie", func(t *testing.T) {
+			errExp := errors.New("")
+			gomock.InOrder(
+				cookieGetter.EXPECT().Cookies(uid).Return("", errExp).Times(1),
+			)
+
+			err := sbo.SetLessonStatus(uid, strconv.Itoa(groupID), strconv.Itoa(lessonID), backoffice.OpenLesson, traceID)
+			assert.ErrorIs(t, err, errExp)
+		})
+		t.Run("Err CloseLesson", func(t *testing.T) {
+			errExp := errors.New("err")
+
+			gomock.InOrder(
+				cookieGetter.EXPECT().Cookies(uid).Return(cookie, nil).Times(1),
+				lessonStatuser.EXPECT().CloseLesson(cookie, strconv.Itoa(groupID), strconv.Itoa(lessonID)).Return(errExp).Times(1),
+			)
+
+			err := sbo.SetLessonStatus(uid, strconv.Itoa(groupID), strconv.Itoa(lessonID), backoffice.CloseLesson, traceID)
+			assert.Error(t, err)
+			assert.ErrorIs(t, err, errExp)
+		})
+		t.Run("Err OpenLesson", func(t *testing.T) {
+			errExp := errors.New("err")
+
+			gomock.InOrder(
+				cookieGetter.EXPECT().Cookies(uid).Return(cookie, nil).Times(1),
+				lessonStatuser.EXPECT().OpenLesson(cookie, strconv.Itoa(groupID), strconv.Itoa(lessonID)).Return(errExp).Times(1),
+			)
+
+			err := sbo.SetLessonStatus(uid, strconv.Itoa(groupID), strconv.Itoa(lessonID), backoffice.OpenLesson, traceID)
+			assert.Error(t, err)
+			assert.ErrorIs(t, err, errExp)
+		})
+	})
 }
 
 var KidViewBackoffice = backoffice2.KidView{

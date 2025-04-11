@@ -70,7 +70,7 @@ func New(
 		cfg.GRPC,
 		grpc2.WithLogger(log),
 	)
-	boSvc := backoffice.NewBackoffice(log, storage, bo, bo)
+	boSvc := backoffice.NewBackoffice(log, storage, bo, bo, bo)
 
 	// initialize routes
 	b.Use(trace.New(log))
@@ -99,6 +99,9 @@ func New(
 		r.HandleFuncCallback("\fset_cookie", callback.NewChangeCookie(stateMachine))
 		r.HandleFuncCallback("\fchange_notification", callback.NewChangeNotification(storage, log))
 		r.HandleFuncCallback("\frefresh_groups", callback.RefreshGroup(groupServ, log))
+
+		r.HandleFuncRegexpCallback(regexp.MustCompile(`^\fclose_lesson_(.+)$`), callback.LessonStatus(boSvc, backoffice.CloseLesson, log))
+		r.HandleFuncRegexpCallback(regexp.MustCompile(`^\fopen_lesson_(.+)$`), callback.LessonStatus(boSvc, backoffice.OpenLesson, log))
 	})
 
 	r.Group(func(r router.Router) { // Routes for SendingCookie state

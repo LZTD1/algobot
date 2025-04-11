@@ -25,3 +25,5 @@ package mocks
 //go:generate mockgen -destination=./serializator_mock.go -package=mocks algobot/internal/telegram/handlers/text Serializator
 
 //go:generate mockgen -destination=./actualGroup_mock.go -package=mocks algobot/internal/telegram/handlers/text ActualGroup
+
+//go:generate mockgen -destination=./lessonStatuser_mock.go -package=mocks algobot/internal/telegram/handlers/callback LessonStatuser

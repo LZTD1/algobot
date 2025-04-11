@@ -2,6 +2,7 @@ package text
 
 import (
 	"algobot/internal/domain/models"
+	"algobot/internal/domain/telegram/keyboards"
 	"algobot/internal/lib/logger/sl"
 	"algobot/internal/services/groups"
 	"errors"
@@ -39,7 +40,7 @@ func NewMissingKids(log *slog.Logger, actualGroup ActualGroup) telebot.HandlerFu
 			return fmt.Errorf("%s error while fetching CurrentGroup: %w", op, err)
 		}
 
-		return ctx.Send(GetMissingMessage(group), telebot.ModeMarkdown)
+		return ctx.Send(GetMissingMessage(group), keyboards.MissingKids(group.GroupID, group.LessonID), telebot.ModeMarkdown)
 	}
 }
 

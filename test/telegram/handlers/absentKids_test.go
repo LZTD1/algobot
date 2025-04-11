@@ -2,6 +2,7 @@ package test
 
 import (
 	"algobot/internal/domain/models"
+	"algobot/internal/domain/telegram/keyboards"
 	"algobot/internal/services/groups"
 	"algobot/internal/telegram/handlers/text"
 	mocks3 "algobot/test/mocks"
@@ -29,7 +30,7 @@ func TestNewAbsentKids(t *testing.T) {
 	t.Run("Happy path", func(t *testing.T) {
 		mctx.EXPECT().Message().Return(&tele.Message{Text: "/abs 2025-04-06 14:44"}).Times(1)
 		agroup.EXPECT().CurrentGroup(int64(1), gomock.Any(), "").Return(grAsset, nil).Times(1)
-		mctx.EXPECT().Reply("Группа: title\nЛекция: lesson\n\nОбщее число детей: 3\nОтсутствуют: 2\n\n```Отсутствующие\n1 (Уже 2 занятие)\n1\n```", tele.ModeMarkdown).Times(1)
+		mctx.EXPECT().Reply("Группа: title\nЛекция: lesson\n\nОбщее число детей: 3\nОтсутствуют: 2\n\n```Отсутствующие\n1 (Уже 2 занятие)\n1\n```", keyboards.MissingKids(1, 1), tele.ModeMarkdown).Times(1)
 
 		err := handler(mctx)
 		assert.NoError(t, err)

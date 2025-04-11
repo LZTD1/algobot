@@ -15,7 +15,7 @@ type GroupRefresher interface {
 
 func RefreshGroup(refresher GroupRefresher, log *slog.Logger) telebot.HandlerFunc {
 	return func(ctx telebot.Context) error {
-		const op = "text.NewChangeNotification"
+		const op = "callback.NewChangeNotification"
 
 		traceID := ctx.Get("trace_id")
 		log := log.With(
