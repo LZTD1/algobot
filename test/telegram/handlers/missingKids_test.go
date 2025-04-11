@@ -73,10 +73,12 @@ var acGroupasset = models.CurrentGroup{
 	MissingKids: []models.MissingKid{
 		{
 			Fullname: "1",
+			KidID:    1,
 			Count:    2,
 		},
 		{
 			Fullname: "1",
+			KidID:    2,
 			Count:    1,
 		},
 	},

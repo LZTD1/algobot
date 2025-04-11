@@ -91,6 +91,7 @@ func New(
 		r.HandleFuncText("AI 🔹", text.NewAI(grpc, log, stateMachine))
 		r.HandleText("Мои группы", text.NewMyGroup(log, groupServ, serdes, b.Me.Username))
 		r.HandleFuncText("Получить отсутсвующих", text.NewMissingKids(log, groupServ))
+		r.HandleFuncRegexpText(regexp.MustCompile(`^(?m)\/abs(.*)$`), text.NewAbsentKids(groupServ, log))
 
 		r.HandleRegexpText(regexp.MustCompile(`^(?m)\/start\s(.+)$`), text.NewViewInformer(serdes, boSvc, log, b.Me.Username))
 
@@ -116,7 +117,6 @@ func New(
 		r.HandleFuncText("/reset", text.NewReset(grpc, log))
 		r.HandleFuncRegexpText(regexp.MustCompile(`^(?m)\/image\s(.+)$`), text.GenerateImage(grpc, log))
 		r.HandleFuncRegexpText(regexp.MustCompile(`^[^/].*$`), text.ChatAI(grpc, log))
-
 	})
 
 	r.NotFound(text.NewStart(stateMachine))

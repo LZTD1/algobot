@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -54,6 +55,7 @@ func (g *Group) CurrentGroup(uid int64, time time.Time, traceID interface{}) (mo
 		log.Warn("error while fetching kids stats", sl.Err(err))
 		return models.CurrentGroup{}, fmt.Errorf("%s error while fetching kids stats: %w", op, err)
 	}
+
 	for _, datum := range stats.Data {
 		studentID := datum.StudentID
 		count := 0
@@ -83,8 +85,10 @@ func (g *Group) CurrentGroup(uid int64, time time.Time, traceID interface{}) (mo
 		log.Warn("error while fetching KidsNamesByGroup", sl.Err(err))
 		return models.CurrentGroup{}, fmt.Errorf("%s error while fetching KidsNamesByGroup: %w", op, err)
 	}
+
 	for _, datum := range names.Data.Items {
 		if datum.LastGroup.ID == actual.GroupID && datum.LastGroup.Status == 0 {
+
 			missingKids[datum.ID] = models.MissingKid{
 				Fullname: datum.FullName,
 				Count:    missingKids[datum.ID].Count,
@@ -101,7 +105,7 @@ func (g *Group) CurrentGroup(uid int64, time time.Time, traceID interface{}) (mo
 func split(m *models.CurrentGroup, kids map[int]models.MissingKid) {
 	m.MissingKids = make([]models.MissingKid, 0, len(kids))
 	for _, kid := range kids {
-		if kid.Count != 0 {
+		if kid.Count != 0 && strings.TrimSpace(kid.Fullname) != "" {
 			m.MissingKids = append(m.MissingKids, kid)
 		}
 		m.Kids = append(m.Kids, kid.Fullname)

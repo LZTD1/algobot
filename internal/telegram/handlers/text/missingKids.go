@@ -39,11 +39,11 @@ func NewMissingKids(log *slog.Logger, actualGroup ActualGroup) telebot.HandlerFu
 			return fmt.Errorf("%s error while fetching CurrentGroup: %w", op, err)
 		}
 
-		return ctx.Send(getMsg(group), telebot.ModeMarkdown)
+		return ctx.Send(GetMissingMessage(group), telebot.ModeMarkdown)
 	}
 }
 
-func getMsg(gr models.CurrentGroup) string {
+func GetMissingMessage(gr models.CurrentGroup) string {
 	miss := strings.Builder{}
 	miss.WriteString("\n```Отсутствующие\n")
 	for _, kid := range gr.MissingKids {
