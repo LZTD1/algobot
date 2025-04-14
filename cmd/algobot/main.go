@@ -24,8 +24,8 @@ func main() {
 
 	go application.TelegramBot.Run()
 	log.Info("started telegram bot")
-	// TODO : start bot app
-	// TODO : start message scheduler app
+	go application.Scheduler.Run()
+	log.Info("starting msg scheduler")
 
 	// graceful shutdown
 	ch := make(chan os.Signal, 1)
@@ -33,6 +33,7 @@ func main() {
 	<-ch
 	log.Info("shutting down application")
 	application.TelegramBot.Stop()
+	application.Scheduler.Stop()
 	log.Info("application gracefully stopped")
 }
 

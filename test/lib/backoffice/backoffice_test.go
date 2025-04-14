@@ -150,6 +150,24 @@ func TestBackoffice(t *testing.T) {
 			assert.NoError(t, err)
 		})
 	})
+	t.Run("KidsMessages", func(t *testing.T) {
+		responseHTML := readFile("kidsMessage_example")
+		server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+			rw.Write([]byte(responseHTML))
+			rw.WriteHeader(http.StatusOK)
+		}))
+		defer server.Close()
+
+		bo := backoffice.NewBackoffice(&config.Backoffice{
+			Retries:         5,
+			RetriesTimeout:  time.Second,
+			ResponseTimeout: time.Second,
+		}, backoffice.WithURL(server.URL))
+
+		msgs, err := bo.KidsMessages("")
+		assert.NoError(t, err)
+		assert.Equal(t, backofficeMsg, msgs)
+	})
 }
 
 func readFile(fileName string) string {
@@ -309,4 +327,19 @@ var backofficeKidViewExpected = backoffice2.KidView{
 		}, {ID: 98637162, GroupStudentID: 6553709, Title: "Библиотека 7 вс 14.00", Content: "Группа по курсу КГ", Track: 2, Status: 0, StartTime: time.Date(2024, time.November, 25, 10, 54, 55, 0, time.Local), EndTime: time.Date(9999, time.December, 31, 0, 0, 0, 0, time.Local), CourseID: 729, CreatedAt: time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC), UpdatedAt: time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC), DeletedAt: interface{}(nil)}},
 		Links: backoffice2.Links{Self: backoffice2.SelfLink{Href: "/student/update/70245813"}},
 	},
+}
+var backofficeMsg = backoffice2.KidsMessages{
+	Status: "success",
+	Data: backoffice2.MessagesData{Projects: []backoffice2.Message{{
+		UID:         "33123098level1123826",
+		New:         false,
+		SenderID:    42407,
+		SenderScope: "user",
+		Type:        "text",
+		Content:     "content",
+		Name:        "name",
+		LastTime:    "15 мар. 19:26",
+		Title:       "М5 У2. Игра \"Game\". Ч. 1",
+		Link:        "/task-preview/link",
+	}}},
 }

@@ -1,0 +1,19 @@
+{
+    "status": "success",
+    "data": {
+        "projects": [
+            {
+                "uid": "33123098level1123826",
+                "new": false,
+                "senderId": 42407,
+                "senderScope": "user",
+                "type": "text",
+                "content": "content",
+                "name": "name",
+                "lastTime": "15 мар. 19:26",
+                "title": "М5 У2. Игра \"Game\". Ч. 1",
+                "link": "/task-preview/link"
+            }
+        ]
+    }
+}

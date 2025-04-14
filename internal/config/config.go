@@ -19,6 +19,7 @@ type Config struct {
 
 type Backoffice struct {
 	Retries         int           `yaml:"retries" env-default:"3"`
+	MessageTimer    time.Duration `yaml:"message_timer" env-default:"5m"`
 	RetriesTimeout  time.Duration `yaml:"retries_timeout" env-default:"5s"`
 	ResponseTimeout time.Duration `yaml:"response_timeout" env-default:"15s"`
 }

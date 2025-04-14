@@ -2,6 +2,7 @@ package telegram
 
 import (
 	"algobot/internal/config"
+	"algobot/internal/domain/scheduler"
 	backoffice3 "algobot/internal/lib/backoffice"
 	"algobot/internal/lib/fsm"
 	"algobot/internal/lib/fsm/memory"
@@ -10,6 +11,7 @@ import (
 	"algobot/internal/services/backoffice"
 	"algobot/internal/services/groups"
 	grpc2 "algobot/internal/services/grpc"
+	"algobot/internal/services/schedule"
 	"algobot/internal/storage/sqlite"
 	"algobot/internal/telegram/handlers/callback"
 	"algobot/internal/telegram/handlers/text"
@@ -33,12 +35,7 @@ type App struct {
 	bot *tele.Bot
 }
 
-func New(
-	log *slog.Logger,
-	cfg *config.Config,
-	storage *sqlite.Sqlite,
-	bo *backoffice3.Backoffice,
-) *App {
+func New(log *slog.Logger, cfg *config.Config, storage *sqlite.Sqlite, bo *backoffice3.Backoffice, boSvc *backoffice.Backoffice, messages chan scheduler.Message) *App {
 	const op = "telegram.New"
 
 	nlog := log.With(
@@ -51,7 +48,7 @@ func New(
 			Timeout: 10 * time.Second,
 		},
 		OnError: func(e error, c tele.Context) { // TODO : refactor into handler
-			traceID := c.Get("trace_id") // TODO : maybe send warnings to admin ?
+			traceID := c.Get("trace_id")
 			c.Send(fmt.Sprintf("<b>[%s]</b>\n\nУпс! Произошла какая-то непредвиденная ошибка!\nОбратитесь к администратору", traceID), tele.ModeHTML)
 			log.Warn("cant handle error", sl.Err(e), slog.Any("trace_id", traceID))
 		},
@@ -70,7 +67,8 @@ func New(
 		cfg.GRPC,
 		grpc2.WithLogger(log),
 	)
-	boSvc := backoffice.NewBackoffice(log, storage, bo, bo, bo)
+	sch := schedule.NewSchedule(messages, b)
+	go sch.Process()
 
 	// initialize routes
 	b.Use(trace.New(log))
@@ -100,7 +98,7 @@ func New(
 		r.HandleFuncCallback("\fchange_notification", callback.NewChangeNotification(storage, log))
 		r.HandleFuncCallback("\frefresh_groups", callback.RefreshGroup(groupServ, log))
 
-		r.HandleFuncRegexpCallback(regexp.MustCompile(`^\fget_creds__(.+)$`), callback.GetCreds())
+		r.HandleFuncRegexpCallback(regexp.MustCompile(`^\fget_creds_(.+)$`), callback.GetCreds(boSvc, log))
 		r.HandleFuncRegexpCallback(regexp.MustCompile(`^\fclose_lesson_(.+)$`), callback.LessonStatus(boSvc, backoffice.CloseLesson, log))
 		r.HandleFuncRegexpCallback(regexp.MustCompile(`^\fopen_lesson_(.+)$`), callback.LessonStatus(boSvc, backoffice.OpenLesson, log))
 	})

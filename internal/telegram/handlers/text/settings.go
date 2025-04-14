@@ -50,7 +50,7 @@ func GetSettingsMessage(cookies string, notification bool) string {
 		sb.WriteString("✖️")
 	}
 	sb.WriteString("\nУведомление от чата:")
-	if !notification {
+	if notification {
 		sb.WriteString("✅")
 	} else {
 		sb.WriteString("✖️")

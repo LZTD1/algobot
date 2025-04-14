@@ -12,3 +12,6 @@ package mocks
 //go:generate mockgen -destination=./lessonStatuser_mock.go -package=mocks algobot/internal/services/backoffice LessonStatuser
 
 //go:generate mockgen -destination=./kidStats_mock.go -package=mocks algobot/internal/services/groups KidStats
+//go:generate mockgen -destination=./sender_mock.go -package=mocks algobot/internal/services/schedule Sender
+
+//go:generate mockgen -destination=./messageFetcher_mock.go -package=mocks algobot/internal/services/backoffice MessageFetcher

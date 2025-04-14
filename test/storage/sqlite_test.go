@@ -167,4 +167,28 @@ func TestSqlite(t *testing.T) {
 		assert.Len(t, groups, 1)
 		assert.Equal(t, gr, groups)
 	})
+	t.Run("UsersByNotification", func(t *testing.T) {
+		users, err := sqlite.UsersByNotification(1)
+		assert.NoError(t, err)
+		assert.Len(t, users, 1)
+		assert.Equal(t, []models.User{
+			{
+				ID:               4,
+				Uid:              998,
+				Cookie:           "",
+				LastNotification: "",
+				Notification:     1,
+			},
+		}, users)
+	})
+	t.Run("ChaneNotifDate", func(t *testing.T) {
+		users, err := sqlite.UsersByNotification(2)
+		assert.Equal(t, "", users[0].LastNotification)
+
+		err = sqlite.ChaneNotifDate(997, "bruh")
+		assert.NoError(t, err)
+
+		users, err = sqlite.UsersByNotification(2)
+		assert.Equal(t, "bruh", users[0].LastNotification)
+	})
 }

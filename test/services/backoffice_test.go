@@ -3,6 +3,7 @@ package test
 import (
 	backoffice2 "algobot/internal/domain/backoffice"
 	"algobot/internal/domain/models"
+	"algobot/internal/domain/scheduler"
 	backoffice3 "algobot/internal/lib/backoffice"
 	"algobot/internal/services/backoffice"
 	"algobot/test/mocks"
@@ -24,8 +25,9 @@ func TestBackoffice(t *testing.T) {
 	groupView := mocks2.NewMockGroupView(ctrl)
 	kidViewer := mocks2.NewMockKidViewer(ctrl)
 	lessonStatuser := mocks2.NewMockLessonStatuser(ctrl)
+	messageFetcher := mocks2.NewMockMessageFetcher(ctrl)
 
-	sbo := backoffice.NewBackoffice(log, cookieGetter, groupView, kidViewer, lessonStatuser)
+	sbo := backoffice.NewBackoffice(log, cookieGetter, groupView, kidViewer, lessonStatuser, messageFetcher)
 	t.Run("KidView", func(t *testing.T) {
 		uid := int64(1)
 		kidID := "1"
@@ -229,6 +231,28 @@ func TestBackoffice(t *testing.T) {
 			_, err := sbo.Creds(ID, groupID, "")
 			assert.ErrorIs(t, err, errExp)
 		})
+	})
+	t.Run("MessagesUser", func(t *testing.T) {
+		UID := int64(1)
+		lastTime := "14 мар. 19:26"
+		cookie := "cookie"
+		gomock.InOrder(
+			cookieGetter.EXPECT().Cookies(UID).Return(cookie, nil).Times(1),
+			messageFetcher.EXPECT().KidsMessages(cookie).Return(mockMsg, nil).Times(1),
+		)
+
+		msgs, err := sbo.MessagesUser(int64(1), lastTime)
+		assert.NoError(t, err)
+		assert.Len(t, msgs, 1)
+		assert.Equal(t, scheduler.Message{
+			To:      int64(1),
+			From:    "name",
+			Theme:   "М5 У2. Игра \"Game\". Ч. 1",
+			Link:    "https://backoffice.algoritmika.org/task-preview/link",
+			Text:    "content",
+			LinkURL: "",
+			Time:    "15 мар. 19:26",
+		}, msgs[0])
 	})
 }
 
@@ -561,6 +585,35 @@ var expectedGroupView = models.GroupView{
 			ID:        201,
 			StartTime: time.Date(2023, time.February, 1, 10, 0, 0, 0, time.UTC),
 			EndTime:   time.Date(2023, time.June, 30, 11, 0, 0, 0, time.UTC),
+		},
+	}},
+}
+var mockMsg = backoffice2.KidsMessages{
+	Status: "success",
+	Data: backoffice2.MessagesData{Projects: []backoffice2.Message{
+		{
+			UID:         "33123098level1123826",
+			New:         false,
+			SenderID:    42407,
+			SenderScope: "student",
+			Type:        "text",
+			Content:     "content",
+			Name:        "name",
+			LastTime:    "15 мар. 19:26",
+			Title:       "М5 У2. Игра \"Game\". Ч. 1",
+			Link:        "/task-preview/link",
+		},
+		{
+			UID:         "33123098level1123826",
+			New:         false,
+			SenderID:    42407,
+			SenderScope: "student",
+			Type:        "text",
+			Content:     "content",
+			Name:        "name",
+			LastTime:    "14 мар. 19:26",
+			Title:       "М5 У2. Игра \"Game\". Ч. 1",
+			Link:        "/task-preview/link",
 		},
 	}},
 }

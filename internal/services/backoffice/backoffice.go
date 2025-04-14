@@ -12,8 +12,9 @@ type Backoffice struct {
 	groupView      GroupView
 	kidViewer      KidViewer
 	lessonStatuser LessonStatuser
+	msgFetcher     MessageFetcher
 }
 
-func NewBackoffice(log *slog.Logger, cookieGetter CookieGetter, groupView GroupView, kidViewer KidViewer, lessonStatus LessonStatuser) *Backoffice {
-	return &Backoffice{log: log, cookieGetter: cookieGetter, groupView: groupView, kidViewer: kidViewer, lessonStatuser: lessonStatus}
+func NewBackoffice(log *slog.Logger, cookieGetter CookieGetter, groupView GroupView, kidViewer KidViewer, lessonStatuser LessonStatuser, msgFetcher MessageFetcher) *Backoffice {
+	return &Backoffice{log: log, cookieGetter: cookieGetter, groupView: groupView, kidViewer: kidViewer, lessonStatuser: lessonStatuser, msgFetcher: msgFetcher}
 }
