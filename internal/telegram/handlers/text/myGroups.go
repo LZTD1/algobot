@@ -60,7 +60,7 @@ func (g *MyGroup) ServeContext(ctx telebot.Context) error {
 		return ctx.Send(fmt.Sprintf("<b>[%s]</b> Ошибка при получении групп!", ctx.Get("trace_id")), telebot.ModeHTML)
 	}
 
-	return ctx.Send(g.msgMyGroups(groups, ctx), telebot.ModeMarkdown, keyboards.RefreshGroups())
+	return ctx.Send(g.msgMyGroups(groups, ctx), telebot.ModeMarkdown, telebot.NoPreview, keyboards.RefreshGroups())
 }
 
 func (g *MyGroup) msgMyGroups(groups []models.Group, ctx telebot.Context) string {

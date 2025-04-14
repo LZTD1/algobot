@@ -47,7 +47,7 @@ func TestMyGroups(t *testing.T) {
 				Type: domain.GroupType,
 				Data: []string{strconv.Itoa(mockGroups[2].GroupID)},
 			}).Return("", errors.New("ser")).Times(1),
-			mctx.EXPECT().Send(mockStringRet, tele.ModeMarkdown, keyboards.RefreshGroups()).Return(nil).Times(1),
+			mctx.EXPECT().Send(mockStringRet, tele.ModeMarkdown, tele.NoPreview, keyboards.RefreshGroups()).Return(nil).Times(1),
 		)
 
 		err := handler.ServeContext(mctx)
