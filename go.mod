@@ -4,6 +4,7 @@ go 1.23.3
 
 require (
 	github.com/LZTD1/telebot-context-router v1.1.0
+	github.com/PuerkitoBio/goquery v1.10.2
 	github.com/google/uuid v1.6.0
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/jxskiss/base62 v1.1.0
@@ -19,7 +20,6 @@ require (
 
 require (
 	github.com/BurntSushi/toml v1.5.0 // indirect
-	github.com/PuerkitoBio/goquery v1.10.2 // indirect
 	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect

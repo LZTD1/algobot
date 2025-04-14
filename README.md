@@ -65,12 +65,12 @@ go build -o algobot ./cmd/algobot
 
 ### 2. Применение миграций
 ```bash
-./migrator --migrations-path=./migrations --storage-path=./storage/storage.db
+./migrator -migrations-path=./migrations -storage-path=./storage/storage.db
 ```
 
 ### 3. Запуск бота
 ```bash
-./algobot --config ./config/config.yaml
+./algobot -config ./config/config.yaml
 ```
 
 
