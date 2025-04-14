@@ -21,17 +21,21 @@ jobs:
         with:
           go-version: '1.23.3'
 
-      - name: Install rsrc
-        run: go install github.com/akavel/rsrc@latest
-
       - name: Add icon and build binary
         run: |
-          cd ./cmd
-          rsrc -ico ./icon.ico
+          cd ./cmd/algobot
           GOOS=windows GOARCH=amd64 go build -o ./algobot.exe 
+
+      - name: build binary migrator
+        run: |
+          cd ./cmd/migrator
+          GOOS=windows GOARCH=amd64 go build -o ./migrator.exe 
 
       - name: Upload Windows binary
         uses: actions/upload-artifact@v4
         with:
-          name: algobot
-          path: ./cmd/algobot.exe
+          name: binary
+          path: |
+            ./cmd/migrator/migrator.exe
+            ./cmd/algobot/algobot.exe
+            ./config/dev.yaml

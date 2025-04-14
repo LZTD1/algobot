@@ -1,0 +1,16 @@
+env: local # or prod
+storage_path: "./storage/storage.db"
+# telegram_token: TOKEN  or set in env variables - TELEGRAM_TOKEN
+migrations_path: "./migrations"
+grpc:
+  host: "localhost"
+  port: 50051
+  timeout: 300s
+rate_limit:
+  fill_period: 800ms
+  bucket_limit: 6
+backoffice:
+  message_timer: 5m
+  retries: 3
+  retries_timeout: 5s
+  response_timeout: 15s

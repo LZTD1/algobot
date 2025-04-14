@@ -1,11 +1,43 @@
 syntax = "proto3";
 
 package pypkg;
-option go_package = "tgbot/pkg";
+option go_package = "algobot.ai.v1;aiv1";
 
 service Ai {
   rpc GetSuggest (SuggestRequest) returns (SuggestResponse);
   rpc ClearHistory (ClearHistoryRequest) returns (ClearHistoryResponse);
+  rpc GetInformation (GetInformationRequest) returns (GetInformationResponse);
+  rpc ChangeModel (ChangeModelRequest) returns (ChangeModelResponse);
+  rpc GenerateImage (GenerateImageRequest) returns (GenerateImageResponse);
+}
+
+message GenerateImageRequest {
+  int64 uid = 1;
+  string promt = 2;
+}
+message GenerateImageResponse {
+  string url = 1;
+}
+
+enum ModelType {
+  MODEL_UNSPECIFIED = 0;
+  IMAGE_MODEL = 1;
+  TEXT_MODEL = 2;
+}
+
+message ChangeModelRequest {
+  ModelType type = 1;
+  string model_name = 2;
+}
+message ChangeModelResponse {
+  bool ok = 1;
+  string message = 2;
+}
+
+message GetInformationRequest {}
+message GetInformationResponse {
+  string chat_model = 1;
+  string image_model = 2;
 }
 
 message SuggestRequest {
