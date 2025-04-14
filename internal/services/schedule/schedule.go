@@ -22,6 +22,9 @@ func NewSchedule(ch chan scheduler.Message, sender Sender) *Schedule {
 
 func (s *Schedule) Process() {
 	for msg := range s.ch {
+		if msg.From == "" {
+			continue
+		}
 		if msg.LinkURL != "" {
 			p := &telebot.Photo{File: telebot.FromURL(msg.LinkURL), Caption: getMsg(msg)}
 			s.sender.Send(

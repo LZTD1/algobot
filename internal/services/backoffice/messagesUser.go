@@ -24,6 +24,20 @@ var dateMap = map[string]string{
 	"нояб": "11",
 	"дек":  "12",
 }
+var dateReverseMap = map[int]string{
+	1:  "янв",
+	2:  "февр",
+	3:  "мар",
+	4:  "апр",
+	5:  "мая",
+	6:  "июн",
+	7:  "июл",
+	8:  "авг",
+	9:  "сент",
+	10: "окт",
+	11: "нояб",
+	12: "дек",
+}
 
 type MessageFetcher interface {
 	KidsMessages(cookie string) (backoffice.KidsMessages, error)
@@ -41,14 +55,24 @@ func (bo *Backoffice) MessagesUser(uid int64, lastTime string) ([]scheduler.Mess
 		return nil, fmt.Errorf("%s failed to get cookies: %w", op, err)
 	}
 
-	dateNotif := time.Time{}
-	if lastTime != "" {
-		dateNotif = parseDate(lastTime)
-	}
-
 	messages, err := bo.msgFetcher.KidsMessages(cookie)
 	if err != nil {
 		return nil, fmt.Errorf("%s failed to get KidsMessages: %w", op, err)
+	}
+
+	var dateNotif time.Time
+	if lastTime != "" {
+		dateNotif = parseDate(lastTime)
+	} else {
+		timeNow := time.Now()
+		return []scheduler.Message{{
+			From:  "",
+			Theme: "",
+			Link:  "",
+			Text:  "",
+			Time:  timeNow.Format(fmt.Sprintf("2 %s. 15:04", dateReverseMap[int(timeNow.Month())])),
+			To:    uid,
+		}}, nil
 	}
 
 	var msgs []scheduler.Message
