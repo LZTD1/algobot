@@ -3,12 +3,13 @@ package test
 import (
 	backoffice2 "algobot/internal/domain/backoffice"
 	"algobot/internal/domain/models"
-	"algobot/internal/domain/scheduler"
+	scheduler2 "algobot/internal/domain/scheduler"
 	backoffice3 "algobot/internal/lib/backoffice"
 	"algobot/internal/services/backoffice"
 	"algobot/test/mocks"
 	mocks2 "algobot/test/mocks/services"
 	"errors"
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 	"strconv"
@@ -233,29 +234,81 @@ func TestBackoffice(t *testing.T) {
 		})
 	})
 	t.Run("MessagesUser", func(t *testing.T) {
-		UID := int64(1)
-		lastTime := "14 мар. 19:26"
-		cookie := "cookie"
-		gomock.InOrder(
-			cookieGetter.EXPECT().Cookies(UID).Return(cookie, nil).Times(1),
-			messageFetcher.EXPECT().KidsMessages(cookie).Return(mockMsg, nil).Times(1),
-		)
+		t.Run("happy path", func(t *testing.T) {
+			UID := int64(1)
+			lastTime := "14 мар. 19:26"
+			cookie := "cookie"
+			gomock.InOrder(
+				cookieGetter.EXPECT().Cookies(UID).Return(cookie, nil).Times(1),
+				messageFetcher.EXPECT().KidsMessages(cookie).Return(mockMsg, nil).Times(1),
+			)
 
-		msgs, err := sbo.MessagesUser(int64(1), lastTime)
-		assert.NoError(t, err)
-		assert.Len(t, msgs, 1)
-		assert.Equal(t, scheduler.Message{
-			To:      int64(1),
-			From:    "name",
-			Theme:   "М5 У2. Игра \"Game\". Ч. 1",
-			Link:    "https://backoffice.algoritmika.org/task-preview/link",
-			Text:    "content",
-			LinkURL: "",
-			Time:    "15 мар. 19:26",
-		}, msgs[0])
+			msgs, err := sbo.MessagesUser(int64(1), lastTime)
+			assert.NoError(t, err)
+			assert.Len(t, msgs, 2)
+			assert.Equal(t, []scheduler2.Message{
+				{
+					To:      1,
+					From:    "name",
+					Theme:   "М5 У2. Игра \"Game\". Ч. 1",
+					Link:    "https://backoffice.algoritmika.org/task-preview/link",
+					Text:    "content",
+					LinkURL: "",
+					Time:    "15 мар. 19:26",
+				},
+				{
+					To:      1,
+					From:    "name",
+					Theme:   "М5 У2. Игра \"Game\". Ч. 1",
+					Link:    "https://backoffice.algoritmika.org/task-preview/link",
+					Text:    "content",
+					LinkURL: "",
+					Time:    "16 мар. 19:26",
+				}}, msgs)
+		})
+		t.Run("if lat notif empty", func(t *testing.T) {
+			UID := int64(1)
+			lastTime := ""
+			cookie := "cookie"
+			gomock.InOrder(
+				cookieGetter.EXPECT().Cookies(UID).Return(cookie, nil).Times(1),
+				messageFetcher.EXPECT().KidsMessages(cookie).Return(mockMsg, nil).Times(1),
+			)
+
+			msgs, err := sbo.MessagesUser(int64(1), lastTime)
+			assert.NoError(t, err)
+			assert.Len(t, msgs, 1)
+
+			timeNow := time.Now()
+			assert.Contains(t, []scheduler2.Message{
+				{
+					To:      1,
+					From:    "",
+					Theme:   "",
+					Link:    "",
+					Text:    "",
+					LinkURL: "",
+					Time:    timeNow.Format(fmt.Sprintf("2 %s. 15:04", dateReverseMap[int(timeNow.Month())])),
+				}}, msgs[0])
+		})
 	})
+
 }
 
+var dateReverseMap = map[int]string{
+	1:  "янв",
+	2:  "февр",
+	3:  "мар",
+	4:  "апр",
+	5:  "мая",
+	6:  "июн",
+	7:  "июл",
+	8:  "авг",
+	9:  "сент",
+	10: "окт",
+	11: "нояб",
+	12: "дек",
+}
 var KidViewBackoffice = backoffice2.KidView{
 	Status: "Активен",
 	Data: backoffice2.Student{
@@ -591,6 +644,18 @@ var expectedGroupView = models.GroupView{
 var mockMsg = backoffice2.KidsMessages{
 	Status: "success",
 	Data: backoffice2.MessagesData{Projects: []backoffice2.Message{
+		{
+			UID:         "33123098level1123826",
+			New:         false,
+			SenderID:    42407,
+			SenderScope: "student",
+			Type:        "text",
+			Content:     "content",
+			Name:        "name",
+			LastTime:    "16 мар. 19:26",
+			Title:       "М5 У2. Игра \"Game\". Ч. 1",
+			Link:        "/task-preview/link",
+		},
 		{
 			UID:         "33123098level1123826",
 			New:         false,
