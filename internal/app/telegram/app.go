@@ -100,6 +100,7 @@ func New(
 		r.HandleFuncCallback("\fchange_notification", callback.NewChangeNotification(storage, log))
 		r.HandleFuncCallback("\frefresh_groups", callback.RefreshGroup(groupServ, log))
 
+		r.HandleFuncRegexpCallback(regexp.MustCompile(`^\fget_creds__(.+)$`), callback.GetCreds())
 		r.HandleFuncRegexpCallback(regexp.MustCompile(`^\fclose_lesson_(.+)$`), callback.LessonStatus(boSvc, backoffice.CloseLesson, log))
 		r.HandleFuncRegexpCallback(regexp.MustCompile(`^\fopen_lesson_(.+)$`), callback.LessonStatus(boSvc, backoffice.OpenLesson, log))
 	})

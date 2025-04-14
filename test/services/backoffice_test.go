@@ -194,6 +194,42 @@ func TestBackoffice(t *testing.T) {
 			assert.ErrorIs(t, err, errExp)
 		})
 	})
+	t.Run("Creds", func(t *testing.T) {
+		ID := int64(1)
+		cookie := "cookie"
+		groupID := "id"
+		errExp := errors.New("")
+		t.Run("HappyPath", func(t *testing.T) {
+			gomock.InOrder(
+				cookieGetter.EXPECT().Cookies(ID).Return(cookie, nil).Times(1),
+				groupView.EXPECT().KidsNamesByGroup(groupID, cookie).Return(kidsNamesByGroupBackoffice, nil).Times(1),
+			)
+			creds, err := sbo.Creds(ID, groupID, "")
+			assert.NoError(t, err)
+			assert.Equal(t, []models.Credential{
+				{
+					Fullname: "Иван Иванов",
+					Login:    "ivan101",
+					Password: "securepassword123",
+				},
+			}, creds)
+		})
+		t.Run("Cookie return err", func(t *testing.T) {
+			gomock.InOrder(
+				cookieGetter.EXPECT().Cookies(ID).Return("", errExp).Times(1),
+			)
+			_, err := sbo.Creds(ID, groupID, "")
+			assert.ErrorIs(t, err, errExp)
+		})
+		t.Run("KidsNamesByGroup return err", func(t *testing.T) {
+			gomock.InOrder(
+				cookieGetter.EXPECT().Cookies(ID).Return(cookie, nil).Times(1),
+				groupView.EXPECT().KidsNamesByGroup(groupID, cookie).Return(backoffice2.NamesByGroup{}, errExp).Times(1),
+			)
+			_, err := sbo.Creds(ID, groupID, "")
+			assert.ErrorIs(t, err, errExp)
+		})
+	})
 }
 
 var KidViewBackoffice = backoffice2.KidView{
