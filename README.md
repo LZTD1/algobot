@@ -1,5 +1,5 @@
 # Algobot
-
+![ChatGPT Image 14 апр  2025 г , 16_52_57](https://github.com/user-attachments/assets/88f4e703-f451-4b45-bdd2-7fd5431cb18e)
 ## Описание
 **Алгобот** — это Telegram-бот, предназначенный для помощи в ведении учительной деятельности Алгоритмика
 
