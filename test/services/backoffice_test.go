@@ -194,7 +194,7 @@ func TestBackoffice(t *testing.T) {
 			assert.ErrorIs(t, err, errExp)
 		})
 	})
-	t.Run("Creds", func(t *testing.T) {
+	t.Run("Cred+s", func(t *testing.T) {
 		ID := int64(1)
 		cookie := "cookie"
 		groupID := "id"

@@ -64,7 +64,7 @@ func TestLessonStatus(t *testing.T) {
 		handler := callback.LessonStatus(ls, backoffice.CloseLesson, log)
 
 		gomock.InOrder(
-			mctx.EXPECT().Callback().Return(&tele.Callback{Data: "close_lesson_1_1"}),
+			mctx.EXPECT().Callback().Return(&tele.Callback{Data: "\fclose_lesson_1_1"}),
 			ls.EXPECT().SetLessonStatus(int64(1), "1", "1", backoffice.CloseLesson, "").Return(errExp).Times(1),
 		)
 
