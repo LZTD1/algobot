@@ -1,5 +1,5 @@
 *.db
 .env
-/.idea
+.idea
 config/local.yaml
 *_mock.go

@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	ErrBadCode  = errors.New("bad code")
-	ErrNotFound = errors.New("not found")
+	ErrBadCode   = errors.New("bad code")
+	Err4xxStatus = errors.New("not found")
 )
 
 type Option func(*Backoffice)
@@ -58,30 +58,35 @@ func (bo *Backoffice) doReq(req *http.Request) (*http.Response, error) {
 	const op = "backoffice.doReq"
 	log := bo.log.With(
 		slog.String("op", op),
+		slog.String("req", req.URL.String()),
 	)
 
-	var err error
+	var errChain error
 	var resp *http.Response
 
 	for i := 0; i < bo.cfg.Retries; i++ {
-		resp, err = bo.client.Do(req)
+		resp, err := bo.client.Do(req)
 		if err != nil {
 			log.Debug("error while req bo", sl.Err(err))
 			time.Sleep(bo.cfg.RetriesTimeout)
+			errChain = fmt.Errorf("%w err do req: %w", errChain, err)
 			continue
+		}
+		if resp.StatusCode >= 400 && resp.StatusCode <= 499 {
+			log.Debug("received 4xx", slog.Int("status", resp.StatusCode))
+			return nil, fmt.Errorf("%s : %w", op, Err4xxStatus)
 		}
 		if resp.StatusCode != http.StatusOK {
 			log.Debug("received not 200 OK", slog.Int("status", resp.StatusCode))
-			err = ErrBadCode
-			time.Sleep(bo.cfg.RetriesTimeout)
+			errChain = fmt.Errorf("%w bad code %d : %w", errChain, resp.StatusCode, ErrBadCode)
 			continue
 		}
 		return resp, nil
 	}
 
-	if err != nil {
-		log.Warn("error while req bo", sl.Err(err))
-		return nil, fmt.Errorf("%s error while trying send request: %w", op, err)
+	if errChain != nil {
+		log.Warn("error while req bo", sl.Err(errChain))
+		return nil, fmt.Errorf("%s error while trying send request: %w", op, errChain)
 	}
 
 	return resp, nil

@@ -32,7 +32,7 @@ func (bo *Backoffice) KidView(uid int64, kidID string, groupId string, traceID i
 
 	view, err := bo.kidViewer.KidView(kidID, cookie)
 	if err != nil {
-		if errors.Is(err, backoffice.ErrNotFound) { // TODO : maybe refactor into single request
+		if errors.Is(err, backoffice.Err4xxStatus) { // TODO : maybe refactor into single request
 			info, err := bo.kidViewer.KidsNamesByGroup(groupId, cookie)
 			if err != nil {
 				log.Warn("failed to get kids names by group", sl.Err(err))

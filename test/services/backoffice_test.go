@@ -53,7 +53,7 @@ func TestBackoffice(t *testing.T) {
 
 			gomock.InOrder(
 				cookieGetter.EXPECT().Cookies(uid).Return(cookie, nil).Times(1),
-				kidViewer.EXPECT().KidView(kidID, cookie).Return(backoffice2.KidView{}, backoffice3.ErrNotFound).Times(1),
+				kidViewer.EXPECT().KidView(kidID, cookie).Return(backoffice2.KidView{}, backoffice3.Err4xxStatus).Times(1),
 				kidViewer.EXPECT().KidsNamesByGroup(groupID, cookie).Return(kidsNamesByGroupBackoffice, nil).Times(1),
 			)
 
@@ -81,7 +81,7 @@ func TestBackoffice(t *testing.T) {
 		t.Run("KidsNamesByGroup returns err", func(t *testing.T) {
 			gomock.InOrder(
 				cookieGetter.EXPECT().Cookies(uid).Return(cookie, nil).Times(1),
-				kidViewer.EXPECT().KidView(kidID, cookie).Return(backoffice2.KidView{}, backoffice3.ErrNotFound).Times(1),
+				kidViewer.EXPECT().KidView(kidID, cookie).Return(backoffice2.KidView{}, backoffice3.Err4xxStatus).Times(1),
 				kidViewer.EXPECT().KidsNamesByGroup(groupID, cookie).Return(backoffice2.NamesByGroup{}, errExp).Times(1),
 			)
 

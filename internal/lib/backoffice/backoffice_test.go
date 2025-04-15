@@ -5,7 +5,6 @@ import (
 	"algobot/test/mocks"
 	"context"
 	"github.com/stretchr/testify/assert"
-	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -33,25 +32,48 @@ func TestRequester(t *testing.T) {
 		assert.ErrorIs(t, err, context.DeadlineExceeded)
 	})
 	t.Run("test retry not 200 OK", func(t *testing.T) {
-		counter := 0
-		server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-			counter++
-			rw.WriteHeader(rand.Intn(200) + 300)
-		}))
-		defer server.Close()
+		t.Run("if received 4xx", func(t *testing.T) {
+			calls := make([]int, 0)
+			server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+				calls = append(calls, 1)
+				rw.WriteHeader(http.StatusNotFound)
+			}))
+			defer server.Close()
 
-		bo := NewBackoffice(&config.Backoffice{
-			Retries:         5,
-			RetriesTimeout:  time.Millisecond,
-			ResponseTimeout: 100 * time.Millisecond,
-		}, WithLogger(mocks.NewMockLogger()), WithURL(server.URL))
+			bo := NewBackoffice(&config.Backoffice{
+				Retries:         5,
+				RetriesTimeout:  time.Millisecond,
+				ResponseTimeout: 100 * time.Millisecond,
+			}, WithLogger(mocks.NewMockLogger()), WithURL(server.URL))
 
-		req, _ := http.NewRequest(http.MethodGet, server.URL, nil)
-		_, err := bo.doReq(req)
+			req, _ := http.NewRequest(http.MethodGet, server.URL, nil)
+			_, err := bo.doReq(req)
 
-		assert.Error(t, err)
-		assert.Equal(t, 5, counter)
-		assert.ErrorIs(t, err, ErrBadCode)
+			assert.Error(t, err)
+			assert.Equal(t, 1, len(calls))
+			assert.ErrorIs(t, err, Err4xxStatus)
+		})
+		t.Run("if recivied not 200 OK", func(t *testing.T) {
+			calls := make([]int, 0)
+			server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+				calls = append(calls, 1)
+				rw.WriteHeader(http.StatusHTTPVersionNotSupported)
+			}))
+			defer server.Close()
+
+			bo := NewBackoffice(&config.Backoffice{
+				Retries:         5,
+				RetriesTimeout:  time.Millisecond,
+				ResponseTimeout: 100 * time.Millisecond,
+			}, WithLogger(mocks.NewMockLogger()), WithURL(server.URL))
+
+			req, _ := http.NewRequest(http.MethodGet, server.URL, nil)
+			_, err := bo.doReq(req)
+
+			assert.Error(t, err)
+			assert.Equal(t, 5, len(calls))
+			assert.ErrorIs(t, err, ErrBadCode)
+		})
 	})
 	t.Run("test retries count", func(t *testing.T) {
 		counter := 0
