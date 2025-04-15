@@ -60,8 +60,8 @@ github.com/BurntSushi/toml v1.5.0 h1:W5quZX/G/csjUnuI8SUYlsHs9M38FC7znL0lIO+DvMg
 github.com/BurntSushi/toml v1.5.0/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2lLoLwho=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
-github.com/LZTD1/telebot-context-router v1.1.0 h1:WCdHvW+dcgGU0NBWIq3Cc6X++UeWQ4BzQ6tr3AdHxfI=
-github.com/LZTD1/telebot-context-router v1.1.0/go.mod h1:9A7AdlYAjrjNy6bnvB8MTl1UK8jNakfNAPKigTcgjU8=
+github.com/LZTD1/telebot-context-router v1.2.0 h1:PcnWo/D/sEh8souClr04gU60z+c3jji5wNhL4VV0eCU=
+github.com/LZTD1/telebot-context-router v1.2.0/go.mod h1:9A7AdlYAjrjNy6bnvB8MTl1UK8jNakfNAPKigTcgjU8=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/PuerkitoBio/goquery v1.10.2 h1:7fh2BdHcG6VFZsK7toXBT/Bh1z5Wmy8Q9MV9HqT2AM8=
 github.com/PuerkitoBio/goquery v1.10.2/go.mod h1:0guWGjcLu9AYC7C1GHnpysHy056u9aEkUHwhdnePMCU=

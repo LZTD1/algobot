@@ -3,7 +3,7 @@ module algobot
 go 1.23.3
 
 require (
-	github.com/LZTD1/telebot-context-router v1.1.0
+	github.com/LZTD1/telebot-context-router v1.2.0
 	github.com/PuerkitoBio/goquery v1.10.2
 	github.com/google/uuid v1.6.0
 	github.com/ilyakaznacheev/cleanenv v1.5.0
