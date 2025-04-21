@@ -105,10 +105,12 @@ func (g *Group) CurrentGroup(uid int64, time time.Time, traceID interface{}) (mo
 func split(m *models.CurrentGroup, kids map[int]models.MissingKid) {
 	m.MissingKids = make([]models.MissingKid, 0, len(kids))
 	for _, kid := range kids {
-		if kid.Count != 0 && strings.TrimSpace(kid.Fullname) != "" {
-			m.MissingKids = append(m.MissingKids, kid)
+		if strings.TrimSpace(kid.Fullname) != "" {
+			if kid.Count != 0 {
+				m.MissingKids = append(m.MissingKids, kid)
+			}
+			m.Kids = append(m.Kids, kid.Fullname)
 		}
-		m.Kids = append(m.Kids, kid.Fullname)
 	}
 }
 
