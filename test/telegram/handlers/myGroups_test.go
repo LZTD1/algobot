@@ -57,7 +57,7 @@ func TestMyGroups(t *testing.T) {
 		gomock.InOrder(
 			mctx.EXPECT().Sender().Return(&tele.User{ID: 1}).Times(1),
 			grouper.EXPECT().Groups(int64(1), "trace_id").Return([]models.Group{}, nil).Times(1),
-			mctx.EXPECT().Send("Всего групп: 0\nПопробуйте обновить группы!", tele.ModeMarkdown, keyboards.RefreshGroups()).Return(nil).Times(1),
+			mctx.EXPECT().Send("Всего групп: 0\nПопробуйте обновить группы!", tele.ModeMarkdown, tele.NoPreview, keyboards.RefreshGroups()).Return(nil).Times(1),
 		)
 
 		err := handler.ServeContext(mctx)
