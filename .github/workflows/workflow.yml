@@ -39,3 +39,4 @@ jobs:
             ./cmd/migrator/migrator.exe
             ./cmd/algobot/algobot.exe
             ./config/dev.yaml
+            ./migrations
