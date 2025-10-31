@@ -36,7 +36,14 @@ type App struct {
 	bot *tele.Bot
 }
 
-func New(log *slog.Logger, cfg *config.Config, storage *sqlite.Sqlite, bo *backoffice3.Backoffice, boSvc *backoffice.Backoffice, messages chan scheduler.Message) *App {
+func New(
+	log *slog.Logger,
+	cfg *config.Config,
+	storage *sqlite.Sqlite,
+	bo *backoffice3.Backoffice,
+	boSvc *backoffice.Backoffice,
+	messages chan scheduler.Message,
+) *App {
 	const op = "telegram.New"
 
 	nlog := log.With(
@@ -50,6 +57,7 @@ func New(log *slog.Logger, cfg *config.Config, storage *sqlite.Sqlite, bo *backo
 		},
 		OnError: func(e error, c tele.Context) { // TODO : refactor into handler
 			traceID := c.Get("trace_id")
+			c.Delete()
 			c.Send(fmt.Sprintf("<b>[%s]</b>\n\nУпс! Произошла какая-то непредвиденная ошибка!\nОбратитесь к администратору", traceID), tele.ModeHTML)
 			log.Warn("cant handle error", sl.Err(e), slog.Any("trace_id", traceID))
 		},

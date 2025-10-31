@@ -5,8 +5,9 @@ import (
 	"algobot/internal/services/groups"
 	"errors"
 	"fmt"
-	"gopkg.in/telebot.v4"
 	"log/slog"
+
+	"gopkg.in/telebot.v4"
 )
 
 type GroupRefresher interface {
@@ -15,7 +16,7 @@ type GroupRefresher interface {
 
 func RefreshGroup(refresher GroupRefresher, log *slog.Logger) telebot.HandlerFunc {
 	return func(ctx telebot.Context) error {
-		const op = "callback.NewChangeNotification"
+		const op = "callback.RefreshGroup"
 
 		traceID := ctx.Get("trace_id")
 		log := log.With(
@@ -31,7 +32,10 @@ func RefreshGroup(refresher GroupRefresher, log *slog.Logger) telebot.HandlerFun
 
 		if err := refresher.RefreshGroup(uid, traceID); err != nil {
 			if errors.Is(err, groups.ErrNoGroups) {
-				return ctx.Edit("У вас не нашлось ни 1 группы!\nПроверьте ваши cookie")
+				return ctx.Edit("Не найдено ни 1 группы!\nВозможно, проблема в актуальности cookie!")
+			}
+			if errors.Is(err, groups.ErrNotValidCookie) {
+				return ctx.Edit("У вас не валидные cookie!")
 			}
 			log.Warn("error while refreshing group", sl.Err(err))
 			return fmt.Errorf("%s error while refreshing group: %w", op, err)
