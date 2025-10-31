@@ -21,13 +21,14 @@ import (
 	"algobot/internal/telegram/middleware/stater"
 	"algobot/internal/telegram/middleware/trace"
 	"fmt"
-	router "github.com/LZTD1/telebot-context-router"
-	tele "gopkg.in/telebot.v4"
-	"gopkg.in/telebot.v4/middleware"
 	"log/slog"
 	"os"
 	"regexp"
 	"time"
+
+	router "github.com/LZTD1/telebot-context-router"
+	tele "gopkg.in/telebot.v4"
+	"gopkg.in/telebot.v4/middleware"
 )
 
 type App struct {
@@ -86,7 +87,7 @@ func New(log *slog.Logger, cfg *config.Config, storage *sqlite.Sqlite, bo *backo
 		// message
 		r.HandleFuncText("/start", text.NewStart(stateMachine))
 		r.HandleFuncText("Настройки", text.NewSettings(storage, log))
-		r.HandleFuncText("AI 🔹", text.NewAI(grpc, log, stateMachine))
+		//r.HandleFuncText("AI 🔹", text.NewAI(grpc, log, stateMachine)) currently unavailable
 		r.HandleText("Мои группы", text.NewMyGroup(log, groupServ, serdes, b.Me.Username))
 		r.HandleFuncText("Получить отсутсвующих", text.NewMissingKids(log, groupServ))
 		r.HandleFuncRegexpText(regexp.MustCompile(`^(?m)\/abs(.*)$`), text.NewAbsentKids(groupServ, log))

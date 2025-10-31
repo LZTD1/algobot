@@ -8,12 +8,10 @@ func Start() *tele.ReplyMarkup {
 	missing := startKb.Text("Получить отсутсвующих")
 	myGroups := startKb.Text("Мои группы")
 	settings := startKb.Text("Настройки")
-	ai := startKb.Text("AI 🔹")
 
 	startKb.Reply(
 		startKb.Row(missing),
 		startKb.Row(myGroups, settings),
-		startKb.Row(ai),
 	)
 
 	return startKb
