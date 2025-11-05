@@ -6,10 +6,11 @@ import (
 	"algobot/internal/services/groups"
 	"errors"
 	"fmt"
-	"gopkg.in/telebot.v4"
 	"log/slog"
 	"strings"
 	"time"
+
+	"gopkg.in/telebot.v4"
 )
 
 func NewAbsentKids(actualGroup ActualGroup, log *slog.Logger) telebot.HandlerFunc {
@@ -27,7 +28,21 @@ func NewAbsentKids(actualGroup ActualGroup, log *slog.Logger) telebot.HandlerFun
 
 		date, err := time.Parse("2006-01-02 15:04", data)
 		if err != nil {
-			return ctx.Reply("Не удалось распарсить дату, пожалуйста, введите дату в формате YYYY-MM-DD HH:MM")
+			t, err2 := time.Parse("15:04", data)
+			if err2 != nil {
+				return ctx.Reply("Не удалось распарсить дату, пожалуйста, введите дату в формате YYYY-MM-DD HH:MM\nИли дату за сегодняшний день в формате HH:MM")
+			}
+
+			now := time.Now()
+			date = time.Date(
+				now.Year(),
+				now.Month(),
+				now.Day(),
+				t.Hour(),
+				t.Minute(),
+				0, 0,
+				now.Location(),
+			)
 		}
 
 		group, err := actualGroup.CurrentGroup(uid, date, traceID)

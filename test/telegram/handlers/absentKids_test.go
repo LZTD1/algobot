@@ -9,10 +9,12 @@ import (
 	mocks2 "algobot/test/mocks/telegram"
 	mocks "algobot/test/mocks/telegram/handlers"
 	"errors"
+	"testing"
+	"time"
+
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 	tele "gopkg.in/telebot.v4"
-	"testing"
 )
 
 func TestNewAbsentKids(t *testing.T) {
@@ -27,9 +29,19 @@ func TestNewAbsentKids(t *testing.T) {
 
 	mctx.EXPECT().Get(gomock.Any()).Return("").AnyTimes()
 	mctx.EXPECT().Sender().Return(&tele.User{ID: 1}).AnyTimes()
-	t.Run("Happy path", func(t *testing.T) {
+	t.Run("Happy path with full date", func(t *testing.T) {
 		mctx.EXPECT().Message().Return(&tele.Message{Text: "/abs 2025-04-06 14:44"}).Times(1)
-		agroup.EXPECT().CurrentGroup(int64(1), gomock.Any(), "").Return(grAsset, nil).Times(1)
+		agroup.EXPECT().CurrentGroup(int64(1), time.Date(2025, 4, 6, 14, 44, 0, 0, time.UTC), "").Return(grAsset, nil).Times(1)
+		mctx.EXPECT().Reply("Группа: title\nЛекция: lesson\n\nОбщее число детей: 3\nОтсутствуют: 2\n\n```Отсутствующие\n1 (Уже 2 занятие)\n1\n```", keyboards.MissingKids(1, 1), tele.ModeMarkdown).Times(1)
+
+		err := handler(mctx)
+		assert.NoError(t, err)
+	})
+	t.Run("Happy path with only HH:MM", func(t *testing.T) {
+		mctx.EXPECT().Message().Return(&tele.Message{Text: "/abs 14:44"}).Times(1)
+		now := time.Now()
+		loc := now.Location()
+		agroup.EXPECT().CurrentGroup(int64(1), time.Date(now.Year(), now.Month(), now.Day(), 14, 44, 0, 0, loc), "").Return(grAsset, nil).Times(1)
 		mctx.EXPECT().Reply("Группа: title\nЛекция: lesson\n\nОбщее число детей: 3\nОтсутствуют: 2\n\n```Отсутствующие\n1 (Уже 2 занятие)\n1\n```", keyboards.MissingKids(1, 1), tele.ModeMarkdown).Times(1)
 
 		err := handler(mctx)
@@ -37,7 +49,7 @@ func TestNewAbsentKids(t *testing.T) {
 	})
 	t.Run("Wrong date", func(t *testing.T) {
 		mctx.EXPECT().Message().Return(&tele.Message{Text: "/abs 212344"}).Times(1)
-		mctx.EXPECT().Reply("Не удалось распарсить дату, пожалуйста, введите дату в формате YYYY-MM-DD HH:MM").Times(1)
+		mctx.EXPECT().Reply("Не удалось распарсить дату, пожалуйста, введите дату в формате YYYY-MM-DD HH:MM\nИли дату за сегодняшний день в формате HH:MM").Times(1)
 
 		err := handler(mctx)
 		assert.NoError(t, err)
